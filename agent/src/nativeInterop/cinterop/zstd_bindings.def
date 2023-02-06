@@ -1,0 +1,10 @@
+package = com.epam.drill.zstd.gen
+headers = zstd.h
+compilerOpts = -std=c99
+compilerOpts.mingw_x64 = -DMINGW
+staticLibraries.linux = libzstd.a
+staticLibraries.mingw = libzstd_static.lib
+staticLibraries.osx = libzstd.a
+libraryPaths.linux = src/nativeInterop/cinterop/linuxX64
+libraryPaths.mingw = src/nativeInterop/cinterop/mingwX64
+libraryPaths.osx = src/nativeInterop/cinterop/macosX64

@@ -1,0 +1,70 @@
+package = com.epam.drill.websocket.gen
+headers = libwebsockets.h
+compilerOpts = -std=c99
+compilerOpts.mingw_x64 = -DMINGW
+staticLibraries.linux = libwebsockets-linuxX64.a
+staticLibraries.mingw = libwebsockets-mingwX64.a
+staticLibraries.osx = libwebsockets-macosX64.a
+libraryPaths.linux = src/nativeInterop/cinterop/linuxX64
+libraryPaths.mingw = src/nativeInterop/cinterop/mingwX64
+libraryPaths.osx = src/nativeInterop/cinterop/macosX64
+
+---
+
+#include <libwebsockets.h>
+#include <string.h>
+#include <signal.h>
+
+static int interrupted;
+
+static void sigint_handler(int sig) {
+    lwsl_user("Something terrible happened \n");
+	interrupted = 1;
+}
+
+
+char* omg(char* bf, int len) {
+    char *array = malloc(len * sizeof(char));
+    memcpy(array,bf,len);
+return array;
+}
+
+void fr(char* bf){
+free(bf);
+}
+
+int addHeader(struct lws *wsi, void *in, size_t len, const unsigned char *name, const unsigned char *value, int valueLength){
+      unsigned char **p = (unsigned char **)in, *end = (*p) + len;
+        if (lws_add_http_header_by_name(wsi, name,value, valueLength, p, end))
+        	return 1;
+         else
+            return 0;
+}
+
+struct lws_context * createContext(int bufsize, struct lws_protocols proto) {
+int n, logs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE |LLL_INFO |LLL_DEBUG |LLL_CLIENT |LLL_HEADER|LLL_PARSER
+			/* for LLL_ verbosity above NOTICE to be built into lws,
+			 * lws must have been configured and built with
+			 * -DCMAKE_BUILD_TYPE=DEBUG instead of =RELEASE */
+			/* | LLL_INFO */ /* | LLL_PARSER */ /* | LLL_HEADER */
+			/* | LLL_EXT */ /* | LLL_CLIENT */ /* | LLL_LATENCY */
+			/* | LLL_DEBUG */;
+    // lws_set_log_level(logs, NULL);
+    struct lws_context_creation_info info;
+
+	signal(SIGINT, sigint_handler);
+	// signal(SIGABRT, sigint_handler);
+	// signal(SIGSEGV, sigint_handler);
+	memset(&info, 0, sizeof info);
+
+    struct lws_protocols protocols[] = {
+        proto,
+    	{ NULL, NULL, 0, 0 }
+    };
+    info.protocols = protocols;
+    info.pt_serv_buf_size = bufsize;
+    info.port = CONTEXT_PORT_NO_LISTEN; /* we do not run any server */
+    info.fd_limit_per_thread = 1 + 1 + 1;
+   // info.options |= LWS_SERVER_OPTION_GLIB;
+	return lws_create_context(&info);
+}
