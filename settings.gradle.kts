@@ -1,4 +1,4 @@
-rootProject.name = "shared-libs"
+rootProject.name = "lib-jvm-shared"
 
 pluginManagement {
     val kotlinVersion: String by extra
