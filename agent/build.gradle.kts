@@ -65,7 +65,6 @@ kotlin {
                 implementation(project(":logger"))
                 implementation(project(":common"))
                 implementation(project(":transport"))
-                implementation(project(":interceptor-http"))
                 implementation(project(":plugin-api-agent"))
             }
         }
