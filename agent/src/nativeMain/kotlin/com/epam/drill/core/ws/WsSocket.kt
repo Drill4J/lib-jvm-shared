@@ -18,6 +18,7 @@ package com.epam.drill.core.ws
 import com.benasher44.uuid.*
 import com.epam.drill.*
 import com.epam.drill.common.*
+import com.epam.drill.core.time.*
 import com.epam.drill.logger.*
 import com.epam.drill.transport.*
 import com.epam.drill.transport.common.ws.*
@@ -27,7 +28,6 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import kotlinx.serialization.protobuf.*
 import kotlin.coroutines.*
-import kotlin.time.*
 
 @SharedImmutable
 private val wsLogger = Logging.logger("DrillWebsocket")
