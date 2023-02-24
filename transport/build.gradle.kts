@@ -34,7 +34,6 @@ kotlin {
         all {
             languageSettings.optIn("kotlin.ExperimentalStdlibApi")
             languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
             languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
         }
         val commonMain by getting {

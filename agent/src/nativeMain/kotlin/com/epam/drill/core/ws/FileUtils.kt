@@ -302,18 +302,18 @@ suspend fun <T, R> executeInWorker(worker: Worker, value: T, func: (T) -> R): R 
 
     val info = Info(value.freeze(), func.freeze())
     val future =
-        worker.execute(kotlin.native.concurrent.TransferMode.UNSAFE, { info }, { it: Info -> it.func(it.value) })
+        worker.execute(TransferMode.UNSAFE, { info }, { it: Info -> it.func(it.value) })
     return future.await()
 }
 
-suspend fun <T> kotlin.native.concurrent.Future<T>.await(): T {
-    var n = 0
-    while (this.state != kotlin.native.concurrent.FutureState.COMPUTED) {
+suspend fun <T> Future<T>.await(): T {
+    var n: Long = 0
+    while (this.state != FutureState.COMPUTED) {
         when (this.state) {
-            kotlin.native.concurrent.FutureState.INVALID -> error("Error in worker")
-            kotlin.native.concurrent.FutureState.CANCELLED -> throw CancellationException("cancelled")
-            kotlin.native.concurrent.FutureState.THROWN -> error("Worker thrown exception")
-            else -> kotlinx.coroutines.delay(((n++).toDouble() / 3.0).toLong())
+            FutureState.INVALID -> error("Error in worker")
+            FutureState.CANCELLED -> throw CancellationException("cancelled")
+            FutureState.THROWN -> error("Worker thrown exception")
+            else -> delay(n++ / 3)
         }
     }
     return this.result
