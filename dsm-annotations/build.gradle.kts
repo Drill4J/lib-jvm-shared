@@ -1,13 +1,17 @@
 import java.net.URI
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import com.hierynomus.gradle.license.tasks.LicenseCheck
 import com.hierynomus.gradle.license.tasks.LicenseFormat
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.serialization")
     id("com.github.hierynomus.license")
 }
 
-group = "com.epam.drill.interceptor"
+group = "com.epam.drill.dsm"
+
+val kotlinxSerializationVersion: String by parent!!.extra
 
 repositories {
     mavenLocal()
@@ -16,6 +20,7 @@ repositories {
 
 kotlin {
     targets {
+        jvm()
         linuxX64()
         mingwX64()
         macosX64()
@@ -23,25 +28,19 @@ kotlin {
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
         all {
-            languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
-            languageSettings.optIn("io.ktor.utils.io.core.ExperimentalIoApi")
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
-        val commonMain by getting
-        val commonNative by creating {
-            dependsOn(commonMain)
+        val commonMain by getting {
             dependencies {
-                implementation(project(":drill-hook"))
-                implementation(project(":logger"))
+                implementation(kotlin("stdlib-common"))
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
             }
         }
-        val linuxX64Main by getting {
-            dependsOn(commonNative)
-        }
-        val mingwX64Main by getting {
-            dependsOn(commonNative)
-        }
-        val macosX64Main by getting {
-            dependsOn(commonNative)
+    }
+    @Suppress("UNUSED_VARIABLE")
+    tasks {
+        withType(KotlinCompile::class) {
+            kotlinOptions.jvmTarget = "1.8"
         }
     }
 }
