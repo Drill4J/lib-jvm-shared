@@ -39,8 +39,7 @@ dependencies {
     testImplementation(kotlin("test-junit"))
 }
 
-val fatJarClassName = "com.epam.drill.ts.kt2dts.cli.MainKt"
-val fatJarName = project.name
+val jarMainClassName = "com.epam.drill.ts.kt2dts.cli.MainKt"
 
 @Suppress("UNUSED_VARIABLE")
 tasks {
@@ -49,8 +48,8 @@ tasks {
         archiveClassifier.set("sources")
     }
     val fatJar by registering(Jar::class) {
-        archiveBaseName.set(fatJarName)
-        manifest.attributes["Main-Class"] = fatJarClassName
+        archiveBaseName.set("${project.name}-runtime")
+        manifest.attributes["Main-Class"] = jarMainClassName
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         from(
             sourceSets.main.get().output,
@@ -61,7 +60,7 @@ tasks {
 }
 
 application {
-    mainClass.set(fatJarClassName)
+    mainClass.set(jarMainClassName)
 }
 
 @Suppress("UNUSED_VARIABLE")
