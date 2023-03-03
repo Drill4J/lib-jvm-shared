@@ -52,12 +52,12 @@ dependencies {
 }
 
 tasks {
-    withType(KotlinCompile::class) {
-        kotlinOptions.jvmTarget = "1.8"
-    }
     test {
         useJUnitPlatform()
         systemProperty("plugin.feature.drealtime", false)
+    }
+    withType(KotlinCompile::class) {
+        kotlinOptions.jvmTarget = "1.8"
     }
 }
 

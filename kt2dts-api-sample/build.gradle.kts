@@ -1,15 +1,14 @@
 import java.net.URI
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import com.hierynomus.gradle.license.tasks.LicenseCheck
 import com.hierynomus.gradle.license.tasks.LicenseFormat
 
 plugins {
-    kotlin("multiplatform")
+    kotlin("jvm")
     kotlin("plugin.serialization")
     id("com.github.hierynomus.license")
 }
 
-group = "com.epam.drill.dsm"
+group = "com.epam.drill.ts"
 
 val kotlinxSerializationVersion: String by parent!!.extra
 
@@ -18,31 +17,23 @@ repositories {
     mavenCentral()
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
 kotlin {
-    targets {
-        jvm()
-        linuxX64()
-        mingwX64()
-        macosX64()
+    target.compilations.all {
+        kotlinOptions.jvmTarget = "${JavaVersion.VERSION_1_8}"
     }
-    @Suppress("UNUSED_VARIABLE")
-    sourceSets {
-        all {
-            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
-        }
-        val commonMain by getting {
-            dependencies {
-                implementation(kotlin("stdlib-common"))
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
-            }
-        }
+    sourceSets.all {
+        languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+        languageSettings.optIn("kotlinx.serialization.InternalSerializationApi")
     }
 }
 
-tasks {
-    withType(KotlinCompile::class) {
-        kotlinOptions.jvmTarget = "1.8"
-    }
+dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
 }
 
 @Suppress("UNUSED_VARIABLE")
