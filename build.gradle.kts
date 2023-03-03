@@ -1,6 +1,8 @@
+@Suppress("RemoveRedundantBackticks")
 plugins {
     `java-gradle-plugin`
     `maven-publish`
+    `application`
     `kotlin-dsl-base`.apply(false)
     `kotlin-dsl`.apply(false)
     kotlin("jvm").apply(false)
