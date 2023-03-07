@@ -20,9 +20,9 @@ kotlin {
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        val commonMain by getting {
+        val jvmMain by getting {
             dependencies {
-                implementation(kotlin("stdlib-common"))
+                implementation(kotlin("stdlib-jdk8"))
             }
         }
     }
