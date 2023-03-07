@@ -18,6 +18,14 @@ kotlin {
     targets {
         jvm()
     }
+    @Suppress("UNUSED_VARIABLE")
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(kotlin("stdlib-common"))
+            }
+        }
+    }
 }
 
 @Suppress("UNUSED_VARIABLE")
