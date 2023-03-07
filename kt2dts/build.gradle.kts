@@ -41,6 +41,7 @@ dependencies {
     testImplementation(project(":kt2dts-api-sample"))
 }
 
+@Suppress("UNUSED_VARIABLE")
 tasks {
     val sourcesJar by registering(Jar::class) {
         from(sourceSets.main.get().allSource)

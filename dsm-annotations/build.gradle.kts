@@ -37,11 +37,11 @@ kotlin {
             }
         }
     }
-    @Suppress("UNUSED_VARIABLE")
-    tasks {
-        withType(KotlinCompile::class) {
-            kotlinOptions.jvmTarget = "1.8"
-        }
+}
+
+tasks {
+    withType(KotlinCompile::class) {
+        kotlinOptions.jvmTarget = "1.8"
     }
 }
 
