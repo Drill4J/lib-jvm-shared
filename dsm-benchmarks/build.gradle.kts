@@ -25,16 +25,12 @@ repositories {
     mavenCentral()
 }
 
-kotlin {
-    sourceSets {
-        all {
-            languageSettings.optIn("kotlin.Experimental")
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
-            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
-            languageSettings.optIn("kotlinx.serialization.ImplicitReflectionSerializer")
-            languageSettings.optIn("kotlinx.serialization.InternalSerializationApi")
-        }
-    }
+kotlin.sourceSets.all {
+    languageSettings.optIn("kotlin.Experimental")
+    languageSettings.optIn("kotlin.time.ExperimentalTime")
+    languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+    languageSettings.optIn("kotlinx.serialization.ImplicitReflectionSerializer")
+    languageSettings.optIn("kotlinx.serialization.InternalSerializationApi")
 }
 
 dependencies {

@@ -1,5 +1,4 @@
 plugins {
-    `java-gradle-plugin`
     kotlin("jvm").apply(false)
     kotlin("multiplatform").apply(false)
     id("com.github.hierynomus.license").apply(false)

@@ -18,6 +18,14 @@ kotlin {
     targets {
         jvm()
     }
+    @Suppress("UNUSED_VARIABLE")
+    sourceSets {
+        val jvmMain by getting {
+            dependencies {
+                implementation(kotlin("stdlib-jdk8"))
+            }
+        }
+    }
 }
 
 @Suppress("UNUSED_VARIABLE")

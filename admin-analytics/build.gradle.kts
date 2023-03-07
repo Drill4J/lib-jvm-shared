@@ -22,6 +22,7 @@ repositories {
 }
 
 java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
@@ -42,6 +43,15 @@ dependencies {
     testRuntimeOnly("io.github.microutils:kotlin-logging-jvm:$microutilsLoggingVersion")
 }
 
+kotlin.sourceSets.all {
+    languageSettings.optIn("kotlin.Experimental")
+    languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+    languageSettings.optIn("kotlin.time.ExperimentalTime")
+    languageSettings.optIn("kotlinx.coroutines.DelicateCoroutinesApi")
+    languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
+    languageSettings.optIn("io.ktor.util.InternalAPI")
+}
+
 @Suppress("UNUSED_VARIABLE")
 tasks {
     test {
@@ -49,12 +59,6 @@ tasks {
     }
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
-        kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.Experimental"
-        kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.ExperimentalStdlibApi"
-        kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.time.ExperimentalTime"
-        kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlinx.coroutines.DelicateCoroutinesApi"
-        kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
-        kotlinOptions.freeCompilerArgs += "-Xopt-in=io.ktor.util.InternalAPI"
     }
     val sourcesJar by registering(Jar::class) {
         from(sourceSets.main.get().allSource)
