@@ -10,6 +10,7 @@ plugins {
     kotlin("plugin.allopen").apply(false)
     kotlin("plugin.noarg").apply(false)
     kotlin("plugin.serialization").apply(false)
+    id("kotlinx-atomicfu").apply(false)
     id("org.jetbrains.kotlinx.benchmark").apply(false)
     id("io.github.gradle-nexus.publish-plugin")
     id("com.github.hierynomus.license").apply(false)
