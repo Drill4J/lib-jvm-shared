@@ -29,6 +29,11 @@ kotlin {
                 api(project(":logger-api"))
             }
         }
+        val jvmMain by getting {
+            dependencies {
+                implementation(kotlin("stdlib-jdk8"))
+            }
+        }
     }
 }
 
