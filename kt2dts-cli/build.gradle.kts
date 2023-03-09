@@ -53,7 +53,7 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         from(
             sourceSets.main.get().output,
-            configurations.runtimeClasspath.get().resolve().map { if (it.isFile) zipTree(it) else it }
+            configurations.runtimeClasspath.get().resolve().map(::zipTree)
         )
     }
     test.get().dependsOn(project(":kt2dts-api-sample").tasks.jar)
