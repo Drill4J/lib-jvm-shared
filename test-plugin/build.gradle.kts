@@ -2,6 +2,8 @@ plugins {
     distribution
 }
 
+group = "com.epam.drill"
+
 distributions {
     main.get().contents {
         from(
