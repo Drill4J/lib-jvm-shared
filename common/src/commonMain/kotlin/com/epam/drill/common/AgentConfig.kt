@@ -28,6 +28,7 @@ data class AgentConfig(
     val needSync: Boolean = true,
     val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
     val parameters: Map<String, AgentParameter> = emptyMap(),
+    val envId: String,
 )
 
 @Serializable
