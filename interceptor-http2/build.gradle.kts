@@ -20,6 +20,7 @@ kotlin {
         mingwX64()
         macosX64()
     }
+    @Suppress("UNUSED_VARIABLE")
     sourceSets {
         all {
             languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
