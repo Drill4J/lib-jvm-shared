@@ -26,6 +26,7 @@ data class AgentConfig(
     val agentType: AgentType,
     val agentVersion: String = "",
     val needSync: Boolean = true,
+    val autoRegister: Boolean = true,
     val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
     val parameters: Map<String, AgentParameter> = emptyMap(),
     val envId: String,
