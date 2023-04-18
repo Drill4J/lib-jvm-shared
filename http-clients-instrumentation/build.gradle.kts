@@ -1,5 +1,5 @@
-import com.epam.drill.kni.gradle.jvmTargets
 import java.net.URI
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
@@ -15,6 +15,10 @@ plugins {
 }
 
 group = "com.epam.drill"
+version = Properties().run {
+    projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
+    getProperty("version.$name") ?: Project.DEFAULT_VERSION
+}
 
 val javassistVersion: String by parent!!.extra
 

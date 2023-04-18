@@ -1,4 +1,5 @@
 import java.net.URI
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 import com.hierynomus.gradle.license.tasks.LicenseCheck
 import com.hierynomus.gradle.license.tasks.LicenseFormat
@@ -9,6 +10,10 @@ plugins {
 }
 
 group = "com.epam.drill.logger"
+version = Properties().run {
+    projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
+    getProperty("version.$name") ?: Project.DEFAULT_VERSION
+}
 
 val ktorVersion: String by parent!!.extra
 val loggerSkipJvmTests: String by parent!!.extra

@@ -1,3 +1,4 @@
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 plugins {
@@ -5,6 +6,10 @@ plugins {
 }
 
 group = "com.epam.drill.knasm"
+version = Properties().run {
+    projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
+    getProperty("version.$name") ?: Project.DEFAULT_VERSION
+}
 
 repositories {
     mavenLocal()
