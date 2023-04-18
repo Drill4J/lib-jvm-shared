@@ -1,4 +1,5 @@
 import java.net.URI
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinNativeTargetPreset
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
@@ -15,6 +16,10 @@ plugins {
 }
 
 group = "com.epam.drill.interceptor"
+version = Properties().run {
+    projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
+    getProperty("version.$name") ?: Project.DEFAULT_VERSION
+}
 
 repositories {
     mavenLocal()

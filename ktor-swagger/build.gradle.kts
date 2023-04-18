@@ -1,3 +1,5 @@
+import java.util.Properties
+
 @Suppress("RemoveRedundantBackticks")
 plugins {
     `java-library`
@@ -6,6 +8,10 @@ plugins {
 }
 
 group = "com.epam.drill.ktor"
+version = Properties().run {
+    projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
+    getProperty("version.$name") ?: Project.DEFAULT_VERSION
+}
 
 val ktorVersion: String by parent!!.extra
 val webjarsSwaggerUiVersion: String by parent!!.extra
