@@ -29,7 +29,7 @@ data class AgentConfig(
     val autoRegister: Boolean = true,
     val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
     val parameters: Map<String, AgentParameter> = emptyMap(),
-    val envId: String,
+    val envId: String = "",
 )
 
 @Serializable
