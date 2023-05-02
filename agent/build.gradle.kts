@@ -7,8 +7,9 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("com.github.hierynomus.license")
+    `maven-publish`
 }
-
+version = "0.8.0-12"
 group = "com.epam.drill.agent"
 
 val kotlinxCollectionsVersion: String by parent!!.extra

@@ -5,8 +5,9 @@ import com.hierynomus.gradle.license.tasks.LicenseFormat
 plugins {
     kotlin("multiplatform")
     id("com.github.hierynomus.license")
+    `maven-publish`
 }
-
+version = "0.8.0-12"
 group = "com.epam.drill"
 
 repositories {
