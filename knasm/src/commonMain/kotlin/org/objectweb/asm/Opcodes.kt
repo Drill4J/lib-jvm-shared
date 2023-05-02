@@ -43,12 +43,12 @@ package org.objectweb.asm
 interface Opcodes {
     companion object {
         // ASM API versions.
-        const val ASM4 = 4 shl 16 or 0 shl 8
-        const val ASM5 = 5 shl 16 or 0 shl 8
-        const val ASM6 = 6 shl 16 or 0 shl 8
-        const val ASM7 = 7 shl 16 or 0 shl 8
-        const val ASM8 = 8 shl 16 or 0 shl 8
-        const val ASM9 = 9 shl 16 or 0 shl 8
+        const val ASM4 = 4 shl 16 or (0 shl 8)
+        const val ASM5 = 5 shl 16 or (0 shl 8)
+        const val ASM6 = 6 shl 16 or (0 shl 8)
+        const val ASM7 = 7 shl 16 or (0 shl 8)
+        const val ASM8 = 8 shl 16 or (0 shl 8)
+        const val ASM9 = 9 shl 16 or (0 shl 8)
 
         /**
          * *Experimental, use at your own risk. This field will be renamed when it becomes stable, this
