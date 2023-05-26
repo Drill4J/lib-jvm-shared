@@ -11,8 +11,7 @@ describing schemas.
 
 ### Jsonb table
 
-add @Serializable and @Id to data classes
-
+Add @Serializable and @Id to data classes:
 ```kotlin
 @Serializable
 data class SimpleObject(
@@ -26,8 +25,7 @@ data class SimpleObject(
 data class Last(val string: Byte)
 ```
 
-storing
-
+Storing:
 ```kotlin
 val agentStore = StoreClient("schema_name")
 val simpleObject = SimpleObject("id", "subStr", 12, Last(2.toByte()))
@@ -36,13 +34,11 @@ agentStore.store(simpleObject)
 
 [see full code example](src/test/kotlin/DsmCoreTest.kt)
 
-in DB will create table 'simple_object' in schema 'schema_name' with fields:
-
-- id varchar(256) - hash of the object
-- json_body jsonb
+In DB will create table 'simple_object' in schema 'schema_name' with fields:
+- id varchar(256): hash of the object
+- json_body: jsonb
 
 Example jsonb:
-
 ```json
 {
   "id": "id_1",
@@ -56,9 +52,8 @@ Example jsonb:
 
 ### Binarya table
 
-1) add @Serializable and @Id to data classes
-2) add @Serializable(with = BinarySerializer::class) for ByteArray
-
+1) Add @Serializable and @Id to data classes
+2) Add @Serializable(with = BinarySerializer::class) for ByteArray
 ```kotlin
 @Serializable
 data class BinaryClass(
@@ -73,25 +68,20 @@ data class BinaryClass(
 [see full code example](src/test/kotlin/BinaryTest.kt)
 
 It will create two tables :
-
 1) 'binary_class' with fields id & json_body. Example jsonb:
-
 ```json
 {
   "id": "id_1",
   "data": "randomUUID"
 }
 ```
-
 2) 'binarya' with fields:
-
-- id - value of randomUUID from 'binary_class'
-- binarya - data
+- id: value of randomUUID from 'binary_class'
+- binarya: data
 
 ### Collections Storing
 
 Classes with collections, for example:
-
 ```kotlin
 @Serializable
 data class ObjectWithList(
@@ -110,11 +100,7 @@ data class Data(
 [see code example](src/test/kotlin/StoreCollections.kt)
 
 It will create two tables:
-
-1) object_with_list
-
-   Where instead of a collection from Data there will be keys from another table with Data
-
+1) object_with_list, where instead of a collection from Data there will be keys from another table with Data:
 ```json
 {
   "id": "f9baa088-736f-488d-8f3f-a4df3c3eed29",
@@ -132,11 +118,4 @@ It will create two tables:
   ]
 }
 ```
-
-2) data
-
-   Each item in the Data collection will be in a separate row in the table
-
-# Local
-
-For run tests you need to start Docker 
+2) data, each item in the Data collection will be in a separate row in the table

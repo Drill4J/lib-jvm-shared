@@ -1,4 +1,4 @@
-# Google Analytics module
+# Drill Google Analytics module
 
 This module is used to send anonymous data to google universal analytics.
 

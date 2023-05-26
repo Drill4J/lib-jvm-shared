@@ -1,8 +1,9 @@
-# What does kni plugin do :
+# Drill KNI gradle plugin
+
+## What does KNI plugin do:
 
 For all java classes annotated with the @Kni annotation, a platform class will be generated and added to platform folder
-<br> (For platforms you specified in build.gradle file)
-
+(for platforms you specified in build.gradle file):
 ```kotlin
 kotlin {
     kni {
@@ -13,10 +14,9 @@ kotlin {
 }
 ```
 
-# What will be generated:
+## What will be generated:
 
-For example, you have simple kotlin/java class
-
+For example, you have simple kotlin/java class:
 ```kotlin
 @Kni
 object ExampleClass {
@@ -26,8 +26,7 @@ object ExampleClass {
 }
 ```
 
-After compilation will be generated a stub class.
-
+After compilation will be generated a stub class:
 ```kotlin
 @ThreadLocal
 public object ExampleClassStub {
@@ -63,13 +62,13 @@ public object ExampleClassStub {
 }
 ```
 
-Stub class is a platform class and when calling the methods of it will in invoke same java method
+Stub class is a platform class and when calling the methods of it will in invoke same java method.
 
-# Problems and solution example
+## Problems and solution example
 
-The main problem is kni plugin search class annotated with ```@Kni``` annotation in all transitive dependencies <br>
-For example you are having such project dependency tree
+The main problem is kni plugin search class annotated with ```@Kni``` annotation in all transitive dependencies.
 
+For example you are having such project dependency tree:
 ```bash
 java agent - with kni plugin
 |-- http-clients-instrumentation - with kni plugin
@@ -80,18 +79,15 @@ java agent - with kni plugin
 ```
 
 Problems:
-
 - In ```http-client-instrumentation``` dependency, because it has ```logger``` as transitive dependency, so it will
   generate stubs for ```loger``` classes, ```java-agent``` also have ```logger``` dependency, and stub will be generated
-  to, so we will get `unsatisfied link error`. <br>
+  to, so we will get `unsatisfied link error`.
 - ```http-client-instrumentation``` have classes with @Kni and there is a same problem as with logger, java agent will
   try to generate stubs for classes.
 
-Solution : <br>
-For the first case we need to exclude logger from stub generation. For this in build.gradle file in ```kni``` block
-set ```excludedClasses``` property <br>
-Example:
-
+Solution:
+- For the first case we need to exclude logger from stub generation. For this in build.gradle file in ```kni``` block
+  set ```excludedClasses``` property. Example:
 ```kotlin
 kotlin {
     kni {
@@ -102,7 +98,6 @@ kotlin {
     }
 }
 ```
-
-Second problem will be solved automatically. Classes generated in ```http-client-instrumentation``` will be written
-to ```kni-meta-info``` file and added to jar resources. Before generating stubs kni plugin will find ```kni-meta-info```
-file and will ignore this classes from stub generation  
+- Second problem will be solved automatically. Classes generated in ```http-client-instrumentation``` will be written
+  to ```kni-meta-info``` file and added to jar resources. Before generating stubs kni plugin will find ```kni-meta-info```
+  file and will ignore this classes from stub generation.
