@@ -27,7 +27,8 @@ data class StartPayload(
     val testName: String? = null,
     val isRealtime: Boolean = false,
     val isGlobal: Boolean = false,
-    val labels: Set<Label> = emptySet(),
+    val labels: MutableSet<Label> = mutableSetOf<Label>(),
+    val envId: String = "",
 )
 
 @Serializable
@@ -583,4 +584,3 @@ fun Count.copy(covered: Int = (this shr 32).toInt(), total: Int = this.toInt()):
 fun Count(covered: Int, total: Int): Count {
     return (covered.toLong() shl 32) or (total.toLong() and 0xFFFFFFFFL)
 }
-
