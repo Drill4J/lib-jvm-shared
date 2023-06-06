@@ -67,6 +67,7 @@ fun <T : Any?, R : Any?> storeMap(
             |ON CONFLICT (id) DO UPDATE SET KEY_JSON = excluded.KEY_JSON, VALUE_JSON = excluded.VALUE_JSON
         """.trimMargin()
         val statement = (connection.connection as HikariProxyConnection).prepareStatement(stmt)
+        logger.trace { "SERIALIZER_LOG___storeMap___${file.length()}" }
         file.inputStream().reader().use {
             sizes.forEachIndexed { index, (keySize, valueSize) ->
                 statement.setString(1, uuid.also { ids.add(it) })
@@ -86,6 +87,20 @@ fun <T : Any?, R : Any?> storeMap(
     }
     ids
 }
+
+
+fun deleteMapByParentId(
+    parentId: Any,
+    entryClass: EntryClass<*, *>,
+): Unit = transaction {
+    val tableName = runBlocking {
+        createTableIfNotExists<Any>(connection.schema, entryClass.tableName()) {
+            createMapTable(it)
+        }
+    }
+    execWrapper("DELETE FROM $tableName WHERE $PARENT_ID_COLUMN='${parentId.hashCode()}'")
+}
+
 
 /**
  * Loading of map by regular expression: by prefix which is parentId plus parentIndex

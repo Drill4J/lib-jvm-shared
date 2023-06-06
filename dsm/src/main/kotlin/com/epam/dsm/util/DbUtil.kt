@@ -65,7 +65,7 @@ fun Set<Column>.tableColumns() = takeIf { it.isNotEmpty() }?.joinToString(prefix
 fun Transaction.createBinaryTable() {
     execWrapper(
         """
-             CREATE TABLE IF NOT EXISTS BINARYA ($ID_COLUMN varchar(256) not null constraint binarya_pk primary key, binarya bytea);
+             CREATE TABLE IF NOT EXISTS BINARYA ($ID_COLUMN varchar(256) not null constraint binarya_pk primary key, binarya bytea, agentkey varchar(256));
              ALTER TABLE BINARYA ALTER COLUMN binarya SET STORAGE EXTERNAL; 
              """.trimIndent()
     )
@@ -172,7 +172,7 @@ fun insertTrigger(tableName: String, columns: Map<Column, List<String>>): String
     """.trimIndent()
 }
 
-private fun Map<Column, List<String>>.minus() = values.joinToString() { "#-'{${it.joinToString()}}'" }
+private fun Map<Column, List<String>>.minus() = values.joinToString { "#-'{${it.joinToString()}}'" }
 
 
 fun SerialDescriptor.collectionPaths(path: String = ""): List<PathToTable> {
@@ -183,17 +183,20 @@ fun SerialDescriptor.collectionPaths(path: String = ""): List<PathToTable> {
             is StructureKind.CLASS -> {
                 pathCollection.addAll(currentDesc.collectionPaths("$path->'${getElementName(index)}'"))
             }
+
             is StructureKind.LIST -> {
                 currentDesc.elementDescriptors.firstOrNull()?.takeIf { it.kind.isNotPrimitive() }?.let {
                     pathCollection.add("$path->>'${getElementName(index)}'" to it.tableName())
                 }
             }
+
             is StructureKind.MAP -> {
                 val (keyDest, valueDest) = currentDesc.getElementDescriptor(0) to currentDesc.getElementDescriptor(1)
                 if (!keyDest.isPrimitiveKind() || !valueDest.isPrimitiveKind()) {
                     pathCollection.add("->>'${getElementName(index)}'" to (keyDest to valueDest).tableName())
                 }
             }
+
             else -> {
                 // do nothing
             }

@@ -106,7 +106,6 @@ class StoreClient(val hikariConfig: HikariConfig) : AutoCloseable {
             }
         }
 
-
     suspend inline fun <reified T : Any> deleteBy(noinline expression: Expr<T>.() -> Unit) =
         withContext(Dispatchers.IO) {
             executeInAsyncTransaction {
@@ -146,7 +145,8 @@ suspend inline fun <reified T : Any> Transaction.findById(
     val tableName = createTableIfNotExists<T>(connection.schema)
     execWrapper("select ${fullJson<T>()} FROM $tableName WHERE $ID_COLUMN='${id.hashCode()}'") { rs ->
         if (rs.next()) {
-            entity = dsmDecode(rs.getBinaryStream(1))
+            val inputStream = rs.getBinaryStream(1)
+            entity = dsmDecode(inputStream)
         }
     }
     entity
@@ -202,8 +202,10 @@ inline fun <reified T : Any> Transaction.storeAsString(
             |ON CONFLICT ($ID_COLUMN) DO UPDATE SET $JSON_COLUMN = excluded.$JSON_COLUMN
         """.trimMargin()
     val stm = connection.prepareStatement(stmt, false)
-    stm[1] = json.encodeToString(T::class.dsmSerializer(id), any)
+    val obj = json.encodeToString(T::class.dsmSerializer(id), any)
+    stm[1] = obj
     logger.trace { "query: $stmt\nvalue: $any" }
+    logger.trace { "SERIALIZER_LOG___Transaction.storeAsString___${obj.toByteArray().size}" }
     stm.executeUpdate()
 }
 
@@ -222,6 +224,7 @@ inline fun <reified T : Any> Transaction.storeAsStream(
         file.outputStream().use {
             json.encodeToStream(T::class.dsmSerializer(id), any, it)
         }
+
         val stmt =
             """
             |INSERT INTO ${tableName.lowercase(Locale.getDefault())} (ID, $JSON_COLUMN) VALUES ('$id', CAST(? as jsonb))
@@ -245,7 +248,7 @@ fun KClass<*>.tableName() = camelRegex.replace(simpleName!!) {
 }.lowercase(Locale.getDefault())
 
 fun SerialDescriptor.tableName(): String {
-    if (isCollectionElementType(ByteArray::class)) return "BINARYA"
+    if (isCollectionElementType(ByteArray::class) || isCollectionElementType(BynariaData::class)) return "BINARYA"
     return camelRegex.replace(serialName.substringAfterLast(".")) {
         "_${it.value}"
     }.lowercase(Locale.getDefault())

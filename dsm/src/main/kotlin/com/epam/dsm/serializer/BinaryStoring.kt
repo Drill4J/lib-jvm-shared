@@ -24,15 +24,26 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
 import java.io.*
 
-
-fun Transaction.storeBinary(id: String, value: ByteArray) {
+fun Transaction.storeBinary(id: String, value: ByteArray, agentKey: String?) {
     val prepareStatement = connection.prepareStatement(
         """
-        |INSERT INTO BINARYA VALUES ('$id', ?)
+        |INSERT INTO BINARYA (id,binarya,agentkey) VALUES ('$id', ?, '$agentKey')
         |ON CONFLICT (id) DO UPDATE SET BINARYA = excluded.BINARYA
     """.trimMargin(), false
     )
-    prepareStatement[1] = Zstd.compress(value)
+
+    val compressed = Zstd.compress(value)
+    prepareStatement[1] = compressed
+    logger.trace { "SERIALIZER_LOG___Transaction.storeBinary___${compressed.size}" }
+    prepareStatement.executeUpdate()
+}
+
+fun cleanUpBinaryTable(agentKey: String) = transaction {
+    val prepareStatement = connection.prepareStatement(
+        """
+        DELETE FROM BINARYA WHERE BINARYA.agentkey LIKE '$agentKey'
+    """.trimMargin(), false
+    )
     prepareStatement.executeUpdate()
 }
 
@@ -49,7 +60,10 @@ fun storeBinaryCollection(
         |ON CONFLICT (id) DO UPDATE SET BINARYA = excluded.BINARYA
     """.trimMargin()
     )
+    var totalSize = 0
     bytes.forEachIndexed { index, value ->
+        totalSize++
+        totalSize += value.size
         statement.setString(1, uuid.also { ids.add(it) })
         statement.setBytes(2, Zstd.compress(value))
         statement.addBatch()
@@ -60,23 +74,25 @@ fun storeBinaryCollection(
         }
     }
     statement.executeBatch()
+    logger.trace { "SERIALIZER_LOG___storeBinaryCollection___${totalSize}" }
     ids
 }
 
-fun Transaction.getBinary(id: String): ByteArray {
+fun Transaction.getBinary(id: String): BynariaData {
     runBlocking {
         createTableIfNotExists<Any>(connection.schema) {
             createBinaryTable()
         }
     }
     val prepareStatement = connection.prepareStatement(
-        "SELECT BINARYA FROM BINARYA WHERE $ID_COLUMN = ${id.toQuotes()}",
+        "SELECT BINARYA,agentKey FROM BINARYA WHERE $ID_COLUMN = ${id.toQuotes()}",
         false
     )
     val resultSet = prepareStatement.executeQuery()
     return if (resultSet.next()) {
         val bytes = resultSet.getBytes(1)
-        Zstd.decompress(bytes, Zstd.decompressedSize(bytes).toInt())
+        val agentKey = resultSet.getString(2)
+        BynariaData(byteArray = Zstd.decompress(bytes, Zstd.decompressedSize(bytes).toInt()), agentKey = agentKey)
     } else throw RuntimeException("Not found with id $id")
 }
 

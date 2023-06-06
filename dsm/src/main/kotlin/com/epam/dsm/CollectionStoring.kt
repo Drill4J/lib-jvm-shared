@@ -55,6 +55,7 @@ fun <T : Any?> storeCollection(
             |ON CONFLICT (id) DO UPDATE SET $JSON_COLUMN = excluded.$JSON_COLUMN
         """.trimMargin()
         val statement = (connection.connection as HikariProxyConnection).prepareStatement(stmt)
+        logger.trace { "SERIALIZER_LOG___storeCollection___${file.length()}" }
         file.inputStream().reader().use {
             sizes.forEachIndexed { index, size ->
                 statement.setString(1, uuid.also { ids.add(it) })

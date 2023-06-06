@@ -31,20 +31,12 @@ class BinaryTest : PostgresBased(schema) {
         private const val schema: String = "binary_test"
     }
 
-    @Serializable
-    data class BinaryClass(
-        @Id val id: String,
-        @Suppress("ArrayInDataClass")
-        @Serializable(with = BinarySerializer::class)
-        val bytes: ByteArray,
-    )
-
     @Test
     fun `should store and retrieve binary data`() = runBlocking {
         val id = "someIDhere"
-        val any = BinaryClass(id, byteArrayOf(1, 0, 1))
+        val any = BynariaData(id, byteArrayOf(1, 0, 1),"test")
         storeClient.store(any)
-        assertEquals(any.bytes.contentToString(), storeClient.findById<BinaryClass>(id)?.bytes?.contentToString())
+        assertEquals(any.byteArray.contentToString(), storeClient.findById<BynariaData>(id)?.byteArray?.contentToString())
     }
 
     @Test
@@ -55,7 +47,7 @@ class BinaryTest : PostgresBased(schema) {
         val id = "id"
         val binary = byteArrayOf(-48, -94, -47, -117, 32, -48, -65, -48, -72, -48, -76, -48, -66, -47, -128, 33, 33)
         transaction {
-            storeBinary(id, binary)
+            storeBinary(id, binary, "test")
         }
         val actual = transaction {
             getBinaryAsStream(id)
@@ -67,21 +59,21 @@ class BinaryTest : PostgresBased(schema) {
     @Test
     fun `should store and retrieve binary data in two differ schema`() = runBlocking {
         val id = "someIDhere"
-        val any = BinaryClass(id, byteArrayOf(1, 0, 1))
+        val any = BynariaData(id, byteArrayOf(1, 0, 1), "test")
         storeClient.store(any)
-        assertEquals(any.bytes.contentToString(), storeClient.findById<BinaryClass>(id)?.bytes?.contentToString())
+        assertEquals(any.byteArray.contentToString(), storeClient.findById<BynariaData>(id)?.byteArray?.contentToString())
 
         val newDbName = "newdb"
         val newDb = StoreClient(TestDatabaseContainer.createConfig(schema = newDbName))
 
         newDb.store(any)
-        assertEquals(any.bytes.contentToString(), storeClient.findById<BinaryClass>(id)?.bytes?.contentToString())
-        assertEquals(any.bytes.contentToString(), newDb.findById<BinaryClass>(id)?.bytes?.contentToString())
+        assertEquals(any.byteArray.contentToString(), storeClient.findById<BynariaData>(id)?.byteArray?.contentToString())
+        assertEquals(any.byteArray.contentToString(), newDb.findById<BynariaData>(id)?.byteArray?.contentToString())
 
         storeClient.store(any.copy(id = "2"))
 
-        assertEquals(2, storeClient.getAll<BinaryClass>().size)
-        assertEquals(1, newDb.getAll<BinaryClass>().size)
+        assertEquals(2, storeClient.getAll<BynariaData>().size)
+        assertEquals(1, newDb.getAll<BynariaData>().size)
     }
 
 

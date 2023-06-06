@@ -19,6 +19,7 @@ import com.epam.dsm.*
 import com.epam.dsm.util.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
@@ -27,14 +28,24 @@ import kotlinx.serialization.json.*
 import org.jetbrains.exposed.sql.transactions.*
 import java.io.*
 import java.util.*
+import java.util.stream.*
 import kotlin.reflect.*
 
 val DSM_PUSH_LIMIT = System.getenv("DSM_PUSH_LIMIT")?.toIntOrNull() ?: 3_000
 val DSM_FETCH_LIMIT = System.getenv("DSM_FETCH_LIMIT")?.toIntOrNull() ?: 10_000
 
-object BinarySerializer : KSerializer<ByteArray> {
+@Serializable
+data class BynariaData(
+    @Id
+    val id: String = uuid,
+    @Suppress("ArrayInDataClass")
+    val byteArray: ByteArray,
+    val agentKey: String?
+)
 
-    override fun serialize(encoder: Encoder, value: ByteArray) {
+object BinarySerializer : KSerializer<BynariaData> {
+
+    override fun serialize(encoder: Encoder, value: BynariaData) {
         val id = uuid
         transaction {
             val schema = connection.schema
@@ -43,13 +54,12 @@ object BinarySerializer : KSerializer<ByteArray> {
                     createBinaryTable()
                 }
             }
-            logger.trace { "serialize for id '$id' in schema $schema" }
-            storeBinary(id, value)
+            storeBinary(id, value.byteArray, value.agentKey)
         }
         encoder.encodeSerializableValue(String.serializer(), id)
     }
 
-    override fun deserialize(decoder: Decoder): ByteArray {
+    override fun deserialize(decoder: Decoder): BynariaData {
         val id = decoder.decodeSerializableValue(String.serializer())
         return transaction { getBinary(id) }
     }
@@ -108,7 +118,10 @@ class DsmSerializer<T>(
                     is ByteArray, is Enum<*> -> {
                         //TODO EPMDJ-9885 Get rid of the ByteArraySerializer
                         compositeEncoder.encodeSerializableElement(descriptor, index, serializer, value)
+                        logger.trace { "ENCODE_LOG___ByteArray or Enum___${value.encodeId().length}" }
+                        // ${value.encodeId()} // also log value itself
                     }
+
                     is Map<*, *> -> {
                         val mapLikeSerializer = serializer as MapLikeSerializer<*, *, *, *>
                         val keyDescriptor = mapLikeSerializer.keySerializer.descriptor
@@ -126,20 +139,25 @@ class DsmSerializer<T>(
                                 ListSerializer(String.serializer()),
                                 ids
                             )
-                        } else compositeEncoder.encodeSerializableElement(
-                            descriptor,
-                            index,
-                            serializer as KSerializer<T>,
-                            value
-                        )
+                        } else {
+                            compositeEncoder.encodeSerializableElement(
+                                descriptor,
+                                index,
+                                serializer as KSerializer<T>,
+                                value
+                            )
+                        }
                     }
+
                     is Collection<*> -> {
                         val elementDescriptor = serializer.descriptor.getElementDescriptor(0)
                         if (elementDescriptor.isPrimitiveKind()) {
                             return compositeEncoder.encodeSerializableElement(descriptor, index, serializer, value)
                         }
                         val ids = if (elementDescriptor.isCollectionElementType(ByteArray::class)) {
-                            storeBinaryCollection(unchecked(value.filterNotNull()))
+                            val bytes = unchecked<Iterable<ByteArray>>(value.filterNotNull())
+                            logger.trace { "ENCODE_LOG___Collection<ByteArray>___${Stream.of(bytes).count()}" }
+                            storeBinaryCollection(bytes)
                         } else {
                             val clazz = classLoader.getClass(elementDescriptor)
                             val elementSerializer = clazz.dsmSerializer(parentId, classLoader)
@@ -152,6 +170,7 @@ class DsmSerializer<T>(
                             ids
                         )
                     }
+
                     else -> {
                         val strategy = DsmSerializer(serializer as KSerializer<T>, classLoader, parentId)
                         compositeEncoder.encodeSerializableElement(descriptor, index, strategy, value)
@@ -185,6 +204,7 @@ class DsmSerializer<T>(
                     ByteArraySerializer() -> {
                         compositeDecoder.decodeSerializableElement(descriptor, index, deserializer)
                     }
+
                     is MapLikeSerializer<*, *, *, *> -> {
                         val keyDescriptor = deserializer.keySerializer.descriptor
                         val valueDescriptor = deserializer.valueSerializer.descriptor
@@ -203,6 +223,7 @@ class DsmSerializer<T>(
                             deserializer as KSerializer<T>
                         )
                     }
+
                     is AbstractCollectionSerializer<*, *, *> -> {
                         val elementDescriptor = deserializer.descriptor.getElementDescriptor(0)
                         if (elementDescriptor.isPrimitiveKind()) {
@@ -214,8 +235,12 @@ class DsmSerializer<T>(
                         }
                         val ids = decoder.decodeSerializableValue(ListSerializer(String.serializer()))
                         if (elementDescriptor.isCollectionElementType(ByteArray::class)) {
-                            unchecked(getBinaryCollection(ids).parseCollection(deserializer,
-                                ByteArray::class.serializer()))
+                            unchecked(
+                                getBinaryCollection(ids).parseCollection(
+                                    deserializer,
+                                    ByteArray::class.serializer()
+                                )
+                            )
                         } else {
                             val elementClass = classLoader.getClass(elementDescriptor)
                             val kSerializer = elementClass.dsmSerializer(parentId, classLoader).let {
@@ -225,10 +250,12 @@ class DsmSerializer<T>(
                             unchecked(list.parseCollection(deserializer, elementClass.serializer()))
                         }
                     }
+
                     else -> {
-                        val strategy = registeredPoolSerializers.getOrPutIfNotNull(deserializer.descriptor.serialName) {
-                            DsmSerializer(deserializer as KSerializer<T>, classLoader, parentId)
-                        }
+                        val strategy =
+                            registeredPoolSerializers.getOrPutIfNotNull(deserializer.descriptor.serialName) {
+                                DsmSerializer(deserializer as KSerializer<T>, classLoader, parentId)
+                            }
                         compositeDecoder.decodeSerializableElement(descriptor, index, strategy) as T
                     }
                 }
