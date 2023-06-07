@@ -20,6 +20,15 @@ import kotlin.jvm.*
 
 const val DEFAULT_TEST_NAME = "unspecified"
 
+/**
+ * Payload for a session starting action
+ * @param testType the test type (MANUAL, AUTO)
+ * @param sessionId the session ID, if defined
+ * @param testName the name of first test of the session
+ * @param isRealtime a sign that it is necessary to collect test coverage in real time
+ * @param isGlobal a sign that the session is global
+ * @param labels the set of labels associated with the session
+ */
 @Serializable
 data class StartPayload(
     val testType: String = "MANUAL",
@@ -33,6 +42,11 @@ data class StartPayload(
 @Serializable
 data class SessionPayload(val sessionId: String)
 
+/**
+ * Payload for a session data action
+ * @param sessionId the session ID
+ * @param data the session data
+ */
 @Serializable
 data class SessionDataPayload(val sessionId: String, val data: String)
 
@@ -50,12 +64,22 @@ class EntityProbes(
     val probes: List<Boolean>,
 )
 
+/**
+ * Payload for a session stopping action
+ * @param sessionId the session ID
+ * @param tests the list of completed tests that have not yet been added
+ */
 @Serializable
 data class StopSessionPayload(
     val sessionId: String,
     val tests: List<TestInfo> = emptyList(),
 )
 
+/**
+ * Payload for a test adding action
+ * @param sessionId the session ID
+ * @param tests the list of completed tests to add
+ */
 @Serializable
 data class AddTestsPayload(
     val sessionId: String,
@@ -108,6 +132,13 @@ enum class TestResult {
     UNKNOWN
 }
 
+/**
+ * Payload for a scope finishing action
+ * @param scopeName the next scope name
+ * @param savePrevScope a sign of the need to save the previous state
+ * @param prevScopeEnabled the sign of the need to leave the current scope enabled
+ * @param forceFinish the sign of the need to close all active sessions
+ */
 @Serializable
 data class ActiveScopeChangePayload(
     val scopeName: String,
@@ -283,6 +314,13 @@ data class MethodsInfo(
     val methods: List<CoverMethod> = emptyList(),
 )
 
+/**
+ * Tree of application packages
+ * @param totalCount the number of packages
+ * @param totalMethodCount the number of methods
+ * @param totalClassCount the number of classes
+ * @param packages the list of packages
+ */
 @Serializable
 data class PackageTree(
     val totalCount: Int = 0,
@@ -291,6 +329,19 @@ data class PackageTree(
     val packages: List<JavaPackageCoverage> = emptyList(),
 )
 
+/**
+ * Information about the package of the agent
+ * @param id the package ID
+ * @param name the package name
+ * @param totalClassesCount the number of classes in the package
+ * @param totalMethodsCount the number of methods in all classes in the package
+ * @param totalCount the number of probes in all classes in the package
+ * @param coverage the percent of coverage of the package
+ * @param coveredClassesCount the number of covered classes in the package
+ * @param coveredMethodsCount the number of covered methods in all classes in the package
+ * @param assocTestsCount the number of tests associated with coverage of the package
+ * @param classes the list of classes
+ */
 @Serializable
 data class JavaPackageCoverage(
     val id: String,
@@ -305,6 +356,19 @@ data class JavaPackageCoverage(
     val classes: List<JavaClassCoverage> = emptyList(),
 )
 
+/**
+ * Information about the class of the agent
+ * @param id the class ID
+ * @param name the class name
+ * @param path the full name of the class
+ * @param totalMethodsCount the number of methods in the class
+ * @param totalCount the number of probes in the class
+ * @param coverage the percent of coverage of the class
+ * @param coveredMethodsCount the number of covered methods in the class
+ * @param assocTestsCount the number of tests associated with coverage of the class
+ * @param methods the list of methods
+ * @param probes the list of class probes
+ */
 @Serializable
 data class JavaClassCoverage(
     val id: String,
@@ -319,6 +383,17 @@ data class JavaClassCoverage(
     val probes: List<Boolean> = emptyList(),
 )
 
+/**
+ * Information about the method of the class in the agent
+ * @param id the method ID
+ * @param name the method name
+ * @param desc the descriptor of the method
+ * @param decl also the descriptor of the method
+ * @param probesCount the number of probes in the method
+ * @param coverage the percent of coverage of the method
+ * @param assocTestsCount the number of tests associated with coverage of the method
+ * @param probeRange the class probe index range, with which probe the method begins and with which it ends
+ */
 @Serializable
 data class JavaMethodCoverage(
     val id: String,
@@ -394,6 +469,13 @@ data class TestsSummaryDto(
     val totalCount: Int = 0,
 )
 
+/**
+ * A result of the completed test
+ * @param testId the test ID
+ * @param duration the duration of the test
+ * @param result the result of the test
+ * @param details complete information about the test
+ */
 @Serializable
 data class TestOverview(
     val testId: String,
@@ -449,6 +531,12 @@ data class TestCountDto(
     val byType: Map<String, Int> = emptyMap(),
 )
 
+/**
+ * Summary information about the type of tests
+ * @param coverage the coverage by methods and probes
+ * @param testCount the total number of tests
+ * @param duration the sum of the duration of all tests
+ */
 @Serializable
 data class TestSummary(
     val coverage: CoverDto,
@@ -580,6 +668,11 @@ fun Count.copy(covered: Int = (this shr 32).toInt(), total: Int = this.toInt()):
     return Count(covered, total)
 }
 
+/**
+ * Class containing covered and all items
+ * @param covered the number of covered items
+ * @param total the number of all items
+ */
 fun Count(covered: Int, total: Int): Count {
     return (covered.toLong() shl 32) or (total.toLong() and 0xFFFFFFFFL)
 }
