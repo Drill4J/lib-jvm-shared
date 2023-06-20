@@ -25,4 +25,5 @@ object Native {
     external fun RetransformClasses(count: Int, classes: Array<Class<*>>)
     external fun RetransformClassesByPackagePrefixes(prefixes: ByteArray): Int
     external fun GetAllLoadedClasses(): Array<Class<*>>
+    external fun GetPackagePrefixes(): String
 }
