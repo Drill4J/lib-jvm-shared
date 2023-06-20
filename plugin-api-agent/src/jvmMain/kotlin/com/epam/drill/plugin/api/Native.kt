@@ -26,4 +26,5 @@ object Native {
     external fun RetransformClassesByPackagePrefixes(prefixes: ByteArray): Int
     external fun GetAllLoadedClasses(): Array<Class<*>>
     external fun GetPackagePrefixes(): String
+    external fun WaitClassScanning()
 }
