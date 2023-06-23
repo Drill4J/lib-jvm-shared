@@ -49,3 +49,34 @@ interface Instrumenter {
 enum class UnloadReason {
     ACTION_FROM_ADMIN, SH
 }
+
+/**
+ * Service for scanning classes of the application under test
+ */
+interface ClassScanner {
+    /**
+     * Scan target classes of the application under test
+     * @param consumer the function for processing chunks of scanned classes
+     */
+    fun scanClasses(consumer: (Set<EntitySource>) -> Unit)
+}
+
+/**
+ * Class containing information about entity/class bytes
+ */
+interface ByteSource {
+    /**
+     * @return bytes of the source
+     */
+    fun bytes(): ByteArray
+}
+
+/**
+ * Class containing information about entity/class name
+ */
+interface EntitySource: ByteSource {
+    /**
+     * @return the name of the class of the source
+     */
+    fun entityName(): String
+}
