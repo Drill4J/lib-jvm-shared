@@ -132,17 +132,6 @@ fun topicRegister() =
                 """.trimMargin()
             )
         }
-        rawTopic("/agent/load-classes-data") {
-//            Sender.send(Message(MessageType.START_CLASSES_TRANSFER, ""))
-//            try {
-//                val data = getClassesByConfig()
-//                Sender.send(Message(MessageType.CLASSES_DATA, "", data))
-//            } catch (ignored: Exception) {
-//                tempTopicLogger.warn { "can't process class message" }
-//            }
-//            Sender.send(Message(MessageType.FINISH_CLASSES_TRANSFER, ""))
-//            tempTopicLogger.info { "Agent's application classes processing by config triggered" }
-        }
 
         rawTopic<PluginConfig>("/plugin/updatePluginConfig") { config ->
             tempTopicLogger.info { "UpdatePluginConfig event: message is $config " }
