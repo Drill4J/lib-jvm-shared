@@ -20,13 +20,11 @@ open class AppAgentConfiguration : Configuration() {
 
     var buildVersion: String? = null
     var instanceId: String? = null
-    var webAppNames: List<String>? = null
 
     override fun jvmArgs(): Map<String, String> {
         val args = mutableMapOf<String, String>()
         buildVersion?.let { args[AppAgentConfiguration::buildVersion.name] = it }
         instanceId?.let { args[AppAgentConfiguration::instanceId.name] = it }
-        webAppNames?.let { args[AppAgentConfiguration::webAppNames.name] = it.joinToString(separator = ":") }
         return args
     }
 
