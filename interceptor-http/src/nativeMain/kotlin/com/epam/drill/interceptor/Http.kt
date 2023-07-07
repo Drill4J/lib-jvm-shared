@@ -29,4 +29,4 @@ val HTTP_VERBS =
     setOf("OPTIONS", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "PRI") + HTTP_RESPONSE_MARKER
 
 @SharedImmutable
-val logger = KotlinLogging.logger {}
+val logger = KotlinLogging.logger("com.epam.drill.interceptor.Http")

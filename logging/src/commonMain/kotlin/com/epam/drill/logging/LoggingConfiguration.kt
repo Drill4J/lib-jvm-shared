@@ -45,4 +45,19 @@ expect object LoggingConfiguration {
      */
     fun setLoggingLevels(levels: String)
 
+    /**
+     * Set output file (or console output) for all loggers
+     *
+     * @param  filename
+     *         filename of log file, if set to 'null' console output will be used
+     */
+    fun setLoggingFilename(filename: String?)
+
+    /**
+     * Get previously configured output file (or 'null' for console output)
+     *
+     * @return filename of log file or 'null' for console output
+     */
+    fun getLoggingFilename(): String?
+
 }

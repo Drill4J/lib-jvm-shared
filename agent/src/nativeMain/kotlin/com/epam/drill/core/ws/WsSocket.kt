@@ -30,7 +30,7 @@ import kotlin.time.*
 import mu.KotlinLogging
 
 @SharedImmutable
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger("com.epam.drill.core.ws.WsSocket")
 
 private val dispatcher = newSingleThreadContext("sender coroutine")
 

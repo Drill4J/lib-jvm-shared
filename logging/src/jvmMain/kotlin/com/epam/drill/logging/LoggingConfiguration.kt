@@ -15,6 +15,9 @@
  */
 package com.epam.drill.logging
 
+import java.util.logging.ConsoleHandler
+import java.util.logging.FileHandler
+import java.util.logging.Handler
 import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.logging.LogManager
@@ -28,6 +31,8 @@ actual object LoggingConfiguration {
         "WARN" to "WARNING",
         "ERROR" to "SEVERE"
     )
+
+    private var filename: String? = null
 
     actual fun readDefaultConfiguration() {
         ClassLoader.getSystemResourceAsStream("logging.properties").use(LogManager.getLogManager()::readConfiguration)
@@ -48,5 +53,19 @@ actual object LoggingConfiguration {
         }
         setLoggingLevels(levels.split(";").mapNotNull(toLevelPair))
     }
+
+    actual fun setLoggingFilename(filename: String?) {
+        val handler: Handler = filename?.runCatching(::FileHandler)?.getOrNull() ?: ConsoleHandler()
+        val nameToLogger: (String) -> Logger = LogManager.getLogManager()::getLogger
+        val withHandlers: (Logger) -> Boolean = { it.handlers.isNotEmpty() }
+        LogManager.getLogManager().loggerNames.toList().map(nameToLogger).filter(withHandlers).forEach {
+            it.handlers.filterIsInstance(FileHandler::class.java).forEach { it.runCatching(FileHandler::close) }
+            it.handlers.forEach(it::removeHandler)
+            it.addHandler(handler)
+        }
+        this.filename = filename
+    }
+
+    actual fun getLoggingFilename(): String? = filename
 
 }

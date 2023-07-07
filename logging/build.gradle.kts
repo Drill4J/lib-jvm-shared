@@ -36,6 +36,9 @@ kotlin {
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
+        all {
+            languageSettings.optIn("io.ktor.utils.io.core.ExperimentalIoApi")
+        }
         val commonMain by getting {
             dependencies {
                 api("io.github.microutils:kotlin-logging:$microutilsLoggingVersion")

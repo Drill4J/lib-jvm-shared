@@ -15,8 +15,10 @@
  */
 package com.epam.drill.logging
 
+import mu.ConsoleOutputAppender
 import mu.KotlinLoggingConfiguration
 import mu.KotlinLoggingLevel
+import kotlin.native.concurrent.freeze
 
 actual object LoggingConfiguration {
 
@@ -42,5 +44,13 @@ actual object LoggingConfiguration {
         }
         setLoggingLevels(levels.split(";").mapNotNull(toLevelPair))
     }
+
+    actual fun setLoggingFilename(filename: String?) {
+        (KotlinLoggingConfiguration.appender as? FileOutputAppender)?.runCatching(FileOutputAppender::close)
+        KotlinLoggingConfiguration.appender =
+            filename?.runCatching(::FileOutputAppender)?.getOrNull()?.freeze() ?: ConsoleOutputAppender.freeze()
+    }
+
+    actual fun getLoggingFilename(): String? = (KotlinLoggingConfiguration.appender as? FileOutputAppender)?.filename
 
 }

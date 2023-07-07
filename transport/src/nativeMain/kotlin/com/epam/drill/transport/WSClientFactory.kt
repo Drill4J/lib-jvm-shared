@@ -38,7 +38,7 @@ data class ConnectionSettings(
 )
 
 @SharedImmutable
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger("com.epam.drill.transport.WSClientFactory")
 
 const val BUFF_SIZE_MAX_VALUE = 1024 * 100000
 

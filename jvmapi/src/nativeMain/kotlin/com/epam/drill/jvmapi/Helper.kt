@@ -23,7 +23,7 @@ import kotlin.reflect.*
 import mu.KotlinLogging
 
 @SharedImmutable
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger("com.epam.drill.jvmapi.Helper")
 
 @CName("checkEx")
 fun checkEx(errCode: UInt, funName: String): UInt {

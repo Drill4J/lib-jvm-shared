@@ -29,7 +29,7 @@ import mu.KotlinLoggingLevel
 import mu.KotlinLoggingConfiguration
 
 @SharedImmutable
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger("com.epam.drill.core.ws.WsRouter")
 
 @SharedImmutable
 private val loader = Worker.start(true)

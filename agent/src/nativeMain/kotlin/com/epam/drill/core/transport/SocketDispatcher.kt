@@ -26,7 +26,7 @@ import mu.KotlinLoggingLevel
 import mu.isLoggingEnabled
 
 @SharedImmutable
-private val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger("com.epam.drill.core.transport.SocketDispatcher")
 
 fun configureHttp() {
     configureHttpInterceptor()

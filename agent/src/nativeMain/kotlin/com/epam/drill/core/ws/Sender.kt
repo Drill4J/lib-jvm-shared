@@ -23,7 +23,7 @@ import mu.KotlinLogging
 
 object Sender {
 
-    val logger = KotlinLogging.logger {}
+    val logger = KotlinLogging.logger("com.epam.drill.core.ws.Sender")
 
     inline fun <reified T : Any> send(message: T) {
         val messageForSend = ProtoBuf.encodeToByteArray(T::class.serializer(), message)
