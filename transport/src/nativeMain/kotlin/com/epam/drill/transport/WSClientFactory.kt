@@ -15,7 +15,6 @@
  */
 package com.epam.drill.transport
 
-import com.epam.drill.logger.Logging
 import com.epam.drill.transport.common.ws.*
 import com.epam.drill.websocket.gen.*
 import kotlinx.atomicfu.atomic
@@ -29,6 +28,7 @@ import kotlin.native.ThreadLocal
 import kotlin.native.concurrent.*
 import kotlinx.collections.immutable.plus
 import kotlinx.coroutines.*
+import mu.KotlinLogging
 import lwsEventsDescription
 
 data class ConnectionSettings(
@@ -38,7 +38,7 @@ data class ConnectionSettings(
 )
 
 @SharedImmutable
-private val logger = Logging.logger("Transport")
+private val logger = KotlinLogging.logger {}
 
 const val BUFF_SIZE_MAX_VALUE = 1024 * 100000
 

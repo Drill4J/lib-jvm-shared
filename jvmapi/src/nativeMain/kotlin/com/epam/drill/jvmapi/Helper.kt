@@ -16,24 +16,14 @@
 package com.epam.drill.jvmapi
 
 import com.epam.drill.jvmapi.gen.*
-import com.epam.drill.logger.api.*
 import kotlinx.cinterop.*
 import kotlin.native.concurrent.*
+import kotlin.native.SharedImmutable
 import kotlin.reflect.*
+import mu.KotlinLogging
 
-
-private val loggerCallback_ = AtomicReference<(String) -> Logger?>({ _: String -> null }.freeze()).freeze()
-
-var loggerCallback: (String) -> Logger?
-    get() = loggerCallback_.value
-    set(value) {
-        loggerCallback_.value = value.freeze()
-    }
-
-private val logger_ = AtomicReference<Logger?>(null)
-
-private val logger: Logger?
-    get() = logger_.value ?: loggerCallback("jvm api").also { logger_.value = it.freeze() }
+@SharedImmutable
+private val logger = KotlinLogging.logger {}
 
 @CName("checkEx")
 fun checkEx(errCode: UInt, funName: String): UInt {
@@ -42,7 +32,7 @@ fun checkEx(errCode: UInt, funName: String): UInt {
     }
     val message = errorMapping[errCode]
     if (message != null)
-        logger?.warn { "$funName: $message" }
+        logger.warn { "$funName: $message" }
     return errCode
 }
 

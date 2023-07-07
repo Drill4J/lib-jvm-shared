@@ -24,7 +24,6 @@ import com.epam.drill.logger.*
 
 object Agent : JvmtiAgent {
     override fun agentOnLoad(options: String): Int {
-        loggerCallback = { Logging.logger(it) }
         println("agentOnLoad")
         return JNI_OK
     }

@@ -47,6 +47,8 @@ The JVM-based shared libraries for Drill4J, used in java-agent, test2code-plugin
 - **logger**: Simple logging framework
 - **logger-api**: Simple logging framework API (used in **logger** and **java-agent**)
 - **logger-test-agent**: Agent for **logger** tests
+- **logging**: Pre-configuration tier for microutils kotlin-logging library (useful for multiplatform modules)
+- **logging-native**: Port of microutils kotlin-logging library to compile for mingwX64 and macosX64 targets
 - **plugin-api-admin**: Common back-end related Drill4J project parts (admin part)
 - **plugin-api-agent**: Common back-end related Drill4J project parts (agent part)
 - **test-data**: Test data for admin/test2code-plugin testing
