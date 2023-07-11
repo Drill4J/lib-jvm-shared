@@ -41,7 +41,7 @@ object SimpleMessageFormatter : Formatter {
     ) = "${formatPrefix(level, loggerName)} ${marker.wrapToString()}${msg.toStringSafe()}${t.throwableToString()}"
 
     private inline fun formatPrefix(level: KotlinLoggingLevel, loggerName: String) =
-        "${GMTDate().dateToString()} ${level.name.padEnd(7)} [$loggerName]"
+        "${GMTDate().dateToString()} ${level.name.padEnd(5)} [$loggerName]"
 
     private inline fun GMTDate.dateToString(): String {
         val padStart: Int.(Int) -> String = { this.toString().padStart(it, '0') }

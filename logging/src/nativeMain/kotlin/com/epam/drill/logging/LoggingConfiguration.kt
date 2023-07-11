@@ -24,7 +24,7 @@ actual object LoggingConfiguration {
 
     actual fun readDefaultConfiguration() {
         KotlinLoggingConfiguration.formatter = SimpleMessageFormatter
-        KotlinLoggingConfiguration.logLevel = KotlinLoggingLevel.INFO
+        KotlinLoggingConfiguration.logLevel = KotlinLoggingLevel.ERROR
     }
 
     actual fun setLoggingLevels(levels: List<Pair<String, String>>) {

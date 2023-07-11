@@ -16,6 +16,7 @@ version = Properties().run {
 
 val ktorVersion: String by parent!!.extra
 val slf4jVersion: String by parent!!.extra
+val logbackVersion: String by parent!!.extra
 val microutilsLoggingVersion: String by parent!!.extra
 
 repositories {
@@ -46,7 +47,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation("org.slf4j:slf4j-jdk14:$slf4jVersion")
+                implementation("ch.qos.logback:logback-classic:$logbackVersion")
             }
         }
         val nativeMain by creating {
