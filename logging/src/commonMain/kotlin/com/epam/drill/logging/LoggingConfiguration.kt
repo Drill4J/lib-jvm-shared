@@ -60,4 +60,19 @@ expect object LoggingConfiguration {
      */
     fun getLoggingFilename(): String?
 
+    /**
+     * Set length limit for log messages
+     *
+     * @param  messageLimit
+     *         maximum length for log messages
+     */
+    fun setLogMessageLimit(messageLimit: Int)
+
+    /**
+     * Get length limit for log messages
+     *
+     * @return maximum length for log messages
+     */
+    fun getLogMessageLimit(): Int
+
 }

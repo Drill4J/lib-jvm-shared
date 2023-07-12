@@ -51,6 +51,12 @@ actual object LoggingConfiguration {
             filename?.runCatching(::FileOutputAppender)?.getOrNull()?.freeze() ?: ConsoleOutputAppender.freeze()
     }
 
-    actual fun getLoggingFilename(): String? = (KotlinLoggingConfiguration.appender as? FileOutputAppender)?.filename
+    actual fun getLoggingFilename() = (KotlinLoggingConfiguration.appender as? FileOutputAppender)?.filename
+
+    actual fun setLogMessageLimit(messageLimit: Int) {
+        SimpleMessageFormatter.messageLimit = messageLimit.freeze()
+    }
+
+    actual fun getLogMessageLimit() = SimpleMessageFormatter.messageLimit
 
 }

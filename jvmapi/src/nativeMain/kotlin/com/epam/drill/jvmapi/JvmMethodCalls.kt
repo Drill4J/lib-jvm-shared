@@ -15,8 +15,11 @@
  */
 package com.epam.drill.jvmapi
 
-import com.epam.drill.jvmapi.gen.CallObjectMethod
 import kotlin.reflect.KClass
+import kotlin.reflect.KCallable
+import kotlinx.cinterop.toKString
+import com.epam.drill.jvmapi.gen.CallIntMethod
+import com.epam.drill.jvmapi.gen.CallObjectMethod
 import com.epam.drill.jvmapi.gen.CallVoidMethod
 import com.epam.drill.jvmapi.gen.FindClass
 import com.epam.drill.jvmapi.gen.GetMethodID
@@ -24,9 +27,6 @@ import com.epam.drill.jvmapi.gen.GetStaticFieldID
 import com.epam.drill.jvmapi.gen.GetStaticObjectField
 import com.epam.drill.jvmapi.gen.GetStringUTFChars
 import com.epam.drill.jvmapi.gen.NewStringUTF
-import com.epam.drill.jvmapi.gen.ReleaseStringUTFChars
-import kotlinx.cinterop.toKString
-import kotlin.reflect.KCallable
 
 fun callObjectVoidMethod(clazz: KClass<out Any>, method: String) =
     getObjectMethod(clazz, method, "()V").run {
@@ -36,6 +36,14 @@ fun callObjectVoidMethod(clazz: KClass<out Any>, method: String) =
 fun callObjectVoidMethod(clazz: KClass<out Any>, method: KCallable<Unit>) =
     callObjectVoidMethod(clazz, method.name)
 
+fun callObjectVoidMethodWithInt(clazz: KClass<out Any>, method: String, int: Int) =
+    getObjectMethod(clazz, method, "(I)V").run {
+        CallVoidMethod(this.first, this.second, int)
+    }
+
+fun callObjectVoidMethodWithInt(clazz: KClass<out Any>, method: KCallable<Unit>, int: Int) =
+    callObjectVoidMethodWithInt(clazz, method.name, int)
+
 fun callObjectVoidMethodWithString(clazz: KClass<out Any>, method: String, string: String?) =
     getObjectMethod(clazz, method, "(Ljava/lang/String;)V").run {
         CallVoidMethod(this.first, this.second, string?.let(::NewStringUTF))
@@ -43,6 +51,14 @@ fun callObjectVoidMethodWithString(clazz: KClass<out Any>, method: String, strin
 
 fun callObjectVoidMethodWithString(clazz: KClass<out Any>, method: KCallable<Unit>, string: String?) =
     callObjectVoidMethodWithString(clazz, method.name, string)
+
+fun callObjectIntMethod(clazz: KClass<out Any>, method: String) =
+    getObjectMethod(clazz, method, "()I").run {
+        CallIntMethod(this.first, this.second)
+    }
+
+fun callObjectIntMethod(clazz: KClass<out Any>, method: KCallable<Int>) =
+    callObjectIntMethod(clazz, method.name)
 
 fun callObjectStringMethod(clazz: KClass<out Any>, method: String) =
     getObjectMethod(clazz, method, "()Ljava/lang/String;").run {

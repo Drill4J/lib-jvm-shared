@@ -15,6 +15,7 @@
  */
 package com.epam.drill.logging
 
+import kotlin.native.concurrent.AtomicInt
 import io.ktor.util.date.GMTDate
 import mu.Formatter
 import mu.KotlinLoggingLevel
@@ -22,6 +23,11 @@ import mu.Marker
 import mu.internal.ErrorMessageProducer
 
 object SimpleMessageFormatter : Formatter {
+
+    private val _messageLimit = AtomicInt(512)
+    var messageLimit: Int
+        get() = _messageLimit.value
+        set(value) { _messageLimit.value = value }
 
     override fun formatMessage(level: KotlinLoggingLevel, loggerName: String, msg: () -> Any?) =
         "${formatPrefix(level, loggerName)} ${msg.toStringSafe()}"
@@ -56,7 +62,7 @@ object SimpleMessageFormatter : Formatter {
 
     private inline fun (() -> Any?).toStringSafe(): String {
         return try {
-            invoke().toString()
+            invoke().toString().take(messageLimit)
         } catch (e: Exception) {
             ErrorMessageProducer.getErrorLog(e)
         }
