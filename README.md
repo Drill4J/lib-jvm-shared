@@ -28,7 +28,6 @@ The JVM-based shared libraries for Drill4J, used in java-agent, test2code-plugin
 - **dsm-annotations**: Annotations classes for DSM
 - **dsm-benchmarks**: Benchmark tests for DSM
 - **dsm-test-framework**: Framework for DSM tests (database container)
-- **gardle-plugin**: Cross-compilation plugin for gradle, obsolete
 - **http-clients-instrumentation**: Common instrumentation for http clients
 - **interceptor-http**: Library for intercepting http protocols calls
 - **interceptor-http-test**: Tests for **interceptor-http**
@@ -44,9 +43,6 @@ The JVM-based shared libraries for Drill4J, used in java-agent, test2code-plugin
 - **kt2dts-cli**: Module for **kt2dts** executable JAR generation
 - **ktor-swagger**: Library for ktor with swagger integration
 - **ktor-swagger-sample**: Sample implementation for **ktor-swagger**
-- **logger**: Simple logging framework
-- **logger-api**: Simple logging framework API (used in **logger** and **java-agent**)
-- **logger-test-agent**: Agent for **logger** tests
 - **logging**: Pre-configuration tier for microutils kotlin-logging library (useful for multiplatform modules)
 - **logging-native**: Port of microutils kotlin-logging library to compile for mingwX64 and macosX64 targets
 - **plugin-api-admin**: Common back-end related Drill4J project parts (admin part)
