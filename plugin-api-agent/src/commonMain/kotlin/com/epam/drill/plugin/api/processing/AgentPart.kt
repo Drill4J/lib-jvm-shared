@@ -38,9 +38,6 @@ abstract class AgentPart<A>(
     //TODO remove from API - this is only used in agent
     open fun load(on: Boolean) {
         initPlugin()
-        if (on) {
-            on()
-        }
     }
     //TODO remove from API - this is only used in agent
     open fun unload(unloadReason: UnloadReason) {

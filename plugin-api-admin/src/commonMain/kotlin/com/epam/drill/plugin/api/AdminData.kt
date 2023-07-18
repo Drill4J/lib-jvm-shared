@@ -16,10 +16,4 @@
 package com.epam.drill.plugin.api
 
 interface AdminData {
-    @Deprecated(
-        "Please use loadClassBytes with buildVersion instead.",
-        ReplaceWith("loadClassBytes(buildVersion)")
-    )
-    suspend fun loadClassBytes(): Map<String, ByteArray>
-    suspend fun loadClassBytes(buildVersion: String): Map<String, ByteArray>
 }
