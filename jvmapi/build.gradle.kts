@@ -31,7 +31,6 @@ kotlin {
         linuxX64(configure = configureCInterop)
         mingwX64(configure = configureCInterop)
         macosX64(configure = configureCInterop)
-        macosArm64(configure = configureCInterop)
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
@@ -40,7 +39,7 @@ kotlin {
         }
         val commonMain by getting {
             dependencies {
-                implementation(project(":logger-api"))
+                implementation(project(":logging"))
             }
         }
         val nativeMain by creating {
@@ -53,9 +52,6 @@ kotlin {
             dependsOn(nativeMain)
         }
         val macosX64Main by getting {
-            dependsOn(nativeMain)
-        }
-        val macosArm64Main by getting {
             dependsOn(nativeMain)
         }
     }

@@ -57,7 +57,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
-                implementation(project(":logger"))
+                implementation(project(":logging"))
             }
         }
         val nativeMain by creating {
@@ -67,7 +67,6 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
                 implementation("com.benasher44:uuid:$uuidVersion")
-                implementation(project(":logger"))
                 implementation(project(":common"))
                 implementation(project(":transport"))
                 implementation(project(":interceptor-http"))

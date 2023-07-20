@@ -18,7 +18,6 @@ package com.epam.drill.core.ws
 import com.benasher44.uuid.*
 import com.epam.drill.*
 import com.epam.drill.common.*
-import com.epam.drill.logger.*
 import com.epam.drill.transport.*
 import com.epam.drill.transport.common.ws.*
 import com.epam.drill.ws.*
@@ -28,9 +27,10 @@ import kotlinx.serialization.*
 import kotlinx.serialization.protobuf.*
 import kotlin.coroutines.*
 import kotlin.time.*
+import mu.KotlinLogging
 
 @SharedImmutable
-private val wsLogger = Logging.logger("DrillWebsocket")
+private val logger = KotlinLogging.logger("com.epam.drill.core.ws.WsSocket")
 
 private val dispatcher = newSingleThreadContext("sender coroutine")
 
@@ -50,7 +50,7 @@ class WsSocket : CoroutineScope {
         val url = URL("$adminUrl/agent/attach")
         if (agentConfig.instanceId.isEmpty()) {
             isInstanceIdGenerated.update { true }
-            wsLogger.debug { "InstanceId will be generated on each WS connection" }
+            logger.debug { "InstanceId will be generated on each WS connection" }
         }
         checkAndGenerateInstanceId()
         headers = {
@@ -60,11 +60,11 @@ class WsSocket : CoroutineScope {
                 HttpHeaders.ContentEncoding to "deflate"
             )
         }
-        wsLogger.info { "connecting with instanceId '${agentConfig.instanceId}'..." }
+        logger.info { "connecting with instanceId '${agentConfig.instanceId}'..." }
         val wsClient = WSClientFactory.createClient(url)
         ws.value = wsClient
         wsClient.onOpen {
-            wsLogger.info { "Agent connected with instanceId '${agentConfig.instanceId}'" }
+            logger.info { "Agent connected with instanceId '${agentConfig.instanceId}'" }
             errorMessage.update { "" }
         }
 
@@ -78,12 +78,12 @@ class WsSocket : CoroutineScope {
                         is PluginTopic -> {
                             val pluginMetadata = ProtoBuf.decodeFromByteArray(PluginBinary.serializer(), message.data)
                             val duration = measureTime { topic.block(pluginMetadata.meta, pluginMetadata.data) }
-                            wsLogger.debug { "'$destination' took $duration" }
+                            logger.debug { "'$destination' took $duration" }
                             Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/load"))
                         }
                         is InfoTopic -> {
                             val duration = measureTime { topic.run(message.data) }
-                            wsLogger.debug { "'$destination' took $duration" }
+                            logger.debug { "'$destination' took $duration" }
                             Sender.send(
                                 Message(
                                     MessageType.MESSAGE_DELIVERED,
@@ -93,7 +93,7 @@ class WsSocket : CoroutineScope {
                         }
                         is GenericTopic<*> -> {
                             val duration = measureTime { topic.deserializeAndRun(message.data) }
-                            wsLogger.debug { "'$destination' took $duration" }
+                            logger.debug { "'$destination' took $duration" }
                             Sender.send(
                                 Message(
                                     MessageType.MESSAGE_DELIVERED,
@@ -104,21 +104,21 @@ class WsSocket : CoroutineScope {
                     }
                 }
             } else {
-                wsLogger.warn { "topic with name '$destination' didn't register" }
+                logger.warn { "topic with name '$destination' didn't register" }
             }
         }
 
         wsClient.onError { message ->
             if (errorMessage.value != message) {
-                wsLogger.error { "[Duplicates in debug] WS error: $message" }
+                logger.error { "[Duplicates in debug] WS error: $message" }
                 errorMessage.update { message }
             } else {
-                wsLogger.debug { "WS error: $message" }
+                logger.debug { "WS error: $message" }
             }
         }
         wsClient.onClose {
             checkAndGenerateInstanceId()
-            wsLogger.info { "Websocket closed. On next connection instanceId will be '${agentConfig.instanceId}'" }
+            logger.info { "Websocket closed. On next connection instanceId will be '${agentConfig.instanceId}'" }
             errorMessage.update { "" }
         }
 

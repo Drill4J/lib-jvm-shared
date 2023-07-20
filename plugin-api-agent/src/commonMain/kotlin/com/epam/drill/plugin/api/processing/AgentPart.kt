@@ -15,15 +15,11 @@
  */
 package com.epam.drill.plugin.api.processing
 
-import com.epam.drill.logger.api.*
-
 @Suppress("unused")
 abstract class AgentPart<A>(
     val id: String,
     val context: AgentContext,
     private val sender: Sender,
-    @Suppress("UNUSED_PARAMETER")
-    logging: LoggerFactory
 ) : AgentPlugin<A> {
     fun send(message: String) = sender.send(id, message)
 

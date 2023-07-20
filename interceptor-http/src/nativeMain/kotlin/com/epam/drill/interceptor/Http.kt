@@ -16,7 +16,7 @@
 package com.epam.drill.interceptor
 
 import kotlin.native.concurrent.SharedImmutable
-import com.epam.drill.logger.*
+import mu.KotlinLogging
 
 const val HTTP_DETECTOR_BYTES_COUNT = 8
 
@@ -29,4 +29,4 @@ val HTTP_VERBS =
     setOf("OPTIONS", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "PRI") + HTTP_RESPONSE_MARKER
 
 @SharedImmutable
-val logger = Logging.logger("http")
+internal val logger = KotlinLogging.logger("com.epam.drill.interceptor.Http")

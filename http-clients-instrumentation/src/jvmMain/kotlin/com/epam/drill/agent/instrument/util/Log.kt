@@ -15,10 +15,10 @@
  */
 package com.epam.drill.agent.instrument.util
 
-import com.epam.drill.logger.Logging
+import mu.KotlinLogging
 
 object Log {
-    private val logger = Logging.logger("Headers injector")
+    private val logger = KotlinLogging.logger {}
     fun injectHeaderLog(headers: Map<String, String>) {
         logger.trace { "Adding headers: $headers" }
     }

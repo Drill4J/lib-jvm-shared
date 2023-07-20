@@ -31,7 +31,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(project(":logger-api"))
+                api(project(":common"))
             }
         }
         val jvmMain by getting {

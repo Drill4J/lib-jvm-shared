@@ -18,7 +18,6 @@ package com.epam.drill.interceptor
 import com.epam.drill.hook.gen.*
 import com.epam.drill.hook.io.*
 import com.epam.drill.hook.io.tcp.*
-import com.epam.drill.logger.*
 import kotlinx.cinterop.*
 import kotlin.native.concurrent.*
 

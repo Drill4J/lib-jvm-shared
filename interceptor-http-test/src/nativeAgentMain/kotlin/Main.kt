@@ -18,12 +18,13 @@
 import com.epam.drill.jvmapi.gen.*
 import com.epam.drill.jvmapi.gen.jobject
 import kotlin.native.concurrent.freeze
+import kotlinx.cinterop.CPointer
+import mu.KotlinLoggingConfiguration
+import mu.KotlinLoggingLevel
 import com.epam.drill.interceptor.*
 import com.epam.drill.jvmapi.JNIEnvPointer
 import com.epam.drill.jvmapi.vmGlobal
-import com.epam.drill.logger.*
-import com.epam.drill.logger.api.*
-import kotlinx.cinterop.CPointer
+import com.epam.drill.logging.LoggingConfiguration
 
 @Suppress("UNUSED_PARAMETER", "UNUSED")
 @CName("Agent_OnLoad")
@@ -40,7 +41,8 @@ fun removeHttpHook(env: JNIEnv, thiz: jobject) {
 @Suppress("unused")
 @CName("Java_bindings_Bindings_addHttpHook")
 fun addHttpHook(env: JNIEnv, thiz: jobject) {
-    Logging.logLevel = LogLevel.TRACE
+    LoggingConfiguration.readDefaultConfiguration()
+    KotlinLoggingConfiguration.logLevel = KotlinLoggingLevel.TRACE
     configureHttpInterceptor()
     com.epam.drill.hook.io.tcp.injectedHeaders.value = { injectedHeaders }.freeze()
     com.epam.drill.hook.io.tcp.readHeaders.value = { it: Map<ByteArray, ByteArray> ->

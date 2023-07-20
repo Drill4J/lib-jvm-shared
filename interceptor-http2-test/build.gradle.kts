@@ -77,7 +77,8 @@ kotlin {
         val nativeAgentMain by getting {
             dependsOn(commonMain)
             dependencies {
-                implementation(project(":logger"))
+                if(HostManager.hostIsMingw) implementation(project(":logging-native"))
+                implementation(project(":logging"))
                 implementation(project(":jvmapi"))
                 api(project(":interceptor-http2"))
             }
