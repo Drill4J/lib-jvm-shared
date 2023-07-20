@@ -36,7 +36,7 @@ private val loader = Worker.start(true)
 
 fun topicRegister() =
     WsRouter {
-        WsRouter.inners("/agent/load").withPluginTopic { pluginMeta, file ->
+        WsRouter.inners("/agent/load").withPluginTopic { pluginMeta ->
             if (pstorage[pluginMeta.id] != null) {
                 pluginMeta.sendPluginLoaded()
                 logger.info { "Plugin '${pluginMeta.id}' is already loaded" }
@@ -45,14 +45,12 @@ fun topicRegister() =
             addPluginConfig(pluginMeta)
             loader.execute(
                 TransferMode.UNSAFE,
-                { pluginMeta to file }) { (plugMessage, file) ->
+                { pluginMeta }) { plugMessage ->
                 logger.info { "try to load ${plugMessage.id} plugin" }
                 val id = plugMessage.id
                 agentConfig = agentConfig.copy(needSync = false)
                 runBlocking {
-                    val path = generatePluginPath(id)
-                    writeFileAsync(path, file)
-                    loadPlugin(path, plugMessage)
+                    loadPlugin(plugMessage)
                 }
                 plugMessage.sendPluginLoaded()
                 logger.info { "$id plugin loaded" }
@@ -163,16 +161,4 @@ private fun PluginMetadata.sendPluginLoaded() {
 
 private fun sendPluginToggle(pluginId: String) {
     Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/plugin/${pluginId}/toggle"))
-}
-
-private fun generatePluginPath(id: String): String {
-    val ajar = "agent-part.jar"
-    val pluginsDir = "${if (tempPath.isEmpty()) drillInstallationDir else tempPath}/drill-plugins"
-    doMkdir(pluginsDir)
-    var pluginDir = "$pluginsDir/$id"
-    doMkdir(pluginDir)
-    pluginDir = "$pluginDir/${agentConfig.id}"
-    doMkdir(pluginDir)
-    val path = "$pluginDir/$ajar"
-    return path
 }

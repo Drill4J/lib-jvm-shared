@@ -19,19 +19,16 @@ import com.epam.drill.common.*
 import com.epam.drill.plugin.*
 import kotlin.native.concurrent.*
 
-val defaultFun: suspend () -> ByteArray = { byteArrayOf() }
-
-private val drillRequestCallback_ = AtomicReference<() -> DrillRequest?>({ null }.freeze()).freeze()
-private val sessionStorageCallback = AtomicReference({ _: DrillRequest -> Unit }.freeze()).freeze()
+private val drillRequestCallback = AtomicReference<() -> DrillRequest?>({ null }.freeze()).freeze()
+private val sessionStorageCallback = AtomicReference({ _: DrillRequest -> }.freeze()).freeze()
 private val closeSessionCallback = AtomicReference({ }.freeze()).freeze()
-private val loadPluginCallback = AtomicReference({ _: String, _: PluginMetadata -> Unit }.freeze()).freeze()
-private val getClassesByConfigCallback = AtomicReference(defaultFun.freeze()).freeze()
-private val setPackagesPrefixesCallback = AtomicReference({ _: PackagesPrefixes -> Unit }.freeze()).freeze()
+private val loadPluginCallback = AtomicReference({_: PluginMetadata -> }.freeze()).freeze()
+private val setPackagesPrefixesCallback = AtomicReference({ _: PackagesPrefixes -> }.freeze()).freeze()
 
 var drillRequest: () -> DrillRequest?
-    get() = drillRequestCallback_.value
+    get() = drillRequestCallback.value
     set(value) {
-        drillRequestCallback_.value = value.freeze()
+        drillRequestCallback.value = value.freeze()
     }
 
 var sessionStorage: (DrillRequest) -> Unit
@@ -46,16 +43,10 @@ var closeSession: () -> Unit
         closeSessionCallback.value = value.freeze()
     }
 
-var loadPlugin: (String, PluginMetadata) -> Unit
+var loadPlugin: (PluginMetadata) -> Unit
     get() = loadPluginCallback.value
     set(value) {
         loadPluginCallback.value = value.freeze()
-    }
-
-var getClassesByConfig: suspend () -> ByteArray
-    get() = getClassesByConfigCallback.value
-    set(value) {
-        getClassesByConfigCallback.value = value.freeze()
     }
 
 var setPackagesPrefixes: (PackagesPrefixes) -> Unit

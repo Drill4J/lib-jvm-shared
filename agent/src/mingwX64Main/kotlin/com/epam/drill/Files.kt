@@ -18,8 +18,6 @@ package com.epam.drill
 import kotlinx.cinterop.*
 import platform.posix.*
 
-actual val tempPath = ""
-
 val processInfoCmd = "wmic process where \"processid='${getpid()}'\" get commandline"
 
 fun AutofreeScope.openPipe(): CPointer<FILE>? {
@@ -29,7 +27,3 @@ fun AutofreeScope.openPipe(): CPointer<FILE>? {
 }
 
 fun CPointer<FILE>?.close() = pclose?.invoke(this)
-
-actual fun doMkdir(path: String) {
-    mkdir(path)
-}
