@@ -48,18 +48,10 @@ kotlin {
         }
 
     }
-    val configureNativeDependencies: KotlinSourceSet.() -> Unit = {
-        dependencies {
-            implementation(project(":kni-runtime"))
-            implementation(project(":knasm"))
-            implementation(project(":jvmapi"))
-        }
-    }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":knasm"))
                 implementation(project(":logging"))
             }
         }
@@ -67,7 +59,12 @@ kotlin {
             dependencies {
                 implementation("org.javassist:javassist:$javassistVersion")
                 implementation(project(":kni-runtime"))
-                implementation(project(":knasm"))
+            }
+        }
+        val configureNativeDependencies: KotlinSourceSet.() -> Unit = {
+            dependencies {
+                implementation(project(":kni-runtime"))
+                implementation(project(":jvmapi"))
             }
         }
         val mingwX64Main by getting(configuration = configureNativeDependencies)

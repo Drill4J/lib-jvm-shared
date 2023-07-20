@@ -16,12 +16,11 @@
 package com.epam.drill.agent.instrument.http.ok
 
 import com.epam.drill.agent.instrument.*
-import org.objectweb.asm.*
 
 actual object OkHttpClient : IStrategy {
 
-    actual override fun permit(classReader: ClassReader): Boolean {
-        return classReader.interfaces.any { it == "okhttp3/internal/http/HttpCodec" }
+    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
+        return interfaces.any { it == "okhttp3/internal/http/HttpCodec" }
     }
 
     actual override fun transform(

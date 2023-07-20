@@ -19,15 +19,14 @@ import com.epam.drill.agent.instrument.*
 import com.epam.drill.agent.instrument.util.*
 import com.epam.drill.kni.*
 import javassist.*
-import org.objectweb.asm.*
 import java.security.*
 
 @Kni
 actual object ApacheClient : TransformStrategy(), IStrategy {
 
     // TODO Waiting for this feature to move this permit to common part https://youtrack.jetbrains.com/issue/KT-20427
-    actual override fun permit(classReader: ClassReader): Boolean {
-        return classReader.interfaces.any { "org/apache/http/HttpClientConnection" == it }
+    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
+        return interfaces.any { "org/apache/http/HttpClientConnection" == it }
     }
 
     actual override fun transform(

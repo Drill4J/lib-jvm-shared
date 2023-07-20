@@ -16,13 +16,11 @@
 package com.epam.drill.agent.instrument.http.apache
 
 import com.epam.drill.agent.instrument.*
-import org.objectweb.asm.*
-
 
 actual object ApacheClient : IStrategy {
 
-    actual override fun permit(classReader: ClassReader): Boolean {
-        return classReader.interfaces.any { "org/apache/http/HttpClientConnection" == it }
+    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
+        return interfaces.any { "org/apache/http/HttpClientConnection" == it }
     }
 
     actual override fun transform(

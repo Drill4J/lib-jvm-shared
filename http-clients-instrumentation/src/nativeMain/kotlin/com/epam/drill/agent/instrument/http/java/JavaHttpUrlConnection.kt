@@ -16,14 +16,13 @@
 package com.epam.drill.agent.instrument.http.java
 
 import com.epam.drill.agent.instrument.*
-import org.objectweb.asm.*
 
 actual object JavaHttpUrlConnection : IStrategy {
 
-    actual override fun permit(classReader: ClassReader): Boolean {
-        val parentClassName = runCatching { classReader.superName }.getOrDefault("")
-        return parentClassName == "java/net/HttpURLConnection" ||
-                parentClassName == "javax/net/ssl/HttpsURLConnection"
+    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
+        return superName != null && (
+                superName == "java/net/HttpURLConnection" ||
+                superName == "javax/net/ssl/HttpsURLConnection")
     }
 
     actual override fun transform(
