@@ -98,7 +98,7 @@ fun topicRegister() =
 
         rawTopic("/agent/change-header-name") { headerName ->
             logger.info { "Agent got a new headerMapping: $headerName" }
-            requestPattern = if (headerName.isEmpty()) null else headerName
+            requestPattern = headerName.ifEmpty { null }
         }
 
         rawTopic<PackagesPrefixes>("/agent/set-packages-prefixes") { payload ->
@@ -124,10 +124,8 @@ fun topicRegister() =
             logger.info { "UpdatePluginConfig event: message is $config " }
             val agentPluginPart = PluginManager[config.id]
             if (agentPluginPart != null) {
-                agentPluginPart.setEnabled(false)
                 agentPluginPart.off()
                 agentPluginPart.updateRawConfig(config.data)
-                agentPluginPart.setEnabled(true)
                 agentPluginPart.on()
                 logger.debug { "New settings for ${config.id} saved to file" }
             } else
@@ -141,24 +139,8 @@ fun topicRegister() =
             Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/plugin/action/${m.confirmationKey}"))
         }
 
-        rawTopic<TogglePayload>("/plugin/togglePlugin") { (pluginId, forceValue) ->
-            val agentPluginPart = PluginManager[pluginId]
-            if (agentPluginPart == null) {
-                logger.warn { "Plugin $pluginId not loaded to agent" }
-            } else {
-                logger.info { "togglePlugin event: PluginId is $pluginId" }
-                val newValue = forceValue ?: !agentPluginPart.isEnabled()
-                agentPluginPart.setEnabled(newValue)
-                if (newValue) agentPluginPart.on() else agentPluginPart.off()
-            }
-            sendPluginToggle(pluginId)
-        }
     }
 
 private fun PluginMetadata.sendPluginLoaded() {
     Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/plugin/$id/loaded"))
-}
-
-private fun sendPluginToggle(pluginId: String) {
-    Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/plugin/${pluginId}/toggle"))
 }

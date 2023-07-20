@@ -28,10 +28,6 @@ abstract class AgentPart<A>(
     open fun onConnect() = Unit
 
     //TODO remove from API - this is only used in agent
-    open fun isEnabled(): Boolean = true
-    //TODO remove from API - this is only used in agent
-    open fun setEnabled(enabled: Boolean) = Unit
-    //TODO remove from API - this is only used in agent
     open fun load(on: Boolean) {
         initPlugin()
     }

@@ -24,7 +24,6 @@ data class PluginMetadata(
     var description: String = "",
     var type: String = "",
     var family: Family = Family.INSTRUMENTATION,
-    var enabled: Boolean = true,
     var config: String = "",
     var checkSum: String = ""
 )
