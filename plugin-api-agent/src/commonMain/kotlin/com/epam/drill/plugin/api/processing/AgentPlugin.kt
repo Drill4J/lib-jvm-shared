@@ -26,7 +26,7 @@ interface Sender {
     fun send(pluginId: String, message: String)
 }
 
-interface AgentPlugin<A> : DrillPlugin<A>, Switchable, Lifecycle
+interface AgentPlugin<A> : DrillPlugin<A>, Switchable
 
 interface DrillPlugin<A> {
     suspend fun doAction(action: A): Any
@@ -39,17 +39,8 @@ interface Switchable {
     fun off()
 }
 
-interface Lifecycle {
-    fun initPlugin()
-    fun destroyPlugin(unloadReason: UnloadReason)
-}
-
 interface Instrumenter {
     fun instrument(className: String, initialBytes: ByteArray): ByteArray?
-}
-
-enum class UnloadReason {
-    ACTION_FROM_ADMIN, SH
 }
 
 /**

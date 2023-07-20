@@ -27,13 +27,6 @@ abstract class AgentPart<A>(
 
     open fun onConnect() = Unit
 
-    //TODO remove from API - this is only used in agent
-    open fun load(on: Boolean) {
-        initPlugin()
-    }
-    //TODO remove from API - this is only used in agent
-    open fun unload(unloadReason: UnloadReason) {
-        off()
-        destroyPlugin(unloadReason)
-    }
+    abstract fun load()
+
 }

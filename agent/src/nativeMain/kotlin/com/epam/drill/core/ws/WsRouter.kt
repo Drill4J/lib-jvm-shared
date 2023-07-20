@@ -21,7 +21,6 @@ import com.epam.drill.common.*
 import com.epam.drill.common.ws.*
 import com.epam.drill.core.*
 import com.epam.drill.plugin.*
-import com.epam.drill.plugin.api.processing.*
 import kotlinx.coroutines.*
 import kotlin.native.concurrent.*
 import mu.KotlinLogging
@@ -104,20 +103,6 @@ fun topicRegister() =
         rawTopic<PackagesPrefixes>("/agent/set-packages-prefixes") { payload ->
             setPackagesPrefixes(payload)
             logger.info { "Agent packages prefixes have been changed" }
-        }
-
-        rawTopic("/agent/unload") { pluginId ->
-            logger.warn { "Unload event. Plugin id is $pluginId" }
-            PluginManager[pluginId]?.unload(UnloadReason.ACTION_FROM_ADMIN)
-            println(
-                """
-                    |________________________________________________________
-                    |Physical Deletion is not implemented yet.
-                    |We should unload all resource e.g. classes, jars, .so/.dll
-                    |Try to create custom classLoader. After this full GC.
-                    |________________________________________________________
-                """.trimMargin()
-            )
         }
 
         rawTopic<PluginConfig>("/plugin/updatePluginConfig") { config ->
