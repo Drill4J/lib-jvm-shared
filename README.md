@@ -55,3 +55,37 @@ The JVM-based shared libraries for Drill4J, used in java-agent, test2code-plugin
 - **test-plugin-agent**: Test-plugin for **admin** component tests (agent-part)
 - **test2code-api**: Classes for working with [admin](https://github.com/Drill4J/admin). It analyzes probes and send metrics & statistics.
 - **transport**: Library with transport protocol for backend communication
+
+## Modules kni-plugin and kni-runtime
+
+**Kni-runtime** module container two classes:
+- **annotation class Kni**: To mark classes for which kni-stub classes should be generated. Generated stub classes used for 2 purposes:
+  - Call JVM methods from native code, example: `actual fun retrieveClassesData(config: String): ByteArray { return DataServiceStub.retrieveClassesData(config) }`
+  - Call native methods from JVM code, example: `actual external fun adminAddressHeader(): String?`
+- **interface JvmtiAgent**: Interface should be implemented by JVMTI-agent class which will be called in kni-generated function:
+```kotlin
+@CName("Agent_OnLoad")
+public fun agentOnLoad(
+    vmPointer: CPointer<JavaVMVar>,
+    options: String,
+    reservedPtr: Long
+): Int = memScoped {
+    com.epam.drill.jvmapi.vmGlobal.value = vmPointer.freeze()
+    val vm = vmPointer.pointed
+    val jvmtiEnvPtr = alloc<CPointerVar<jvmtiEnvVar>>()
+    vm.value!!.pointed.GetEnv!!(vm.ptr, jvmtiEnvPtr.ptr.reinterpret(),
+        com.epam.drill.jvmapi.gen.JVMTI_VERSION.convert())
+    com.epam.drill.jvmapi.jvmti.value = jvmtiEnvPtr.value
+    jvmtiEnvPtr.value.freeze()
+    com.epam.drill.core.Agent.agentOnLoad(options) // call method of class configured in gradle file using kni-block 
+}
+```
+
+**Kni-plugin** module contains classes for kni-stubs and JVMTI entry-point generation, generation details should be configured in gradle file using **kni** block, like:
+```kotlin
+    kni {
+        jvmTargets = sequenceOf(jvm)
+        jvmtiAgentObjectPath = "com.epam.drill.core.Agent"
+        nativeCrossCompileTarget = sequenceOf(linuxX64, mingwX64, macosX64)
+    }
+```
