@@ -124,8 +124,23 @@ fun topicRegister() =
             Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/plugin/action/${m.confirmationKey}"))
         }
 
+        rawTopic<TogglePayload>("/plugin/togglePlugin") { (pluginId, forceValue) ->
+            val agentPluginPart = PluginManager[pluginId]
+            if (agentPluginPart == null) {
+                logger.warn { "Plugin $pluginId not loaded to agent" }
+            } else {
+                logger.info { "togglePlugin event: PluginId is $pluginId" }
+                if (forceValue != false) agentPluginPart.on() else agentPluginPart.off()
+            }
+            sendPluginToggle(pluginId)
+        }
+
     }
 
 private fun PluginMetadata.sendPluginLoaded() {
     Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/plugin/$id/loaded"))
+}
+
+private fun sendPluginToggle(pluginId: String) {
+    Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/plugin/${pluginId}/toggle"))
 }
