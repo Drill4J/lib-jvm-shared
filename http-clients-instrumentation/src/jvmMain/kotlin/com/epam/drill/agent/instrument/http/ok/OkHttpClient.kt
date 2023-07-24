@@ -17,12 +17,10 @@ package com.epam.drill.agent.instrument.http.ok
 
 import com.epam.drill.agent.instrument.*
 import com.epam.drill.agent.instrument.util.*
-import com.epam.drill.kni.*
 import javassist.*
 import java.security.*
 import mu.KotlinLogging
 
-@Kni
 actual object OkHttpClient : TransformStrategy(), IStrategy {
 
     private val logger = KotlinLogging.logger {}

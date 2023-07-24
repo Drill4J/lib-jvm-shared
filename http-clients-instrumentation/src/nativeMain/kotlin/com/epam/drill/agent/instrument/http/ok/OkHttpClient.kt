@@ -15,7 +15,8 @@
  */
 package com.epam.drill.agent.instrument.http.ok
 
-import com.epam.drill.agent.instrument.*
+import com.epam.drill.agent.instrument.IStrategy
+import com.epam.drill.agent.instrument.http.callIStrategyTransformMethod
 
 actual object OkHttpClient : IStrategy {
 
@@ -28,7 +29,14 @@ actual object OkHttpClient : IStrategy {
         classFileBuffer: ByteArray,
         loader: Any?,
         protectionDomain: Any?,
-    ): ByteArray? {
-        return OkHttpClientStub.transform(className, classFileBuffer, loader, protectionDomain)
-    }
+    ): ByteArray? =
+        callIStrategyTransformMethod(
+            OkHttpClient::class,
+            OkHttpClient::transform,
+            className,
+            classFileBuffer,
+            loader,
+            protectionDomain
+        )
+
 }

@@ -15,7 +15,8 @@
  */
 package com.epam.drill.agent.instrument.http.java
 
-import com.epam.drill.agent.instrument.*
+import com.epam.drill.agent.instrument.IStrategy
+import com.epam.drill.agent.instrument.http.callIStrategyTransformMethod
 
 actual object JavaHttpUrlConnection : IStrategy {
 
@@ -30,11 +31,14 @@ actual object JavaHttpUrlConnection : IStrategy {
         classFileBuffer: ByteArray,
         loader: Any?,
         protectionDomain: Any?,
-    ): ByteArray? {
-        return JavaHttpUrlConnectionStub.transform(className,
+    ): ByteArray? =
+        callIStrategyTransformMethod(
+            JavaHttpUrlConnection::class,
+            JavaHttpUrlConnection::transform,
+            className,
             classFileBuffer,
             loader,
             protectionDomain
         )
-    }
+
 }

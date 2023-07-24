@@ -15,7 +15,8 @@
  */
 package com.epam.drill.agent.instrument.http.apache
 
-import com.epam.drill.agent.instrument.*
+import com.epam.drill.agent.instrument.IStrategy
+import com.epam.drill.agent.instrument.http.callIStrategyTransformMethod
 
 actual object ApacheClient : IStrategy {
 
@@ -28,7 +29,14 @@ actual object ApacheClient : IStrategy {
         classFileBuffer: ByteArray,
         loader: Any?,
         protectionDomain: Any?,
-    ): ByteArray? {
-        return ApacheClientStub.transform(className, classFileBuffer, loader, protectionDomain)
-    }
+    ): ByteArray? =
+        callIStrategyTransformMethod(
+            ApacheClient::class,
+            ApacheClient::transform,
+            className,
+            classFileBuffer,
+            loader,
+            protectionDomain
+        )
+
 }
