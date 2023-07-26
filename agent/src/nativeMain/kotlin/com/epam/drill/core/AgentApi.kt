@@ -22,7 +22,6 @@ import kotlin.native.concurrent.*
 private val drillRequestCallback = AtomicReference<() -> DrillRequest?>({ null }.freeze()).freeze()
 private val sessionStorageCallback = AtomicReference({ _: DrillRequest -> }.freeze()).freeze()
 private val closeSessionCallback = AtomicReference({ }.freeze()).freeze()
-private val loadPluginCallback = AtomicReference({_: PluginMetadata -> }.freeze()).freeze()
 private val setPackagesPrefixesCallback = AtomicReference({ _: PackagesPrefixes -> }.freeze()).freeze()
 
 var drillRequest: () -> DrillRequest?
@@ -41,12 +40,6 @@ var closeSession: () -> Unit
     get() = closeSessionCallback.value
     set(value) {
         closeSessionCallback.value = value.freeze()
-    }
-
-var loadPlugin: (PluginMetadata) -> Unit
-    get() = loadPluginCallback.value
-    set(value) {
-        loadPluginCallback.value = value.freeze()
     }
 
 var setPackagesPrefixes: (PackagesPrefixes) -> Unit

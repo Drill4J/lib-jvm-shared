@@ -38,17 +38,6 @@ object WsRouter {
         alotoftopics(this)
     }
 
-    @Suppress("ClassName")
-    open class inners(open val destination: String) {
-        @Suppress("unused")
-        fun withPluginTopic(block: suspend (message: PluginMetadata) -> Unit): PluginTopic {
-            val fileTopic = PluginTopic(destination, block)
-            val mapping: Pair<String, Topic> = destination to fileTopic
-            mapper.update { it + mapping }
-            return fileTopic
-        }
-    }
-
     operator fun get(topic: String): Topic? {
         return mapper.value[topic]
     }

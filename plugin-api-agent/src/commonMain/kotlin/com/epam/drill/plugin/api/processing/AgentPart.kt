@@ -23,8 +23,6 @@ abstract class AgentPart<A>(
 ) : AgentPlugin<A> {
     fun send(message: String) = sender.send(id, message)
 
-    open fun updateRawConfig(data: String) = Unit
-
     open fun onConnect() = Unit
 
     abstract fun load()

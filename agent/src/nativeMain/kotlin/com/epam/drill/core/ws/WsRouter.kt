@@ -21,7 +21,6 @@ import com.epam.drill.common.*
 import com.epam.drill.common.ws.*
 import com.epam.drill.core.*
 import com.epam.drill.plugin.*
-import kotlinx.coroutines.*
 import kotlin.native.concurrent.*
 import mu.KotlinLogging
 import mu.KotlinLoggingLevel
@@ -30,33 +29,8 @@ import mu.KotlinLoggingConfiguration
 @SharedImmutable
 private val logger = KotlinLogging.logger("com.epam.drill.core.ws.WsRouter")
 
-@SharedImmutable
-private val loader = Worker.start(true)
-
 fun topicRegister() =
     WsRouter {
-        WsRouter.inners("/agent/load").withPluginTopic { pluginMeta ->
-            if (pstorage[pluginMeta.id] != null) {
-                pluginMeta.sendPluginLoaded()
-                logger.info { "Plugin '${pluginMeta.id}' is already loaded" }
-                return@withPluginTopic
-            }
-            addPluginConfig(pluginMeta)
-            loader.execute(
-                TransferMode.UNSAFE,
-                { pluginMeta }) { plugMessage ->
-                logger.info { "try to load ${plugMessage.id} plugin" }
-                val id = plugMessage.id
-                agentConfig = agentConfig.copy(needSync = false)
-                runBlocking {
-                    loadPlugin(plugMessage)
-                }
-                plugMessage.sendPluginLoaded()
-                logger.info { "$id plugin loaded" }
-            }
-
-        }
-
         rawTopic("/plugin/state") {
             logger.info { "Agent's plugin state sending triggered " }
             logger.info { "Plugins: ${pstorage.size}" }
@@ -110,7 +84,6 @@ fun topicRegister() =
             val agentPluginPart = PluginManager[config.id]
             if (agentPluginPart != null) {
                 agentPluginPart.off()
-                agentPluginPart.updateRawConfig(config.data)
                 agentPluginPart.on()
                 logger.debug { "New settings for ${config.id} saved to file" }
             } else
@@ -136,10 +109,6 @@ fun topicRegister() =
         }
 
     }
-
-private fun PluginMetadata.sendPluginLoaded() {
-    Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/plugin/$id/loaded"))
-}
 
 private fun sendPluginToggle(pluginId: String) {
     Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/plugin/${pluginId}/toggle"))
