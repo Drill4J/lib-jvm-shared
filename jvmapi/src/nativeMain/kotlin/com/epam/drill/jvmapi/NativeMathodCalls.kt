@@ -21,9 +21,6 @@ import com.epam.drill.jvmapi.gen.jobject
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.reinterpret
 
-typealias JStringConverter = JStingConverter
-inline fun <reified R> withJString(block: JStringConverter.() -> R): R = withJSting(block)
-
 @Suppress("UNUSED_PARAMETER")
 fun callNativeVoidMethod(env: JNIEnv, thiz: jobject, method: () -> Unit) = memScoped {
     withJString {
