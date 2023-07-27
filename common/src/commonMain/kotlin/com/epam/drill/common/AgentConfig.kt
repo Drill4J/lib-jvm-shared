@@ -25,7 +25,6 @@ data class AgentConfig(
     val serviceGroupId: String,
     val agentType: AgentType,
     val agentVersion: String = "",
-    val needSync: Boolean = true,
     val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
     val parameters: Map<String, AgentParameter> = emptyMap(),
 )
@@ -46,6 +45,7 @@ data class PackagesPrefixes(
     val packagesPrefixes: List<String> = emptyList()
 )
 
+@Suppress("UNUSED")
 @Serializable
 data class PluginId(val pluginId: String)
 
@@ -53,4 +53,3 @@ data class PluginId(val pluginId: String)
 data class TogglePayload(val pluginId: String, val forceValue: Boolean? = null)
 
 const val AgentConfigParam = "AgentConfig"
-const val NeedSyncParam = "needSync"

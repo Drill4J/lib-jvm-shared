@@ -55,7 +55,6 @@ class WsSocket : CoroutineScope {
         headers = {
             mutableMapOf(
                 AgentConfigParam to ProtoBuf.encodeToHexString(AgentConfig.serializer(), agentConfig),
-                NeedSyncParam to pstorage.none().toString(),
                 HttpHeaders.ContentEncoding to "deflate"
             )
         }
