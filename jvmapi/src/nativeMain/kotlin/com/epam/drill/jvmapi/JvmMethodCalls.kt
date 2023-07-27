@@ -56,6 +56,14 @@ fun callObjectVoidMethodWithString(clazz: KClass<out Any>, method: String, strin
 fun callObjectVoidMethodWithString(clazz: KClass<out Any>, method: KCallable<Unit>, string: String?) =
     callObjectVoidMethodWithString(clazz, method.name, string)
 
+fun callObjectVoidMethodWithByteArray(clazz: KClass<out Any>, method: String, bytes: ByteArray) =
+    getObjectMethod(clazz, method, "([B)V").run {
+        CallVoidMethod(this.first, this.second, toJByteArray(bytes))
+    }
+
+fun callObjectVoidMethodWithByteArray(clazz: KClass<out Any>, method: KCallable<Unit>, bytes: ByteArray) =
+    callObjectVoidMethodWithByteArray(clazz, method.name, bytes)
+
 fun callObjectIntMethod(clazz: KClass<out Any>, method: String) =
     getObjectMethod(clazz, method, "()I").run {
         CallIntMethod(this.first, this.second)

@@ -29,9 +29,9 @@ interface Sender {
 interface AgentPlugin<A> : DrillPlugin<A>, Switchable
 
 interface DrillPlugin<A> {
-    suspend fun doAction(action: A): Any
+    fun doAction(action: A): Any
     fun parseAction(rawAction: String): A
-    suspend fun doRawAction(rawAction: String): Any = doAction(parseAction(rawAction))
+    fun doRawAction(rawAction: String): Any = doAction(parseAction(rawAction))
 }
 
 interface Switchable {
