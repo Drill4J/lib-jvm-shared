@@ -20,12 +20,10 @@ import com.epam.drill.api.dto.*
 import com.epam.drill.common.*
 import com.epam.drill.common.ws.*
 import com.epam.drill.core.*
-import com.epam.drill.core.messanger.*
 import com.epam.drill.logger.*
 import com.epam.drill.logger.api.*
 import com.epam.drill.plugin.*
 import com.epam.drill.plugin.api.processing.*
-import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlin.native.concurrent.*
 
@@ -50,20 +48,10 @@ fun topicRegister() =
                 tempTopicLogger.info { "try to load ${plugMessage.id} plugin" }
                 val id = plugMessage.id
                 agentConfig = agentConfig.copy(needSync = false)
-                if (!plugMessage.isNative) runBlocking {
+                runBlocking {
                     val path = generatePluginPath(id)
                     writeFileAsync(path, file)
                     loadPlugin(path, plugMessage)
-                } else {
-                    val natPlugin = generateNativePluginPath(id)
-
-                    val dynamicLibrary = injectDynamicLibrary(natPlugin) as CPointed?
-
-                    val loadedNativePlugin = nativePlugin(dynamicLibrary, id, staticCFunction(::sendNativeMessage))
-
-
-                    loadedNativePlugin?.initPlugin()
-                    loadedNativePlugin?.on()
                 }
                 plugMessage.sendPluginLoaded()
                 tempTopicLogger.info { "$id plugin loaded" }
@@ -174,11 +162,6 @@ private fun PluginMetadata.sendPluginLoaded() {
 
 private fun sendPluginToggle(pluginId: String) {
     Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/plugin/${pluginId}/toggle"))
-}
-
-private fun generateNativePluginPath(id: String): String {
-    //fixme do generate Native path
-    return "$id/native_plugin.os_lib"
 }
 
 private fun generatePluginPath(id: String): String {

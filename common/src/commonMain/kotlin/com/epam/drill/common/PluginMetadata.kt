@@ -26,8 +26,7 @@ data class PluginMetadata(
     var family: Family = Family.INSTRUMENTATION,
     var enabled: Boolean = true,
     var config: String = "",
-    var checkSum: String = "",
-    var isNative: Boolean = false
+    var checkSum: String = ""
 )
 
 @Serializable

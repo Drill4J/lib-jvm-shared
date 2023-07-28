@@ -15,6 +15,8 @@
  */
 package com.epam.drill.plugin.api.processing
 
+import com.epam.drill.common.classloading.EntitySource
+
 interface AgentContext {
     operator fun invoke(): String?
     operator fun get(key: String): String?
@@ -59,24 +61,4 @@ interface ClassScanner {
      * @param consumer the function for processing chunks of scanned classes
      */
     fun scanClasses(consumer: (Set<EntitySource>) -> Unit)
-}
-
-/**
- * Class containing information about entity/class bytes
- */
-interface ByteSource {
-    /**
-     * @return bytes of the source
-     */
-    fun bytes(): ByteArray
-}
-
-/**
- * Class containing information about entity/class name
- */
-interface EntitySource: ByteSource {
-    /**
-     * @return the name of the class of the source
-     */
-    fun entityName(): String
 }
