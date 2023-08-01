@@ -28,15 +28,11 @@ class TestAgentPart constructor(
         send("xx")
     }
 
-    override fun initPlugin() {
+    override fun load() {
         println("Plugin $id initialized.")
     }
 
-    override fun destroyPlugin(unloadReason: UnloadReason) {
-        TODO()
-    }
-
-    override suspend fun doAction(action: String): Any {
+    override fun doAction(action: String): Any {
         println(action)
         return "action"
     }
