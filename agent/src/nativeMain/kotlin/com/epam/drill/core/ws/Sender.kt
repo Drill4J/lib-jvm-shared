@@ -15,15 +15,15 @@
  */
 package com.epam.drill.core.ws
 
-import com.epam.drill.logger.*
 import com.epam.drill.ws.*
 import com.epam.drill.zstd.*
 import kotlinx.serialization.*
 import kotlinx.serialization.protobuf.*
+import mu.KotlinLogging
 
 object Sender {
 
-    val logger = Logging.logger("AsyncSender")
+    val logger = KotlinLogging.logger("com.epam.drill.core.ws.Sender")
 
     inline fun <reified T : Any> send(message: T) {
         val messageForSend = ProtoBuf.encodeToByteArray(T::class.serializer(), message)

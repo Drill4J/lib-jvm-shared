@@ -15,16 +15,14 @@
  */
 package com.epam.drill.admin.plugins.coverage
 
-import com.epam.drill.logger.api.*
 import com.epam.drill.plugin.api.processing.*
 
 @Suppress("unused")
 class TestAgentPart constructor(
     id: String,
     agentContext: AgentContext,
-    sender: Sender,
-    logging: LoggerFactory
-) : AgentPart<String>(id, agentContext, sender, logging) {
+    sender: Sender
+) : AgentPart<String>(id, agentContext, sender) {
 
     override fun on() {
         send("xx")

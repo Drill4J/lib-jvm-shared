@@ -16,13 +16,10 @@
 package com.epam.drill.agent.instrument
 
 import com.epam.drill.agent.instrument.util.*
-import com.epam.drill.logger.*
 import javassist.*
 import java.security.*
 
 abstract class TransformStrategy : IStrategy {
-
-    protected val logger = Logging.logger { this::class.java.name }
 
     override fun transform(
         className: String,

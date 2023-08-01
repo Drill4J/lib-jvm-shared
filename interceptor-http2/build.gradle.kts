@@ -14,6 +14,8 @@ version = Properties().run {
     getProperty("version.$name") ?: Project.DEFAULT_VERSION
 }
 
+val ktorVersion: String by parent!!.extra
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -35,8 +37,8 @@ kotlin {
         val commonNative by creating {
             dependsOn(commonMain)
             dependencies {
+                implementation("io.ktor:ktor-utils:$ktorVersion")
                 implementation(project(":drill-hook"))
-                implementation(project(":logger"))
             }
         }
         val linuxX64Main by getting {

@@ -19,13 +19,14 @@ import com.epam.drill.*
 import com.epam.drill.core.*
 import com.epam.drill.hook.io.tcp.*
 import com.epam.drill.interceptor.*
-import com.epam.drill.logger.*
-import com.epam.drill.logger.api.*
 import com.epam.drill.plugin.*
 import kotlin.native.concurrent.*
+import mu.KotlinLogging
+import mu.KotlinLoggingLevel
+import mu.isLoggingEnabled
 
 @SharedImmutable
-private val logger = Logging.logger("Transport")
+private val logger = KotlinLogging.logger("com.epam.drill.core.transport.SocketDispatcher")
 
 fun configureHttp() {
     configureHttpInterceptor()
@@ -42,7 +43,7 @@ fun configureHttp() {
         val headers = rawHeaders.entries.associate { (k, v) ->
             k.decodeToString().lowercase() to v.decodeToString()
         }
-        if (Logging.logLevel <= LogLevel.DEBUG) {
+        if (KotlinLoggingLevel.DEBUG.isLoggingEnabled()) {
             val drillHeaders = headers.filterKeys { it.startsWith("drill-") }
             if (drillHeaders.any()) {
                 logger.debug { "Drill headers: $drillHeaders" }

@@ -52,7 +52,6 @@ kotlin {
         dependencies {
             implementation(project(":kni-runtime"))
             implementation(project(":knasm"))
-            implementation(project(":logger"))
             implementation(project(":jvmapi"))
         }
     }
@@ -61,7 +60,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":knasm"))
-                implementation(project(":logger"))
+                implementation(project(":logging"))
             }
         }
         val jvmMain by getting {

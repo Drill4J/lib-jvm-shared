@@ -36,7 +36,7 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation(project(":drill-hook"))
-                implementation(project(":logger"))
+                implementation(project(":logging"))
             }
         }
         val linuxX64Main by getting {

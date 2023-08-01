@@ -32,7 +32,6 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(project(":common"))
-                api(project(":logger-api"))
             }
         }
         val jvmMain by getting {

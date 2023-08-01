@@ -20,15 +20,16 @@ import com.epam.drill.api.dto.*
 import com.epam.drill.common.*
 import com.epam.drill.common.ws.*
 import com.epam.drill.core.*
-import com.epam.drill.logger.*
-import com.epam.drill.logger.api.*
 import com.epam.drill.plugin.*
 import com.epam.drill.plugin.api.processing.*
 import kotlinx.coroutines.*
 import kotlin.native.concurrent.*
+import mu.KotlinLogging
+import mu.KotlinLoggingLevel
+import mu.KotlinLoggingConfiguration
 
 @SharedImmutable
-private val tempTopicLogger = Logging.logger("tempTopicLogger")
+private val logger = KotlinLogging.logger("com.epam.drill.core.ws.WsRouter")
 
 @SharedImmutable
 private val loader = Worker.start(true)
@@ -38,14 +39,14 @@ fun topicRegister() =
         WsRouter.inners("/agent/load").withPluginTopic { pluginMeta, file ->
             if (pstorage[pluginMeta.id] != null) {
                 pluginMeta.sendPluginLoaded()
-                tempTopicLogger.info { "Plugin '${pluginMeta.id}' is already loaded" }
+                logger.info { "Plugin '${pluginMeta.id}' is already loaded" }
                 return@withPluginTopic
             }
             addPluginConfig(pluginMeta)
             loader.execute(
                 TransferMode.UNSAFE,
                 { pluginMeta to file }) { (plugMessage, file) ->
-                tempTopicLogger.info { "try to load ${plugMessage.id} plugin" }
+                logger.info { "try to load ${plugMessage.id} plugin" }
                 val id = plugMessage.id
                 agentConfig = agentConfig.copy(needSync = false)
                 runBlocking {
@@ -54,38 +55,38 @@ fun topicRegister() =
                     loadPlugin(path, plugMessage)
                 }
                 plugMessage.sendPluginLoaded()
-                tempTopicLogger.info { "$id plugin loaded" }
+                logger.info { "$id plugin loaded" }
             }
 
         }
 
         rawTopic("/plugin/state") {
-            tempTopicLogger.info { "Agent's plugin state sending triggered " }
-            tempTopicLogger.info { "Plugins: ${pstorage.size}" }
+            logger.info { "Agent's plugin state sending triggered " }
+            logger.info { "Plugins: ${pstorage.size}" }
             pstorage.onEach { (_, plugin) ->
                 plugin.onConnect()
             }
         }
 
         rawTopic<LoggingConfig>("/agent/logging/update-config") { lc ->
-            tempTopicLogger.info { "Agent got a logging config: $lc" }
-            Logging.logLevel = when {
-                lc.trace -> LogLevel.TRACE
-                lc.debug -> LogLevel.DEBUG
-                lc.info -> LogLevel.INFO
-                lc.warn -> LogLevel.WARN
-                else -> LogLevel.ERROR
+            logger.info { "Agent got a logging config: $lc" }
+            KotlinLoggingConfiguration.logLevel = when {
+                lc.trace -> KotlinLoggingLevel.TRACE
+                lc.debug -> KotlinLoggingLevel.DEBUG
+                lc.info -> KotlinLoggingLevel.INFO
+                lc.warn -> KotlinLoggingLevel.WARN
+                else -> KotlinLoggingLevel.ERROR
             }
         }
 
         rawTopic<UpdateInfo>("/agent/update-parameters") { info ->
             val parameters = info.parameters
-            tempTopicLogger.debug { "Agent update config by $parameters" }
+            logger.debug { "Agent update config by $parameters" }
             val newParameters = HashMap(agentConfig.parameters)
             parameters.forEach { updateParameter ->
                 newParameters[updateParameter.key]?.let {
                     newParameters[updateParameter.key] = it.copy(value = updateParameter.value)
-                } ?: tempTopicLogger.warn { "cannot find and update the parameter '$updateParameter'" }
+                } ?: logger.warn { "cannot find and update the parameter '$updateParameter'" }
             }
             agentConfig = agentConfig.copy(parameters = newParameters)
             agentConfigUpdater.updateParameters(agentConfig)
@@ -93,22 +94,22 @@ fun topicRegister() =
 
         //todo what is the use-case? change admin port when use https on admin?
         rawTopic<ServiceConfig>("/agent/update-config") { sc ->
-            tempTopicLogger.info { "Agent got a system config: $sc" }
+            logger.info { "Agent got a system config: $sc" }
             secureAdminAddress = adminAddress?.copy(scheme = "https", defaultPort = sc.sslPort.toInt())
         }
 
         rawTopic("/agent/change-header-name") { headerName ->
-            tempTopicLogger.info { "Agent got a new headerMapping: $headerName" }
+            logger.info { "Agent got a new headerMapping: $headerName" }
             requestPattern = if (headerName.isEmpty()) null else headerName
         }
 
         rawTopic<PackagesPrefixes>("/agent/set-packages-prefixes") { payload ->
             setPackagesPrefixes(payload)
-            tempTopicLogger.info { "Agent packages prefixes have been changed" }
+            logger.info { "Agent packages prefixes have been changed" }
         }
 
         rawTopic("/agent/unload") { pluginId ->
-            tempTopicLogger.warn { "Unload event. Plugin id is $pluginId" }
+            logger.warn { "Unload event. Plugin id is $pluginId" }
             PluginManager[pluginId]?.unload(UnloadReason.ACTION_FROM_ADMIN)
             println(
                 """
@@ -122,7 +123,7 @@ fun topicRegister() =
         }
 
         rawTopic<PluginConfig>("/plugin/updatePluginConfig") { config ->
-            tempTopicLogger.info { "UpdatePluginConfig event: message is $config " }
+            logger.info { "UpdatePluginConfig event: message is $config " }
             val agentPluginPart = PluginManager[config.id]
             if (agentPluginPart != null) {
                 agentPluginPart.setEnabled(false)
@@ -130,13 +131,13 @@ fun topicRegister() =
                 agentPluginPart.updateRawConfig(config.data)
                 agentPluginPart.setEnabled(true)
                 agentPluginPart.on()
-                tempTopicLogger.debug { "New settings for ${config.id} saved to file" }
+                logger.debug { "New settings for ${config.id} saved to file" }
             } else
-                tempTopicLogger.warn { "Plugin ${config.id} not loaded to agent" }
+                logger.warn { "Plugin ${config.id} not loaded to agent" }
         }
 
         rawTopic<PluginAction>("/plugin/action") { m ->
-            tempTopicLogger.debug { "actionPlugin event: message is ${m.message} " }
+            logger.debug { "actionPlugin event: message is ${m.message} " }
             val agentPluginPart = PluginManager[m.id]
             agentPluginPart?.doRawAction(m.message)
             Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/plugin/action/${m.confirmationKey}"))
@@ -145,9 +146,9 @@ fun topicRegister() =
         rawTopic<TogglePayload>("/plugin/togglePlugin") { (pluginId, forceValue) ->
             val agentPluginPart = PluginManager[pluginId]
             if (agentPluginPart == null) {
-                tempTopicLogger.warn { "Plugin $pluginId not loaded to agent" }
+                logger.warn { "Plugin $pluginId not loaded to agent" }
             } else {
-                tempTopicLogger.info { "togglePlugin event: PluginId is $pluginId" }
+                logger.info { "togglePlugin event: PluginId is $pluginId" }
                 val newValue = forceValue ?: !agentPluginPart.isEnabled()
                 agentPluginPart.setEnabled(newValue)
                 if (newValue) agentPluginPart.on() else agentPluginPart.off()
