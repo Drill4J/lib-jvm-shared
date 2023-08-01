@@ -22,9 +22,5 @@ abstract class AgentPart<A>(
     private val sender: Sender,
 ) : AgentPlugin<A> {
     fun send(message: String) = sender.send(id, message)
-
     open fun onConnect() = Unit
-
-    abstract fun load()
-
 }

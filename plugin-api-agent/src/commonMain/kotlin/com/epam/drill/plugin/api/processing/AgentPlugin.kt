@@ -15,8 +15,6 @@
  */
 package com.epam.drill.plugin.api.processing
 
-import com.epam.drill.common.classloading.EntitySource
-
 interface AgentContext {
     operator fun invoke(): String?
     operator fun get(key: String): String?
@@ -26,30 +24,14 @@ interface Sender {
     fun send(pluginId: String, message: String)
 }
 
-interface AgentPlugin<A> : DrillPlugin<A>, Switchable
-
-interface DrillPlugin<A> {
+interface AgentPlugin<A> {
+    fun load()
+    fun on()
     fun doAction(action: A): Any
     fun parseAction(rawAction: String): A
     fun doRawAction(rawAction: String): Any = doAction(parseAction(rawAction))
 }
 
-interface Switchable {
-    fun on()
-    fun off()
-}
-
 interface Instrumenter {
     fun instrument(className: String, initialBytes: ByteArray): ByteArray?
-}
-
-/**
- * Service for scanning classes of the application under test
- */
-interface ClassScanner {
-    /**
-     * Scan target classes of the application under test
-     * @param consumer the function for processing chunks of scanned classes
-     */
-    fun scanClasses(consumer: (Set<EntitySource>) -> Unit)
 }

@@ -18,7 +18,6 @@ package com.epam.drill.core.ws
 import com.epam.drill.*
 import com.epam.drill.api.dto.*
 import com.epam.drill.common.*
-import com.epam.drill.common.ws.*
 import com.epam.drill.core.*
 import com.epam.drill.plugin.*
 import kotlin.native.concurrent.*
@@ -63,12 +62,6 @@ fun topicRegister() =
             agentConfigUpdater.updateParameters(agentConfig)
         }
 
-        //todo what is the use-case? change admin port when use https on admin?
-        rawTopic<ServiceConfig>("/agent/update-config") { sc ->
-            logger.info { "Agent got a system config: $sc" }
-            secureAdminAddress = adminAddress?.copy(scheme = "https", defaultPort = sc.sslPort.toInt())
-        }
-
         rawTopic("/agent/change-header-name") { headerName ->
             logger.info { "Agent got a new headerMapping: $headerName" }
             requestPattern = headerName.ifEmpty { null }
@@ -83,7 +76,6 @@ fun topicRegister() =
             logger.info { "UpdatePluginConfig event: message is $config " }
             val agentPluginPart = PluginManager[config.id]
             if (agentPluginPart != null) {
-                agentPluginPart.off()
                 agentPluginPart.on()
                 logger.debug { "New settings for ${config.id} saved to file" }
             } else
@@ -103,7 +95,7 @@ fun topicRegister() =
                 logger.warn { "Plugin $pluginId not loaded to agent" }
             } else {
                 logger.info { "togglePlugin event: PluginId is $pluginId" }
-                if (forceValue != false) agentPluginPart.on() else agentPluginPart.off()
+                if (forceValue != false) agentPluginPart.on()
             }
             sendPluginToggle(pluginId)
         }

@@ -13,19 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress("unused")
+package com.epam.drill.agent
 
-package com.epam.drill.plugin.api
-
-object Native {
-    fun RetransformClasses(classes: Array<Class<*>>) {
-        RetransformClasses(classes.size, classes)
-    }
-
-    external fun RetransformClasses(count: Int, classes: Array<Class<*>>)
-    external fun RetransformClassesByPackagePrefixes(prefixes: ByteArray): Int
-    external fun GetAllLoadedClasses(): Array<Class<*>>
-    external fun GetPackagePrefixes(): String
-    external fun GetScanClassPath(): String
-    external fun WaitClassScanning()
+object NativeCalls {
+    external fun getPackagePrefixes(): String
+    external fun getScanClassPath(): String
+    external fun waitClassScanning()
 }

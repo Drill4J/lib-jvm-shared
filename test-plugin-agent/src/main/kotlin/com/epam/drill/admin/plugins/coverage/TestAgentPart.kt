@@ -28,9 +28,6 @@ class TestAgentPart constructor(
         send("xx")
     }
 
-    override fun off() {
-    }
-
     override fun initPlugin() {
         println("Plugin $id initialized.")
     }
