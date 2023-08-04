@@ -37,7 +37,7 @@ private val jmethodID = ClassName(japiPack, "jmethodID")
 private val jclass = ClassName(japiPack, "jclass")
 private val jfieldID = ClassName(japiPack, "jfieldID")
 
-private val withJString = ClassName("com.epam.drill.jvmapi", "withJSting")
+private val withJString = ClassName("com.epam.drill.jvmapi", "withJString")
 
 class Generator(private val outputDir: File, private val isExperimentalEnabled: Boolean = false) {
     private val methodToSignatureMapping = mutableMapOf<String, String>()
@@ -82,7 +82,7 @@ class Generator(private val outputDir: File, private val isExperimentalEnabled: 
             )
             .addSimbolsForNativeCall(jvmClass)
             .addImport("kotlin", "Unit")
-            .addImport("com.epam.drill.jvmapi", "withJSting")
+            .addImport("com.epam.drill.jvmapi", "withJString")
             .addImport("kotlinx.cinterop", "COpaquePointer")
             .addImport("kotlinx.cinterop", "addressOf")
             .addImport("kotlinx.cinterop", "convert")

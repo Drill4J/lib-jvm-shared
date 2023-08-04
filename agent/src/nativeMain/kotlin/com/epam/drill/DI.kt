@@ -76,13 +76,3 @@ val pstorage
 fun addPluginToStorage(plugin: AgentPart<*>) {
     _pstorage.update { it + (plugin.id to plugin) }
 }
-
-@SharedImmutable
-private val _pl = atomic(persistentHashMapOf<String, PluginMetadata>())
-
-val pl
-    get() = _pl.value
-
-fun addPluginConfig(pluginMetadata: PluginMetadata) {
-    _pl.update { it + (pluginMetadata.id to pluginMetadata) }
-}

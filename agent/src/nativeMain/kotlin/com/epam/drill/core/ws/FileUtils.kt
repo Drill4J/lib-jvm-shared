@@ -13,58 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress(
-    "UNCHECKED_CAST", "RemoveEmptyClassBody", "UnnecessaryVariable", "DeferredIsResult", "FunctionName",
-    "ArrayInDataClass"
-)
-
 package com.epam.drill.core.ws
 
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import platform.posix.*
 import kotlin.coroutines.*
-import kotlin.math.*
-
 import kotlin.native.concurrent.*
-
-//TODO EPMDJ-8696
-expect suspend fun writeFileAsync(path: String, content: ByteArray): Long
-
-fun ByteArray.openAsync(): AsyncStream =
-    MemoryAsyncStreamBase(this).toAsyncStream(0L)
-
-class MemoryAsyncStreamBase(var data: ByteArray) : AsyncStreamBase() {
-
-    var ilength: Int = data.size
-//        get() = data.size
-//        set(value) = run { data.size = value }
-
-    override suspend fun setLength(value: Long) = run { ilength = value.toInt() }
-    override suspend fun getLength(): Long = ilength.toLong()
-
-    fun checkPosition(position: Long) = run { if (position < 0) throw RuntimeException("Invalid position $position") }
-
-    override suspend fun read(position: Long, buffer: ByteArray, offset: Int, len: Int): Int {
-        checkPosition(position)
-        if (position !in 0 until ilength) return 0
-        val end = min(this.ilength.toLong(), position + len)
-        val actualLen = maxOf((end - position).toInt(), 0)
-        arraycopy(this.data, position.toInt(), buffer, offset, actualLen)
-        return actualLen
-    }
-
-    override suspend fun write(position: Long, buffer: ByteArray, offset: Int, len: Int) {
-        checkPosition(position)
-//        data.size = max(data.size, (position + len).toInt())
-        arraycopy(buffer, offset, this.data, position.toInt(), len)
-
-    }
-
-    override suspend fun close() = Unit
-
-    override fun toString(): String = "MemoryAsyncStreamBase(${data.size})"
-}
 
 fun AsyncStreamBase.toAsyncStream(position: Long = 0L): AsyncStream =
     AsyncStream(this, position)
@@ -88,30 +43,15 @@ suspend inline fun <T : AsyncCloseable, TR> T.use(callback: T.() -> TR): TR {
     }
     close()
     if (error != null) throw error
-    return result as TR
+    return result!!
 }
 
-
-suspend fun AsyncInputStream.copyTo(target: AsyncOutputStream, chunkSize: Int = 0x10000): Long {
-    val chunk = ByteArray(chunkSize)
-    var totalCount = 0L
-    while (true) {
-        val count = this.read(chunk)
-        if (count <= 0) break
-        target.write(chunk, 0, count)
-        totalCount += count
-    }
-    return totalCount
-}
-
-suspend fun AsyncInputStream.read(data: ByteArray): Int = read(data, 0, data.size)
 
 interface AsyncOutputStream : AsyncBaseStream {
     suspend fun write(buffer: ByteArray, offset: Int = 0, len: Int = buffer.size - offset)
 }
 
-interface AsyncBaseStream : AsyncCloseable {
-}
+interface AsyncBaseStream : AsyncCloseable
 
 interface AsyncCloseable {
     suspend fun close()
@@ -166,22 +106,20 @@ suspend fun open(rpath: String, mode: String): AsyncStream {
 
 interface AsyncInputStreamWithLength : AsyncInputStream,
     AsyncGetPositionStream,
-    AsyncGetLengthStream {
-}
+    AsyncGetLengthStream
 
 interface AsyncGetPositionStream : AsyncBaseStream {
     suspend fun getPosition(): Long = throw UnsupportedOperationException()
 }
 
 interface AsyncPositionLengthStream : AsyncPositionStream,
-    AsyncLengthStream {
-}
+    AsyncLengthStream
 
 interface AsyncPositionStream : AsyncGetPositionStream {
     suspend fun setPosition(value: Long): Unit = throw UnsupportedOperationException()
 }
 
-class AsyncStream(val base: AsyncStreamBase, var position: Long = 0L) : AsyncInputStream,
+class AsyncStream(private val base: AsyncStreamBase, private var position: Long = 0L) : AsyncInputStream,
     AsyncInputStreamWithLength,
     AsyncOutputStream,
     AsyncPositionLengthStream,
@@ -221,8 +159,7 @@ class AsyncThread : AsyncInvokable {
     override suspend operator fun <T> invoke(func: suspend () -> T): T {
         val task = sync(coroutineContext, func)
         try {
-            val res = task.await()
-            return res
+            return task.await()
         } catch (e: Throwable) {
             throw e
         }
@@ -302,18 +239,18 @@ suspend fun <T, R> executeInWorker(worker: Worker, value: T, func: (T) -> R): R 
 
     val info = Info(value.freeze(), func.freeze())
     val future =
-        worker.execute(kotlin.native.concurrent.TransferMode.UNSAFE, { info }, { it: Info -> it.func(it.value) })
+        worker.execute(TransferMode.UNSAFE, { info }, { it: Info -> it.func(it.value) })
     return future.await()
 }
 
-suspend fun <T> kotlin.native.concurrent.Future<T>.await(): T {
+suspend fun <T> Future<T>.await(): T {
     var n = 0
-    while (this.state != kotlin.native.concurrent.FutureState.COMPUTED) {
+    while (this.state != FutureState.COMPUTED) {
         when (this.state) {
-            kotlin.native.concurrent.FutureState.INVALID -> error("Error in worker")
-            kotlin.native.concurrent.FutureState.CANCELLED -> throw CancellationException("cancelled")
-            kotlin.native.concurrent.FutureState.THROWN -> error("Worker thrown exception")
-            else -> kotlinx.coroutines.delay(((n++).toDouble() / 3.0).toLong())
+            FutureState.INVALID -> error("Error in worker")
+            FutureState.CANCELLED -> throw CancellationException("cancelled")
+            FutureState.THROWN -> error("Worker thrown exception")
+            else -> delay(((n++).toDouble() / 3.0).toLong())
         }
     }
     return this.result
@@ -333,7 +270,7 @@ internal suspend fun fileOpen(name: String, mode: String): CPointer<FILE>? {
     return executeInWorker(
         IOWorker,
         Info(name, mode)
-    ) { it ->
+    ) {
         fopen(it.name, it.mode)
     }
 }
@@ -341,6 +278,3 @@ internal suspend fun fileOpen(name: String, mode: String): CPointer<FILE>? {
 expect suspend fun fileSetLength(file: String, length: Long)
 expect suspend fun fileLength(file: CPointer<FILE>): Long
 expect suspend fun fileWrite(file: CPointer<FILE>, position: Long, data: ByteArray): Long
-
-fun arraycopy(src: ByteArray, srcPos: Int, dst: ByteArray, dstPos: Int, size: Int): Unit =
-    run { src.copyInto(dst, dstPos, srcPos, srcPos + size) }

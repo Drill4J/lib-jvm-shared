@@ -15,21 +15,8 @@
  */
 package com.epam.drill.jvmapi
 
-
 import com.epam.drill.jvmapi.gen.*
 import kotlinx.cinterop.*
-
-inline fun <reified T : Any> instance(): Pair<jclass?, jobject?> {
-    val name = T::class.qualifiedName!!.replace(".", "/")
-    return instance(name)
-}
-
-fun instance(name: String): Pair<jclass?, jobject?> {
-    val requestHolderClass = FindClass(name)
-    val selfMethodId: jfieldID? = GetStaticFieldID(requestHolderClass, "INSTANCE", "L$name;")
-    val requestHolder: jobject? = GetStaticObjectField(requestHolderClass, selfMethodId)
-    return Pair(requestHolderClass, requestHolder)
-}
 
 fun jbyteArray?.readBytes() = this?.let { jbytes ->
     val length = GetArrayLength(jbytes)
@@ -51,18 +38,18 @@ fun jbyteArray?.readBytes() = this?.let { jbytes ->
 
 }
 
-inline fun <reified R> withJSting(block: JStingConverter.() -> R): R {
-    val jStingConverter = JStingConverter()
+inline fun <reified R> withJString(block: JStringConverter.() -> R): R {
+    val jStringConverter = JStringConverter()
     try {
-        return block(jStingConverter)
+        return block(jStringConverter)
     } finally {
-        jStingConverter.localStrings.forEach { (x, y) ->
+        jStringConverter.localStrings.forEach { (x, y) ->
             jni.ReleaseStringUTFChars!!(env, x, y)
         }
     }
 }
 
-class JStingConverter {
+class JStringConverter {
     val localStrings = mutableMapOf<jstring, CPointer<ByteVar>?>()
     fun jstring.toKString(): String {
         val nativeString = jni.GetStringUTFChars!!(env, this, null)
@@ -83,34 +70,10 @@ fun jclass.status(): UInt = memScoped {
     alloc.value.toUInt()
 }
 
-@Suppress("NOTHING_TO_INLINE")
 inline fun <T : CPointer<*>> CPointer<CPointerVarOf<T>>.sequenceOf(count: Int): Sequence<T> {
     var current = 0
     return generateSequence<T> {
         if (current == count) null
         else this[current++]
-    }
-}
-
-inline fun jbyteArray.toByteArrayWithRelease(
-    bytes: ByteArray = byteArrayOf(),
-    block: (ByteArray) -> Unit
-) {
-    val nativeArray = GetByteArrayElements(this, null)?.apply {
-        bytes.forEachIndexed { index, byte -> this[index] = byte }
-    }
-    try {
-        val length = GetArrayLength(this)
-        block(ByteArray(length).apply {
-            usePinned { destination ->
-                platform.posix.memcpy(
-                    destination.addressOf(0),
-                    nativeArray,
-                    length.convert()
-                )
-            }
-        })
-    } finally {
-        ReleaseByteArrayElements(this, nativeArray, JNI_ABORT)
     }
 }

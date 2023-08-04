@@ -34,7 +34,6 @@ private val logger = KotlinLogging.logger("com.epam.drill.core.ws.WsSocket")
 
 private val dispatcher = newSingleThreadContext("sender coroutine")
 
-
 class WsSocket : CoroutineScope {
 
     override val coroutineContext: CoroutineContext = dispatcher
@@ -56,7 +55,6 @@ class WsSocket : CoroutineScope {
         headers = {
             mutableMapOf(
                 AgentConfigParam to ProtoBuf.encodeToHexString(AgentConfig.serializer(), agentConfig),
-                NeedSyncParam to pstorage.none().toString(),
                 HttpHeaders.ContentEncoding to "deflate"
             )
         }
@@ -77,7 +75,7 @@ class WsSocket : CoroutineScope {
                     when (topic) {
                         is PluginTopic -> {
                             val pluginMetadata = ProtoBuf.decodeFromByteArray(PluginBinary.serializer(), message.data)
-                            val duration = measureTime { topic.block(pluginMetadata.meta, pluginMetadata.data) }
+                            val duration = measureTime { topic.block(pluginMetadata.meta) }
                             logger.debug { "'$destination' took $duration" }
                             Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/load"))
                         }
@@ -116,12 +114,12 @@ class WsSocket : CoroutineScope {
                 logger.debug { "WS error: $message" }
             }
         }
+
         wsClient.onClose {
             checkAndGenerateInstanceId()
             logger.info { "Websocket closed. On next connection instanceId will be '${agentConfig.instanceId}'" }
             errorMessage.update { "" }
         }
-
     }
 
     private fun checkAndGenerateInstanceId() {

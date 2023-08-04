@@ -17,20 +17,17 @@ package com.epam.drill.agent.instrument.http.ok
 
 import com.epam.drill.agent.instrument.*
 import com.epam.drill.agent.instrument.util.*
-import com.epam.drill.kni.*
 import javassist.*
-import org.objectweb.asm.*
 import java.security.*
 import mu.KotlinLogging
 
-@Kni
 actual object OkHttpClient : TransformStrategy(), IStrategy {
 
     private val logger = KotlinLogging.logger {}
 
     // TODO Waiting for this feature to move this permit to common part https://youtrack.jetbrains.com/issue/KT-20427
-    actual override fun permit(classReader: ClassReader): Boolean {
-        return classReader.interfaces.any { it == "okhttp3/internal/http/HttpCodec" }
+    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
+        return interfaces.any { it == "okhttp3/internal/http/HttpCodec" }
     }
 
     actual override fun transform(

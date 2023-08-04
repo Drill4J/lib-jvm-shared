@@ -16,11 +16,10 @@
 package com.epam.drill.agent.instrument.http.ok
 
 import com.epam.drill.agent.instrument.*
-import org.objectweb.asm.*
 
 expect object OkHttpClient : IStrategy {
 
-    override fun permit(classReader: ClassReader): Boolean
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
 
     override fun transform(
         className: String,

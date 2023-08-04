@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.core.exceptions
+package com.epam.drill.agent
 
-class PluginLoadException(message: String?) : RuntimeException(message)
+object NativeCalls {
+    external fun getPackagePrefixes(): String
+    external fun getScanClassPath(): String
+    external fun waitClassScanning()
+}

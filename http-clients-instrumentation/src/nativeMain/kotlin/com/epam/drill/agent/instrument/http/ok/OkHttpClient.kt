@@ -15,13 +15,13 @@
  */
 package com.epam.drill.agent.instrument.http.ok
 
-import com.epam.drill.agent.instrument.*
-import org.objectweb.asm.*
+import com.epam.drill.agent.instrument.IStrategy
+import com.epam.drill.agent.instrument.http.callIStrategyTransformMethod
 
 actual object OkHttpClient : IStrategy {
 
-    actual override fun permit(classReader: ClassReader): Boolean {
-        return classReader.interfaces.any { it == "okhttp3/internal/http/HttpCodec" }
+    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
+        return interfaces.any { it == "okhttp3/internal/http/HttpCodec" }
     }
 
     actual override fun transform(
@@ -29,7 +29,14 @@ actual object OkHttpClient : IStrategy {
         classFileBuffer: ByteArray,
         loader: Any?,
         protectionDomain: Any?,
-    ): ByteArray? {
-        return OkHttpClientStub.transform(className, classFileBuffer, loader, protectionDomain)
-    }
+    ): ByteArray? =
+        callIStrategyTransformMethod(
+            OkHttpClient::class,
+            OkHttpClient::transform,
+            className,
+            classFileBuffer,
+            loader,
+            protectionDomain
+        )
+
 }

@@ -15,14 +15,13 @@
  */
 package com.epam.drill.agent.instrument.http.apache
 
-import com.epam.drill.agent.instrument.*
-import org.objectweb.asm.*
-
+import com.epam.drill.agent.instrument.IStrategy
+import com.epam.drill.agent.instrument.http.callIStrategyTransformMethod
 
 actual object ApacheClient : IStrategy {
 
-    actual override fun permit(classReader: ClassReader): Boolean {
-        return classReader.interfaces.any { "org/apache/http/HttpClientConnection" == it }
+    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
+        return interfaces.any { "org/apache/http/HttpClientConnection" == it }
     }
 
     actual override fun transform(
@@ -30,7 +29,14 @@ actual object ApacheClient : IStrategy {
         classFileBuffer: ByteArray,
         loader: Any?,
         protectionDomain: Any?,
-    ): ByteArray? {
-        return ApacheClientStub.transform(className, classFileBuffer, loader, protectionDomain)
-    }
+    ): ByteArray? =
+        callIStrategyTransformMethod(
+            ApacheClient::class,
+            ApacheClient::transform,
+            className,
+            classFileBuffer,
+            loader,
+            protectionDomain
+        )
+
 }

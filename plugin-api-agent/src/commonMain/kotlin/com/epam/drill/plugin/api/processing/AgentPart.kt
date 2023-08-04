@@ -22,22 +22,5 @@ abstract class AgentPart<A>(
     private val sender: Sender,
 ) : AgentPlugin<A> {
     fun send(message: String) = sender.send(id, message)
-
-    open fun updateRawConfig(data: String) = Unit
-
     open fun onConnect() = Unit
-
-    //TODO remove from API - this is only used in agent
-    open fun isEnabled(): Boolean = true
-    //TODO remove from API - this is only used in agent
-    open fun setEnabled(enabled: Boolean) = Unit
-    //TODO remove from API - this is only used in agent
-    open fun load(on: Boolean) {
-        initPlugin()
-    }
-    //TODO remove from API - this is only used in agent
-    open fun unload(unloadReason: UnloadReason) {
-        off()
-        destroyPlugin(unloadReason)
-    }
 }

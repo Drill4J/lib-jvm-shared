@@ -18,11 +18,8 @@ package com.epam.drill.core.ws
 import com.epam.drill.*
 import com.epam.drill.api.dto.*
 import com.epam.drill.common.*
-import com.epam.drill.common.ws.*
 import com.epam.drill.core.*
 import com.epam.drill.plugin.*
-import com.epam.drill.plugin.api.processing.*
-import kotlinx.coroutines.*
 import kotlin.native.concurrent.*
 import mu.KotlinLogging
 import mu.KotlinLoggingLevel
@@ -31,35 +28,8 @@ import mu.KotlinLoggingConfiguration
 @SharedImmutable
 private val logger = KotlinLogging.logger("com.epam.drill.core.ws.WsRouter")
 
-@SharedImmutable
-private val loader = Worker.start(true)
-
 fun topicRegister() =
     WsRouter {
-        WsRouter.inners("/agent/load").withPluginTopic { pluginMeta, file ->
-            if (pstorage[pluginMeta.id] != null) {
-                pluginMeta.sendPluginLoaded()
-                logger.info { "Plugin '${pluginMeta.id}' is already loaded" }
-                return@withPluginTopic
-            }
-            addPluginConfig(pluginMeta)
-            loader.execute(
-                TransferMode.UNSAFE,
-                { pluginMeta to file }) { (plugMessage, file) ->
-                logger.info { "try to load ${plugMessage.id} plugin" }
-                val id = plugMessage.id
-                agentConfig = agentConfig.copy(needSync = false)
-                runBlocking {
-                    val path = generatePluginPath(id)
-                    writeFileAsync(path, file)
-                    loadPlugin(path, plugMessage)
-                }
-                plugMessage.sendPluginLoaded()
-                logger.info { "$id plugin loaded" }
-            }
-
-        }
-
         rawTopic("/plugin/state") {
             logger.info { "Agent's plugin state sending triggered " }
             logger.info { "Plugins: ${pstorage.size}" }
@@ -92,15 +62,9 @@ fun topicRegister() =
             agentConfigUpdater.updateParameters(agentConfig)
         }
 
-        //todo what is the use-case? change admin port when use https on admin?
-        rawTopic<ServiceConfig>("/agent/update-config") { sc ->
-            logger.info { "Agent got a system config: $sc" }
-            secureAdminAddress = adminAddress?.copy(scheme = "https", defaultPort = sc.sslPort.toInt())
-        }
-
         rawTopic("/agent/change-header-name") { headerName ->
             logger.info { "Agent got a new headerMapping: $headerName" }
-            requestPattern = if (headerName.isEmpty()) null else headerName
+            requestPattern = headerName.ifEmpty { null }
         }
 
         rawTopic<PackagesPrefixes>("/agent/set-packages-prefixes") { payload ->
@@ -108,28 +72,10 @@ fun topicRegister() =
             logger.info { "Agent packages prefixes have been changed" }
         }
 
-        rawTopic("/agent/unload") { pluginId ->
-            logger.warn { "Unload event. Plugin id is $pluginId" }
-            PluginManager[pluginId]?.unload(UnloadReason.ACTION_FROM_ADMIN)
-            println(
-                """
-                    |________________________________________________________
-                    |Physical Deletion is not implemented yet.
-                    |We should unload all resource e.g. classes, jars, .so/.dll
-                    |Try to create custom classLoader. After this full GC.
-                    |________________________________________________________
-                """.trimMargin()
-            )
-        }
-
         rawTopic<PluginConfig>("/plugin/updatePluginConfig") { config ->
             logger.info { "UpdatePluginConfig event: message is $config " }
             val agentPluginPart = PluginManager[config.id]
             if (agentPluginPart != null) {
-                agentPluginPart.setEnabled(false)
-                agentPluginPart.off()
-                agentPluginPart.updateRawConfig(config.data)
-                agentPluginPart.setEnabled(true)
                 agentPluginPart.on()
                 logger.debug { "New settings for ${config.id} saved to file" }
             } else
@@ -149,30 +95,13 @@ fun topicRegister() =
                 logger.warn { "Plugin $pluginId not loaded to agent" }
             } else {
                 logger.info { "togglePlugin event: PluginId is $pluginId" }
-                val newValue = forceValue ?: !agentPluginPart.isEnabled()
-                agentPluginPart.setEnabled(newValue)
-                if (newValue) agentPluginPart.on() else agentPluginPart.off()
+                if (forceValue != false) agentPluginPart.on()
             }
             sendPluginToggle(pluginId)
         }
-    }
 
-private fun PluginMetadata.sendPluginLoaded() {
-    Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/plugin/$id/loaded"))
-}
+    }
 
 private fun sendPluginToggle(pluginId: String) {
     Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/plugin/${pluginId}/toggle"))
-}
-
-private fun generatePluginPath(id: String): String {
-    val ajar = "agent-part.jar"
-    val pluginsDir = "${if (tempPath.isEmpty()) drillInstallationDir else tempPath}/drill-plugins"
-    doMkdir(pluginsDir)
-    var pluginDir = "$pluginsDir/$id"
-    doMkdir(pluginDir)
-    pluginDir = "$pluginDir/${agentConfig.id}"
-    doMkdir(pluginDir)
-    val path = "$pluginDir/$ajar"
-    return path
 }

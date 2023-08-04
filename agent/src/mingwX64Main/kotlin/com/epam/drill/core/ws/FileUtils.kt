@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress(
-    "UNCHECKED_CAST", "RemoveEmptyClassBody", "UnnecessaryVariable", "DeferredIsResult", "FunctionName",
-    "ArrayInDataClass"
-)
-
 package com.epam.drill.core.ws
 
 import kotlinx.cinterop.*
-import kotlinx.coroutines.*
 import platform.posix.*
-import kotlin.coroutines.*
-import kotlin.math.*
 import kotlin.native.concurrent.*
 
 
@@ -41,12 +33,6 @@ actual suspend fun fileWrite(file: CPointer<FILE>, position: Long, data: ByteArr
             fseek(fd, position.convert(), SEEK_SET)
             fwrite(pin.addressOf(0), 1.convert(), data.size.convert(), fd).toLong()
         }.toLong()
-    }
-}
-
-actual suspend fun writeFileAsync(path: String, content: ByteArray): Long {
-    return open(path, "w+b").use {
-        content.openAsync().copyTo(this)
     }
 }
 
