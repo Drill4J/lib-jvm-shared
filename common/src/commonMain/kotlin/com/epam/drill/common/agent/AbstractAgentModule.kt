@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.plugin.api.processing
+package com.epam.drill.common.agent
 
-@Suppress("unused")
-abstract class AgentPart<A>(
+abstract class AbstractAgentModule<A>(
     val id: String,
     val context: AgentContext,
     private val sender: Sender,
-) : AgentPlugin<A> {
+) : AgentModule<A> {
     fun send(message: String) = sender.send(id, message)
     open fun onConnect() = Unit
 }

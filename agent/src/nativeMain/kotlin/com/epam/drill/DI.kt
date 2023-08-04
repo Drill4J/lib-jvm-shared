@@ -17,7 +17,7 @@ package com.epam.drill
 
 import com.epam.drill.common.*
 import com.epam.drill.common.ws.*
-import com.epam.drill.plugin.api.processing.*
+import com.epam.drill.common.agent.*
 import kotlinx.atomicfu.*
 import kotlinx.collections.immutable.*
 import kotlin.native.concurrent.*
@@ -67,12 +67,12 @@ var agentConfigUpdater: AgentConfigUpdater
     }
 
 @SharedImmutable
-private val _pstorage = atomic(persistentHashMapOf<String, AgentPart<*>>())
+private val _pstorage = atomic(persistentHashMapOf<String, AbstractAgentModule<*>>())
 
 val pstorage
     get() = _pstorage.value
 
 
-fun addPluginToStorage(plugin: AgentPart<*>) {
+fun addPluginToStorage(plugin: AbstractAgentModule<*>) {
     _pstorage.update { it + (plugin.id to plugin) }
 }

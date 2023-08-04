@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent
+package com.epam.drill.common.agent
 
-object NativeCalls {
-    external fun getPackagePrefixes(): String
-    external fun getScanClassPath(): String
-    external fun waitClassScanning()
+interface AgentModule<A> {
+    fun load()
+    fun on()
+    fun parseAction(rawAction: String): A
+    fun doAction(action: A): Any
+    fun doRawAction(rawAction: String): Any = doAction(parseAction(rawAction))
 }
