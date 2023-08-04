@@ -15,12 +15,9 @@
  */
 package com.epam.drill.jvmapi
 
-import com.epam.drill.jvmapi.gen.*
-import kotlinx.cinterop.*
-import kotlin.native.concurrent.*
 import kotlin.native.SharedImmutable
-import kotlin.reflect.*
 import mu.KotlinLogging
+import com.epam.drill.jvmapi.gen.*
 
 @SharedImmutable
 private val logger = KotlinLogging.logger("com.epam.drill.jvmapi.Helper")
@@ -87,57 +84,3 @@ val errorMapping = mapOf(
     JVMTI_ERROR_UNSUPPORTED_REDEFINITION_CLASS_MODIFIERS_CHANGED to "A new class version has different modifiers.",
     JVMTI_ERROR_UNSUPPORTED_REDEFINITION_METHOD_MODIFIERS_CHANGED to "A method in the new class version has different modifiers than its counterpart in the old class version."
 )
-
-
-fun jmethodID.getName(): String? = memScoped {
-    val methodName = alloc<CPointerVar<ByteVar>>()
-    val sig = alloc<CPointerVar<ByteVar>>()
-    val gsig = alloc<CPointerVar<ByteVar>>()
-    GetMethodName(this@getName, methodName.ptr, sig.ptr, gsig.ptr)
-    return methodName.value?.toKString()
-}
-
-fun jmethodID.getDeclaringClassName(): String = memScoped {
-    val jclass = alloc<jclassVar>()
-    GetMethodDeclaringClass(this@getDeclaringClassName, jclass.ptr)
-
-    if (jclass.value == null) {
-        return ""
-    }
-    val name = alloc<CPointerVar<ByteVar>>()
-    GetClassSignature(jclass.value, name.ptr, null)
-    return name.value?.toKString() ?: ""
-
-}
-
-@Suppress("unused")
-fun jlocation.toJLocation(methodId: jmethodID?): Int = memScoped {
-    val count = alloc<jintVar>()
-    val localTable = alloc<CPointerVar<jvmtiLineNumberEntry>>()
-    GetLineNumberTable(methodId, count.ptr, localTable.ptr)
-    val locaTab = localTable.value
-    var lineNumber: jint? = 0
-    if (locaTab == null) return 0
-    for (i in 0 until count.value) {
-        val entry1 = locaTab[i]
-        val entry2 = locaTab[i + 1]
-        if (this@toJLocation >= entry1.start_location && this@toJLocation < entry2.start_location) {
-            lineNumber = entry1.line_number
-            break
-        }
-
-    }
-    if (this@toJLocation >= locaTab[count.value - 1].start_location) {
-        lineNumber = locaTab[count.value - 1].line_number
-    }
-    return lineNumber ?: 0
-}
-
-
-fun KClass<out Any>.jniName(): String {
-    return (this.qualifiedName ?: "").replace(".", "/")
-}
-
-fun KClass<out Any>.jniParamName(): String {
-    return "L" + (this.qualifiedName ?: "").replace(".", "/") + ";"
-}

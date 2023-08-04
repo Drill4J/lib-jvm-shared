@@ -15,8 +15,8 @@
  */
 package com.epam.drill.jvmapi
 
-import com.epam.drill.jvmapi.gen.*
 import kotlinx.cinterop.*
+import com.epam.drill.jvmapi.gen.*
 
 fun jbyteArray?.readBytes() = this?.let { jbytes ->
     val length = GetArrayLength(jbytes)
@@ -68,12 +68,4 @@ fun jclass.status(): UInt = memScoped {
     val alloc = alloc<jintVar>()
     GetClassStatus(this@status, alloc.ptr)
     alloc.value.toUInt()
-}
-
-inline fun <T : CPointer<*>> CPointer<CPointerVarOf<T>>.sequenceOf(count: Int): Sequence<T> {
-    var current = 0
-    return generateSequence<T> {
-        if (current == count) null
-        else this[current++]
-    }
 }
