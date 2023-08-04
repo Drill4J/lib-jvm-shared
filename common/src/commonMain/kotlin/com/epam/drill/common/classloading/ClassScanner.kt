@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.plugins.test2code
-
-import com.epam.drill.common.classloading.EntitySource
+package com.epam.drill.common.classloading
 
 /**
  * Service for scanning classes of the application under test
