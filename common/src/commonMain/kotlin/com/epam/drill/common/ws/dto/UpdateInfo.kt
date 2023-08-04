@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common
+package com.epam.drill.common.ws.dto
 
-enum class MessageType {
-    PLUGIN_DATA,
-    PLUGIN_ACTION,
-    MESSAGE,
-    MESSAGE_DELIVERED,
-    DEBUG,
-    INFO,
-}
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class UpdateInfo(
+    val parameters: Map<String, String>
+)

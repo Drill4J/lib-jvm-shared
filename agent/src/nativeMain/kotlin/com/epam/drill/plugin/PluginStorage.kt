@@ -15,11 +15,11 @@
  */
 package com.epam.drill.plugin
 
-import com.epam.drill.*
-import com.epam.drill.common.agent.*
-import kotlinx.collections.immutable.*
+import kotlinx.collections.immutable.PersistentMap
+import com.epam.drill.pstorage
+import com.epam.drill.common.agent.AgentModule
 
-val storage: PersistentMap<String, AbstractAgentModule<*>>
+val storage: PersistentMap<String, AgentModule<*>>
     get() = pstorage
 
 object PluginManager {

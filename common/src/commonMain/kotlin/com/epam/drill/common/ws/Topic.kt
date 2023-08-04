@@ -13,19 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.api
+package com.epam.drill.common.ws
 
-import kotlinx.serialization.*
-import kotlin.reflect.*
+import kotlinx.serialization.SerialInfo
 
 @SerialInfo
 annotation class Topic(val url: String)
-
-
-inline fun <reified T : Any> KClass<T>.topicUrl() = (this
-    .serializer())
-    .descriptor
-    .annotations
-    .filterIsInstance<Topic>()
-    .first()
-    .url

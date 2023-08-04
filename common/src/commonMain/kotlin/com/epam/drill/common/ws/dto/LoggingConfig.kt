@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.ws
+package com.epam.drill.common.ws.dto
 
-enum class WsEvent {
-    ON_OPEN, ON_CLOSE, ON_ERROR, ON_MESSAGE
-}
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class LoggingConfig(
+    val warn: Boolean = false,
+    val info: Boolean = false,
+    val debug: Boolean = false,
+    val trace: Boolean = false,
+    val error: Boolean = false
+)

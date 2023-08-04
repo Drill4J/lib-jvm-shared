@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.api
+package com.epam.drill.common.ws
 
-import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
 
 sealed class Communication {
+
     sealed class Agent {
         @Serializable
         @Topic("/agent/load")
@@ -79,6 +80,5 @@ sealed class Communication {
         @Topic("/plugin/resetPlugin")
         class ResetEvent
     }
-}
 
-const val AGENT_ATTACH_URL = "/agent/attach"
+}

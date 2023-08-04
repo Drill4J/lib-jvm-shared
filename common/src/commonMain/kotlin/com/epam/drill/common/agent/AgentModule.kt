@@ -15,10 +15,16 @@
  */
 package com.epam.drill.common.agent
 
-interface AgentModule<A> {
-    fun load()
-    fun on()
-    fun parseAction(rawAction: String): A
-    fun doAction(action: A): Any
-    fun doRawAction(rawAction: String): Any = doAction(parseAction(rawAction))
+abstract class AgentModule<A>(
+    val id: String,
+    val context: AgentContext,
+    private val sender: Sender,
+) {
+    abstract fun load()
+    abstract fun on()
+    abstract fun parseAction(rawAction: String): A
+    abstract fun doAction(action: A): Any
+    open fun doRawAction(rawAction: String): Any = doAction(parseAction(rawAction))
+    open fun onConnect() = Unit
+    fun send(message: String) = sender.send(id, message)
 }

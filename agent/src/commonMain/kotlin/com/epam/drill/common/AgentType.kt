@@ -15,28 +15,8 @@
  */
 package com.epam.drill.common
 
-import kotlinx.serialization.*
-
-@Serializable
-data class PluginMetadata(
-    val id: String,
-    var name: String = "",
-    var description: String = "",
-    var type: String = "",
-    var family: Family = Family.INSTRUMENTATION,
-    var config: String = "",
-    var checkSum: String = ""
-)
-
-@Serializable
-data class PluginBinary(val meta: PluginMetadata, val data: ByteArray)
-
-enum class Family {
-    GENERIC, INSTRUMENTATION
+enum class AgentType(val notation: String) {
+    JAVA("Java"),
+    DOTNET(".NET"),
+    NODEJS("Node.js")
 }
-
-@Serializable
-data class PluginConfig(
-    val id: String,
-    val data: String
-)

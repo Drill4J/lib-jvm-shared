@@ -17,7 +17,9 @@ package com.epam.drill.core.ws
 
 import com.benasher44.uuid.*
 import com.epam.drill.*
-import com.epam.drill.common.*
+import com.epam.drill.common.AgentConfig
+import com.epam.drill.common.AgentConfigParam
+import com.epam.drill.common.message.*
 import com.epam.drill.transport.*
 import com.epam.drill.transport.common.ws.*
 import com.epam.drill.ws.*
@@ -73,12 +75,6 @@ class WsSocket : CoroutineScope {
             if (topic != null) {
                 launch {
                     when (topic) {
-                        is PluginTopic -> {
-                            val pluginMetadata = ProtoBuf.decodeFromByteArray(PluginBinary.serializer(), message.data)
-                            val duration = measureTime { topic.block(pluginMetadata.meta) }
-                            logger.debug { "'$destination' took $duration" }
-                            Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/load"))
-                        }
                         is InfoTopic -> {
                             val duration = measureTime { topic.run(message.data) }
                             logger.debug { "'$destination' took $duration" }

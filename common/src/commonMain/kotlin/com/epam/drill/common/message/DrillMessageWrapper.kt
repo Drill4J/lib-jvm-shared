@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.api.dto
+package com.epam.drill.common.message
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class UpdateInfo(
-    val parameters: Map<String, String>
-)
+data class DrillMessageWrapper(val pluginId: String, val drillMessage: DrillMessage)

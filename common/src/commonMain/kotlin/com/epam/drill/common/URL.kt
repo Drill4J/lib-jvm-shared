@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.ws
+package com.epam.drill.common
 
 import kotlin.math.min
 
@@ -59,6 +59,7 @@ data class URL constructor(
     override fun toString(): String = fullUrl
 
     companion object {
+
         val DEFAULT_PORT = 0
 
         operator fun invoke(
@@ -122,22 +123,23 @@ data class URL constructor(
             }
         }
 
-
     }
+
 }
 
-class StrReader(val str: String, var pos: Int = 0) {
+private class StrReader(val str: String, var pos: Int = 0) {
 
     val length: Int = this.str.length
     val available: Int get() = length - this.pos
 
     fun peek(count: Int): String = substr(this.pos, count)
-    fun read(count: Int): String = this.peek(count).apply { skip(count) }
 
+    fun read(count: Int): String = this.peek(count).apply { skip(count) }
 
     fun readRemaining(): String = read(available)
 
     fun skip(count: Int = 1) = this.apply { this.pos += count; }
+
     private fun substr(pos: Int, length: Int): String {
         return this.str.substring(min(pos, this.length), min(pos + length, this.length))
     }
@@ -148,13 +150,11 @@ class StrReader(val str: String, var pos: Int = 0) {
         return lit
     }
 
-
     fun tryRegex(v: Regex): String? {
         val result = v.find(this.str.substring(this.pos)) ?: return null
         val m = result.groups[0]!!.value
         this.pos += m.length
         return m
     }
-
 
 }

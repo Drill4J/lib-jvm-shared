@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.api.dto
+package com.epam.drill.common.message
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class LoggingConfig(
-    val warn: Boolean = false,
-    val info: Boolean = false,
-    val debug: Boolean = false,
-    val trace: Boolean = false,
-    val error: Boolean = false
-)
+enum class MessageType {
+    PLUGIN_DATA,
+    PLUGIN_ACTION,
+    MESSAGE,
+    MESSAGE_DELIVERED,
+    DEBUG,
+    INFO,
+}

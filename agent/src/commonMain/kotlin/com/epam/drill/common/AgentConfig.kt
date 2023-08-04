@@ -15,7 +15,7 @@
  */
 package com.epam.drill.common
 
-import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class AgentConfig(
@@ -44,10 +44,6 @@ interface AgentConfigUpdater {
 data class PackagesPrefixes(
     val packagesPrefixes: List<String> = emptyList()
 )
-
-@Suppress("UNUSED")
-@Serializable
-data class PluginId(val pluginId: String)
 
 @Serializable
 data class TogglePayload(val pluginId: String, val forceValue: Boolean? = null)

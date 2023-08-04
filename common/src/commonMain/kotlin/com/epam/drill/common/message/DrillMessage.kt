@@ -13,21 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common
+package com.epam.drill.common.message
 
-import kotlinx.serialization.*
-
-@Serializable
-data class BuildInfo(
-    val version: String = ""
-) {
-    override fun equals(other: Any?) = other is BuildInfo && version == other.version
-
-    override fun hashCode() = version.hashCode()
-}
+import kotlinx.serialization.Serializable
 
 @Serializable
-data class ByteClass(
-    val className: String,
-    val bytes: ByteArray
-)
+data class DrillMessage(val content: String)

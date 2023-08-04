@@ -16,8 +16,9 @@
 package com.epam.drill.core.ws
 
 import com.epam.drill.*
-import com.epam.drill.api.dto.*
 import com.epam.drill.common.*
+import com.epam.drill.common.message.*
+import com.epam.drill.common.ws.dto.*
 import com.epam.drill.core.*
 import com.epam.drill.plugin.*
 import kotlin.native.concurrent.*
@@ -70,16 +71,6 @@ fun topicRegister() =
         rawTopic<PackagesPrefixes>("/agent/set-packages-prefixes") { payload ->
             setPackagesPrefixes(payload)
             logger.info { "Agent packages prefixes have been changed" }
-        }
-
-        rawTopic<PluginConfig>("/plugin/updatePluginConfig") { config ->
-            logger.info { "UpdatePluginConfig event: message is $config " }
-            val agentPluginPart = PluginManager[config.id]
-            if (agentPluginPart != null) {
-                agentPluginPart.on()
-                logger.debug { "New settings for ${config.id} saved to file" }
-            } else
-                logger.warn { "Plugin ${config.id} not loaded to agent" }
         }
 
         rawTopic<PluginAction>("/plugin/action") { m ->

@@ -23,7 +23,6 @@ import kotlinx.serialization.serializer
 import kotlinx.serialization.protobuf.ProtoBuf
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
-import com.epam.drill.common.PluginMetadata
 
 @SharedImmutable
 private val topicContext = newSingleThreadContext("topic's processor")
@@ -78,8 +77,3 @@ class InfoTopic(
         block(message.decodeToString())
     }
 }
-
-open class PluginTopic(
-    override val destination: String,
-    @Suppress("unused") open val block: suspend (message: PluginMetadata) -> Unit
-) : Topic(destination)
