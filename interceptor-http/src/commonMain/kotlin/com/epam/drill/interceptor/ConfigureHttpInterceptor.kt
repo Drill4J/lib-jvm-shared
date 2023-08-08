@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 package com.epam.drill.interceptor
+
 expect fun configureHttpInterceptor()

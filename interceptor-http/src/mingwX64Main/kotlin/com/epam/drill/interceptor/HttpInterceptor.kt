@@ -21,17 +21,11 @@ import com.epam.drill.hook.io.tcp.*
 import kotlinx.cinterop.*
 import kotlin.native.concurrent.*
 
-//TODO EPMDJ-8696 Move back to common module
-
-actual fun configureHttpInterceptor() {
-    configureTcpHooks()
-    addInterceptor(HttpInterceptor().freeze())
-}
-
 @ThreadLocal
 private var reader = mutableMapOf<DRILL_SOCKET, ByteArray?>()
 
 class HttpInterceptor : Interceptor {
+
     override fun MemScope.interceptRead(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>, size: Int) {
         try {
             bytes.readBytes(HTTP_DETECTOR_BYTES_COUNT).decodeToString().let { prefix ->
@@ -126,9 +120,7 @@ private fun processHttpRequest(readBytes: ByteArray, fd: DRILL_SOCKET, dataCallb
 
     }
 
-
 private fun notContainsFullHeadersPart(readBytes: ByteArray) = readBytes.indexOf(HEADERS_DELIMITER) == -1
-
 
 private fun prepareHeaders(httpWriteHeaders: Map<String, String>) =
     CR_LF_BYTES + httpWriteHeaders.map { (k, v) -> "$k: $v" }.joinToString(CR_LF).encodeToByteArray()

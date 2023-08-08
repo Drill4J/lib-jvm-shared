@@ -15,14 +15,13 @@
  */
 package com.epam.drill.interceptor
 
-import kotlin.native.concurrent.SharedImmutable
+import com.epam.drill.hook.io.configureTcpHooks
+import com.epam.drill.hook.io.tcp.addInterceptor
+import kotlin.native.concurrent.freeze
 
-internal const val HTTP_DETECTOR_BYTES_COUNT = 8
+//TODO EPMDJ-8696 Move back to common module
 
-internal const val HTTP_RESPONSE_MARKER = "HTTP"
-
-internal const val FIRST_INDEX = 0
-
-@SharedImmutable
-internal val HTTP_VERBS =
-    setOf("OPTIONS", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "PRI") + HTTP_RESPONSE_MARKER
+actual fun configureHttpInterceptor() {
+    configureTcpHooks()
+    addInterceptor(HttpInterceptor().freeze())
+}

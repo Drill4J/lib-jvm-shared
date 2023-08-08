@@ -15,7 +15,7 @@
  */
 package com.epam.drill.interceptor
 
-fun ByteArray.indexOf(arr: ByteArray) = run {
+internal fun ByteArray.indexOf(arr: ByteArray) = run {
     for (index in indices) {
         if (index + arr.size <= this.size) {
             val regionMatches = arr.foldIndexed(true) { i, acc, byte ->
