@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.http
+package com.epam.drill.instrument
 
-import com.epam.drill.agent.instrument.IStrategy
 import com.epam.drill.jvmapi.getObjectMethod
 import com.epam.drill.jvmapi.toByteArray
 import com.epam.drill.jvmapi.toJByteArray

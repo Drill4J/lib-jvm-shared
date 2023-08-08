@@ -13,18 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.http.apache
+package com.epam.drill.instrument.http
 
-import com.epam.drill.agent.instrument.*
+import com.epam.drill.instrument.IStrategy
+import com.epam.drill.instrument.callIStrategyTransformMethod
 
-expect object ApacheClient : IStrategy {
+actual object ApacheClient : IStrategy {
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
+    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
+        return interfaces.any { "org/apache/http/HttpClientConnection" == it }
+    }
 
-    override fun transform(
+    actual override fun transform(
         className: String,
         classFileBuffer: ByteArray,
         loader: Any?,
         protectionDomain: Any?,
-    ): ByteArray?
+    ): ByteArray? =
+        callIStrategyTransformMethod(
+            ApacheClient::class,
+            ApacheClient::transform,
+            className,
+            classFileBuffer,
+            loader,
+            protectionDomain
+        )
+
 }

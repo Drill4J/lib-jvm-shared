@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.http.java
+package com.epam.drill.instrument.http
 
-import com.epam.drill.agent.instrument.IStrategy
-import com.epam.drill.agent.instrument.http.callIStrategyTransformMethod
+import com.epam.drill.instrument.IStrategy
+import com.epam.drill.instrument.callIStrategyTransformMethod
 
-actual object JavaHttpUrlConnection : IStrategy {
+actual object OkHttpClient : IStrategy {
 
     actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
-        return superName != null && (
-                superName == "java/net/HttpURLConnection" ||
-                superName == "javax/net/ssl/HttpsURLConnection")
+        return interfaces.any { it == "okhttp3/internal/http/HttpCodec" }
     }
 
     actual override fun transform(
@@ -33,8 +31,8 @@ actual object JavaHttpUrlConnection : IStrategy {
         protectionDomain: Any?,
     ): ByteArray? =
         callIStrategyTransformMethod(
-            JavaHttpUrlConnection::class,
-            JavaHttpUrlConnection::transform,
+            OkHttpClient::class,
+            OkHttpClient::transform,
             className,
             classFileBuffer,
             loader,

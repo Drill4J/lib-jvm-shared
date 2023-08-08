@@ -13,12 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument
+package com.epam.drill.instrument
 
-interface IStrategy {
+import com.epam.drill.instrument.util.*
+import javassist.*
+import java.security.*
 
-    fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
+abstract class TransformStrategy : IStrategy {
 
-    fun transform(className: String, classFileBuffer: ByteArray, loader: Any?, protectionDomain: Any?): ByteArray?
+    override fun transform(
+        className: String,
+        classFileBuffer: ByteArray,
+        loader: Any?,
+        protectionDomain: Any?,
+    ): ByteArray? = createAndTransform(classFileBuffer, loader, protectionDomain, ::instrument)
 
+    abstract fun instrument(
+        ctClass: CtClass,
+        pool: ClassPool,
+        classLoader: ClassLoader?,
+        protectionDomain: ProtectionDomain?,
+    ): ByteArray?
 }

@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.http.ok
+package com.epam.drill.instrument
 
-import com.epam.drill.agent.instrument.*
+interface IStrategy {
 
-expect object OkHttpClient : IStrategy {
+    fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
+    fun transform(className: String, classFileBuffer: ByteArray, loader: Any?, protectionDomain: Any?): ByteArray?
 
-    override fun transform(
-        className: String,
-        classFileBuffer: ByteArray,
-        loader: Any?,
-        protectionDomain: Any?,
-    ): ByteArray?
 }

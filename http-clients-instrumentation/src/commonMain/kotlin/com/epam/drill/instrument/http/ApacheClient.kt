@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.util
+package com.epam.drill.instrument.http
 
-import mu.KotlinLogging
+import com.epam.drill.instrument.IStrategy
 
-object Log {
-    private val logger = KotlinLogging.logger {}
-    fun injectHeaderLog(headers: Map<String, String>) {
-        logger.trace { "Adding headers: $headers" }
-    }
+expect object ApacheClient : IStrategy {
+
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
+
+    override fun transform(
+        className: String,
+        classFileBuffer: ByteArray,
+        loader: Any?,
+        protectionDomain: Any?,
+    ): ByteArray?
 }

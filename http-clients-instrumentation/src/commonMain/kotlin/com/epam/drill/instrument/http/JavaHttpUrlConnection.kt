@@ -13,25 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument
+package com.epam.drill.instrument.http
 
-import com.epam.drill.agent.instrument.util.*
-import javassist.*
-import java.security.*
+import com.epam.drill.instrument.IStrategy
 
-abstract class TransformStrategy : IStrategy {
+expect object JavaHttpUrlConnection : IStrategy {
+
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
 
     override fun transform(
         className: String,
         classFileBuffer: ByteArray,
         loader: Any?,
         protectionDomain: Any?,
-    ): ByteArray? = createAndTransform(classFileBuffer, loader, protectionDomain, ::instrument)
-
-    abstract fun instrument(
-        ctClass: CtClass,
-        pool: ClassPool,
-        classLoader: ClassLoader?,
-        protectionDomain: ProtectionDomain?,
     ): ByteArray?
 }

@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.http.apache
+package com.epam.drill.instrument.http
 
-import com.epam.drill.agent.instrument.IStrategy
-import com.epam.drill.agent.instrument.http.callIStrategyTransformMethod
+import com.epam.drill.instrument.IStrategy
+import com.epam.drill.instrument.callIStrategyTransformMethod
 
-actual object ApacheClient : IStrategy {
+actual object JavaHttpUrlConnection : IStrategy {
 
     actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
-        return interfaces.any { "org/apache/http/HttpClientConnection" == it }
+        return superName != null && (
+                superName == "java/net/HttpURLConnection" ||
+                superName == "javax/net/ssl/HttpsURLConnection")
     }
 
     actual override fun transform(
@@ -31,8 +33,8 @@ actual object ApacheClient : IStrategy {
         protectionDomain: Any?,
     ): ByteArray? =
         callIStrategyTransformMethod(
-            ApacheClient::class,
-            ApacheClient::transform,
+            JavaHttpUrlConnection::class,
+            JavaHttpUrlConnection::transform,
             className,
             classFileBuffer,
             loader,
