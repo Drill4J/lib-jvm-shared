@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.epam.drill.transport.internal
+
 import com.epam.drill.websocket.gen.*
 
 @SharedImmutable
-val lwsEventsDescription = mapOf(
+internal val lwsEventsDescription = mapOf(
     LWS_CALLBACK_PROTOCOL_INIT to "One-time call per protocol, per-vhost using it, so it can do initial setup / allocations etc",
     LWS_CALLBACK_PROTOCOL_DESTROY to "One-time call per protocol, per-vhost using it, indicating this protocol won't get used at all after this callback, the vhost is getting destroyed",
     LWS_CALLBACK_WSI_CREATE to " Outermost (earliest) wsi create notification to protocols [0]",

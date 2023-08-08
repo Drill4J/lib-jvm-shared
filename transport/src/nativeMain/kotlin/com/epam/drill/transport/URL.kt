@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.transport.common.ws
+package com.epam.drill.transport
 
 import kotlin.math.min
 
@@ -41,8 +41,7 @@ data class URL constructor(
 
     private val fullUrl: String by lazy { toUrlString().toString() }
 
-
-    private fun toUrlString(includeScheme: Boolean = true, out: StringBuilder = StringBuilder()): StringBuilder {
+    fun toUrlString(includeScheme: Boolean = true, out: StringBuilder = StringBuilder()): StringBuilder {
         if (includeScheme && scheme != null) {
             out.append("$scheme:")
             if (!isOpaque) out.append("//")
@@ -59,6 +58,7 @@ data class URL constructor(
     override fun toString(): String = fullUrl
 
     companion object {
+
         const val DEFAULT_PORT = 0
 
         operator fun invoke(
@@ -105,7 +105,6 @@ data class URL constructor(
                                 DEFAULT_PORT, getOrNull(1))
                         }
                     }
-
                     URL(
                         opaque = !isHierarchical,
                         scheme = scheme,
@@ -133,22 +132,23 @@ data class URL constructor(
             }
         }
 
-
     }
+
 }
 
-class StrReader(private val str: String, private var pos: Int = 0) {
+private class StrReader(private val str: String, private var pos: Int = 0) {
 
     private val length: Int = this.str.length
     private val available: Int get() = length - this.pos
 
     private fun peek(count: Int): String = substr(this.pos, count)
-    private fun read(count: Int): String = this.peek(count).apply { skip(count) }
 
+    private fun read(count: Int): String = this.peek(count).apply { skip(count) }
 
     fun readRemaining(): String = read(available)
 
     private fun skip(count: Int = 1) = this.apply { this.pos += count; }
+
     private fun substr(pos: Int, length: Int): String {
         return this.str.substring(min(pos, this.length), min(pos + length, this.length))
     }
@@ -159,13 +159,11 @@ class StrReader(private val str: String, private var pos: Int = 0) {
         return lit
     }
 
-
     fun tryRegex(v: Regex): String? {
         val result = v.find(this.str.substring(this.pos)) ?: return null
         val m = result.groups[0]!!.value
         this.pos += m.length
         return m
     }
-
 
 }

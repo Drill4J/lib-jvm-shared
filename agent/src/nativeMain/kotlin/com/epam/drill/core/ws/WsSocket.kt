@@ -20,7 +20,6 @@ import com.epam.drill.*
 import com.epam.drill.common.agent.*
 import com.epam.drill.common.message.*
 import com.epam.drill.transport.*
-import com.epam.drill.transport.common.ws.*
 import com.epam.drill.ws.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
