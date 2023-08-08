@@ -16,7 +16,7 @@
 package com.epam.drill.core.ws
 
 import com.epam.drill.*
-import com.epam.drill.common.*
+import com.epam.drill.common.agent.*
 import com.epam.drill.common.message.*
 import com.epam.drill.common.ws.dto.*
 import com.epam.drill.core.*

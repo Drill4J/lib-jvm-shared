@@ -17,8 +17,7 @@ package com.epam.drill.core.ws
 
 import com.benasher44.uuid.*
 import com.epam.drill.*
-import com.epam.drill.common.AgentConfig
-import com.epam.drill.common.AgentConfigParam
+import com.epam.drill.common.agent.*
 import com.epam.drill.common.message.*
 import com.epam.drill.transport.*
 import com.epam.drill.transport.common.ws.*

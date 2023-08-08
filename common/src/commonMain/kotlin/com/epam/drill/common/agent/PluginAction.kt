@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common
+package com.epam.drill.common.agent
 
-enum class AgentType(val notation: String) {
-    JAVA("Java"),
-    DOTNET(".NET"),
-    NODEJS("Node.js")
-}
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class PluginAction(
+    val id: String,
+    val message: String,
+    val confirmationKey: String = "",
+)

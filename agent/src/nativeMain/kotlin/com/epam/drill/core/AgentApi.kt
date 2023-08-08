@@ -15,7 +15,7 @@
  */
 package com.epam.drill.core
 
-import com.epam.drill.common.*
+import com.epam.drill.common.agent.*
 import com.epam.drill.plugin.*
 import kotlin.native.concurrent.*
 

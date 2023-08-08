@@ -15,37 +15,8 @@
  */
 package com.epam.drill.common
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class AgentConfig(
-    val id: String,
-    val instanceId: String,
-    val buildVersion: String,
-    val serviceGroupId: String,
-    val agentType: AgentType,
-    val agentVersion: String = "",
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
-    val parameters: Map<String, AgentParameter> = emptyMap(),
-)
-
-@Serializable
-data class AgentParameter(
-    val type: String,
-    val value: String,
-    val description: String,
-)
+import com.epam.drill.common.agent.AgentConfig
 
 interface AgentConfigUpdater {
     fun updateParameters(config: AgentConfig)
 }
-
-@Serializable
-data class PackagesPrefixes(
-    val packagesPrefixes: List<String> = emptyList()
-)
-
-@Serializable
-data class TogglePayload(val pluginId: String, val forceValue: Boolean? = null)
-
-const val AgentConfigParam = "AgentConfig"
