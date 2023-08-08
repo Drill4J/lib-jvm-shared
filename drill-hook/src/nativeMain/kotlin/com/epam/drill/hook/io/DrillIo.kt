@@ -96,7 +96,7 @@ fun drillClose(fd: DRILL_SOCKET): Int {
     if (result == 0) {
         _accepts.update { it - fd }
         _connects.update { it - fd }
-        com.epam.drill.hook.io.tcp.close(fd)
+        com.epam.drill.hook.io.close(fd)
     }
     return result
 }

@@ -18,7 +18,6 @@
 package com.epam.drill.hook.io
 
 import com.epam.drill.hook.gen.*
-import com.epam.drill.hook.io.tcp.*
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.collections.immutable.*

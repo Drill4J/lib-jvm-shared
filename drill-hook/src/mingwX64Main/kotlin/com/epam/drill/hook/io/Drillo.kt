@@ -19,8 +19,6 @@ package com.epam.drill.hook.io
 
 
 import com.epam.drill.hook.gen.*
-import com.epam.drill.hook.io.tcp.processWriteEvent
-import com.epam.drill.hook.io.tcp.tryDetectProtocol
 import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.collections.immutable.*

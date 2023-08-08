@@ -17,7 +17,7 @@ package com.epam.drill.zlib
 
 import com.epam.drill.*
 import com.epam.drill.core.transport.*
-import com.epam.drill.hook.io.tcp.*
+import com.epam.drill.hook.io.*
 import kotlin.test.*
 
 

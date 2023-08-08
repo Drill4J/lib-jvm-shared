@@ -16,7 +16,7 @@
 package com.epam.drill.interceptor
 
 import com.epam.drill.hook.io.configureTcpHooks
-import com.epam.drill.hook.io.tcp.addInterceptor
+import com.epam.drill.hook.io.addInterceptor
 import kotlin.native.concurrent.freeze
 
 //TODO EPMDJ-8696 Move back to common module

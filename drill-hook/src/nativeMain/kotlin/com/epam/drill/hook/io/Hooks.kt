@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.hook.io.tcp
+package com.epam.drill.hook.io
 
 import com.epam.drill.hook.gen.DRILL_SOCKET
-import com.epam.drill.hook.io.TcpFinalData
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 import kotlinx.cinterop.ByteVarOf
@@ -105,10 +104,10 @@ val HEADERS_DELIMITER = CR_LF_BYTES + CR_LF_BYTES
 val injectedHeaders = atomic({ emptyMap<String, String>() }.freeze()).freeze()
 
 @SharedImmutable
-val readHeaders = atomic({ _: Map<ByteArray, ByteArray> -> Unit }.freeze()).freeze()
+val readHeaders = atomic({ _: Map<ByteArray, ByteArray> -> }.freeze()).freeze()
 
 @SharedImmutable
-val readCallback = atomic({ _: ByteArray -> Unit }.freeze()).freeze()
+val readCallback = atomic({ _: ByteArray -> }.freeze()).freeze()
 
 @SharedImmutable
-val writeCallback = atomic({ _: ByteArray -> Unit }.freeze()).freeze()
+val writeCallback = atomic({ _: ByteArray -> }.freeze()).freeze()
