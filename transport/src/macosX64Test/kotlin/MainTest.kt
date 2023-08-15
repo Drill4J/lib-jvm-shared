@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.epam.drill.transport.URL
 import com.epam.drill.transport.WSClientFactory
-import com.epam.drill.transport.common.ws.URL
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking

@@ -44,14 +44,14 @@ fun addHttpHook(env: JNIEnv, thiz: jobject) {
     LoggingConfiguration.readDefaultConfiguration()
     KotlinLoggingConfiguration.logLevel = KotlinLoggingLevel.TRACE
     configureHttpInterceptor()
-    com.epam.drill.hook.io.tcp.injectedHeaders.value = { injectedHeaders }.freeze()
-    com.epam.drill.hook.io.tcp.readHeaders.value = { it: Map<ByteArray, ByteArray> ->
+    com.epam.drill.hook.io.injectedHeaders.value = { injectedHeaders }.freeze()
+    com.epam.drill.hook.io.readHeaders.value = { it: Map<ByteArray, ByteArray> ->
         it.forEach { (k, v) ->
             println("${k.decodeToString()}: ${v.decodeToString()}")
         }
     }.freeze()
-    com.epam.drill.hook.io.tcp.readCallback.value = { _: ByteArray -> println("READ") }.freeze()
-    com.epam.drill.hook.io.tcp.writeCallback.value = { _: ByteArray -> println("WRITE") }.freeze()
+    com.epam.drill.hook.io.readCallback.value = { _: ByteArray -> println("READ") }.freeze()
+    com.epam.drill.hook.io.writeCallback.value = { _: ByteArray -> println("WRITE") }.freeze()
 }
 
 

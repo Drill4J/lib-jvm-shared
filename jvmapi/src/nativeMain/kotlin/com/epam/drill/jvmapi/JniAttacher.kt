@@ -15,54 +15,46 @@
  */
 package com.epam.drill.jvmapi
 
-import com.epam.drill.jvmapi.gen.*
+import kotlin.native.concurrent.AtomicReference
+import kotlin.native.concurrent.freeze
 import kotlinx.cinterop.*
-import kotlin.native.concurrent.*
+import com.epam.drill.jvmapi.gen.JNIEnv
+import com.epam.drill.jvmapi.gen.JNIEnvVar
+import com.epam.drill.jvmapi.gen.JNINativeInterface_
+import com.epam.drill.jvmapi.gen.JNI_VERSION_1_6
+import com.epam.drill.jvmapi.gen.JavaVMVar
+import com.epam.drill.jvmapi.gen.jvmtiEnvVar
+
+typealias JNIEnvPointer = CPointer<JNIEnvVar>
+typealias JNI = JNINativeInterface_
 
 val vmGlobal = AtomicReference<CPointer<JavaVMVar>?>(null).freeze()
 val jvmti = AtomicReference<CPointer<jvmtiEnvVar>?>(null).freeze()
 
-
-@CName("getJvm")
-fun getJvm(): CPointer<JavaVMVar>? {
-    return vmGlobal.value
-}
-@CName("currentEnvs")
-fun currentEnvs(): JNIEnvPointer {
-    return env
-}
-
-@CName("jvmtii")
-fun jvmtii(): CPointer<jvmtiEnvVar>? = jvmti.value
-
-fun AttachNativeThreadToJvm() {
-    currentEnvs()
-}
+@ThreadLocal
+var ex: JNIEnvPointer? = null
 
 val env: JNIEnvPointer
-    get() {
-        return if (ex != null) {
-            ex!!
-        } else {
-            memScoped {
-                val vms = vmGlobal.value!!
-                val vmFns = vms.pointed.value!!.pointed
-                val jvmtiEnvPtr = alloc<CPointerVar<JNIEnvVar>>()
-                vmFns.AttachCurrentThread!!(vms, jvmtiEnvPtr.ptr.reinterpret(), null)
-                val value: CPointer<CPointerVarOf<JNIEnv>>? = jvmtiEnvPtr.value
-                ex = value
-                JNI_VERSION_1_6
-                value!!
-            }
-        }
+    get() = ex ?: memScoped {
+        val vms = vmGlobal.value!!
+        val vmFns = vms.pointed.value!!.pointed
+        val jvmtiEnvPtr = alloc<CPointerVar<JNIEnvVar>>()
+        vmFns.AttachCurrentThread!!(vms, jvmtiEnvPtr.ptr.reinterpret(), null)
+        val value: CPointer<CPointerVarOf<JNIEnv>>? = jvmtiEnvPtr.value
+        ex = value
+        JNI_VERSION_1_6
+        value!!
     }
 
 val jni: JNI
     get() = env.pointed.pointed!!
 
+@Suppress("UNUSED")
+@CName("getJvm")
+fun getJvm(): CPointer<JavaVMVar>? = vmGlobal.value
 
-@ThreadLocal
-var ex: JNIEnvPointer? = null
+@CName("currentEnvs")
+fun currentEnvs(): JNIEnvPointer = env
 
-typealias JNIEnvPointer = CPointer<JNIEnvVar>
-typealias JNI = JNINativeInterface_
+@CName("jvmtii")
+fun jvmtii(): CPointer<jvmtiEnvVar>? = jvmti.value

@@ -22,7 +22,6 @@ repositories {
 
 dependencies {
     implementation(project(":common"))
-    implementation(project(":plugin-api-agent"))
 }
 
 tasks {
