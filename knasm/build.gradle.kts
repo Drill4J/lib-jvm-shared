@@ -5,7 +5,7 @@ plugins {
     kotlin("multiplatform")
 }
 
-group = "com.epam.drill.knasm"
+group = "com.epam.drill"
 version = Properties().run {
     projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
     getProperty("version.$name") ?: Project.DEFAULT_VERSION

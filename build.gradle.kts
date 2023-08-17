@@ -10,7 +10,6 @@ plugins {
     id("org.jetbrains.kotlinx.benchmark").apply(false)
     id("com.github.hierynomus.license").apply(false)
     id("com.google.protobuf").apply(false)
-    id("com.epam.drill.gradle.plugin.kni").apply(false)
 }
 
 group = "com.epam.drill"

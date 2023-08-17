@@ -10,7 +10,7 @@ plugins {
     id("com.github.hierynomus.license")
 }
 
-group = "com.epam.drill.agent"
+group = "com.epam.drill"
 version = Properties().run {
     projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
     getProperty("version.$name") ?: Project.DEFAULT_VERSION
@@ -58,6 +58,7 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
                 implementation(project(":logging"))
+                implementation(project(":common"))
             }
         }
         val nativeMain by creating {
@@ -67,10 +68,8 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
                 implementation("com.benasher44:uuid:$uuidVersion")
-                implementation(project(":common"))
                 implementation(project(":transport"))
                 implementation(project(":interceptor-http"))
-                implementation(project(":plugin-api-agent"))
             }
         }
         val posixMain by creating {
