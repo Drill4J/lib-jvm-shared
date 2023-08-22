@@ -99,6 +99,7 @@ data class ExecClassData(
     @Serializable(with = BitSetSerializer::class)
     @Column("probes", PostgresType.BIT_VARYING)
     val probes: Probes,
+    val sessionId: String? = null,
     /**
      * Test name only use for global session/manual testing and in cases where we couldn't set testId(hash) in headers
      */
