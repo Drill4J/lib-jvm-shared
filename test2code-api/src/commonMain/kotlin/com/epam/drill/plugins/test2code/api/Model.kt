@@ -24,7 +24,6 @@ const val DEFAULT_TEST_NAME = "unspecified"
  * Payload for a session starting action
  * @param testType the test type (MANUAL, AUTO)
  * @param sessionId the session ID, if defined
- * @param testName the name of first test of the session
  * @param isRealtime a sign that it is necessary to collect test coverage in real time
  * @param isGlobal a sign that the session is global
  * @param labels the set of labels associated with the session
@@ -33,7 +32,7 @@ const val DEFAULT_TEST_NAME = "unspecified"
 data class StartPayload(
     val testType: String = "MANUAL",
     val sessionId: String = "",
-    val testName: String? = null,
+    val testName: String?,
     val isRealtime: Boolean = false,
     val isGlobal: Boolean = false,
     val labels: Set<Label> = emptySet(),
@@ -481,10 +480,10 @@ data class TestOverview(
     val testId: String,
     val duration: Long = 0,
     val result: TestResult = TestResult.PASSED,
-    val details: TestDetails = TestDetails.emptyDetails,
+    val details: TestDetails,
 ) {
     companion object {
-        val empty = TestOverview("")
+        val empty = TestOverview("", details = TestDetails.emptyDetails)
     }
 }
 

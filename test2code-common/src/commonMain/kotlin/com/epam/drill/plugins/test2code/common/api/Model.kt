@@ -18,7 +18,6 @@ package com.epam.drill.plugins.test2code.common.api
 import com.epam.dsm.*
 import kotlinx.serialization.*
 
-const val DEFAULT_TEST_NAME = "unspecified"
 
 /**
  * Ast metadata about the file or the class containing methods
@@ -64,7 +63,6 @@ data class ActionScopeResult(
  * Information about a started test session
  * @param sessionId the started session ID
  * @param testType the type of the test (AUTO, MANUAL)
- * @param testName the name of first running test
  * @param isRealtime a sign that it is necessary to collect test coverage in real time
  * @param isGlobal a sign that the session is global
  * @features Test running
@@ -101,13 +99,9 @@ data class ExecClassData(
     val probes: Probes,
     val sessionId: String? = null,
     /**
-     * Test name only use for global session/manual testing and in cases where we couldn't set testId(hash) in headers
-     */
-    val testName: String = "",
-    /**
      * It's full test name hashed by CRC32 algorithm
      */
-    val testId: String = "", // TODO must not have default value
+    val testId: String
 )
 
 
