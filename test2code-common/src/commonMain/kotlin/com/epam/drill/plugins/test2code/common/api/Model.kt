@@ -18,6 +18,8 @@ package com.epam.drill.plugins.test2code.common.api
 import com.epam.dsm.*
 import kotlinx.serialization.*
 
+const val GLOBAL_SESSION_ID = "global"
+const val DEFAULT_TEST_ID = "unspecified"
 
 /**
  * Ast metadata about the file or the class containing methods
@@ -63,6 +65,7 @@ data class ActionScopeResult(
  * Information about a started test session
  * @param sessionId the started session ID
  * @param testType the type of the test (AUTO, MANUAL)
+ * @param testName the name of first running test
  * @param isRealtime a sign that it is necessary to collect test coverage in real time
  * @param isGlobal a sign that the session is global
  * @features Test running
