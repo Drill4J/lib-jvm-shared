@@ -18,8 +18,8 @@ package com.epam.drill.plugins.test2code.common.api
 import com.epam.dsm.*
 import kotlinx.serialization.*
 
-const val GLOBAL_SESSION_ID = "global"
-const val DEFAULT_TEST_ID = "unspecified"
+const val GLOBAL_SESSION_ID = "GLOBAL"
+const val DEFAULT_TEST_ID = "UNSPECIFIED"
 
 /**
  * Ast metadata about the file or the class containing methods
