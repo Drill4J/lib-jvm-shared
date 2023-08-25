@@ -18,7 +18,17 @@ package com.epam.drill.plugins.test2code.api
 import kotlinx.serialization.*
 import kotlin.jvm.*
 
-const val DEFAULT_TEST_NAME = "unspecified"
+const val DEFAULT_TEST_NAME = "UNSPECIFIED"
+
+// TODO kept for backward-compatibility
+//  Deprecation plan:
+//  1.move value to labels map (rename to metadata?)
+//  2.update affected components:
+//  - autotest-agent
+//  - browser-extension
+//  - js-auto-test-agent
+//  - .NET
+const val DEFAULT_TEST_TYPE = "UNSPECIFIED"
 
 /**
  * Payload for a session starting action
@@ -31,9 +41,9 @@ const val DEFAULT_TEST_NAME = "unspecified"
  */
 @Serializable
 data class StartPayload(
-    val testType: String = "MANUAL",
+    val testType: String = DEFAULT_TEST_TYPE,
     val sessionId: String = "",
-    val testName: String? = null,
+    val testName: String? = DEFAULT_TEST_NAME,
     val isRealtime: Boolean = false,
     val isGlobal: Boolean = false,
     val labels: Set<Label> = emptySet(),
@@ -106,13 +116,13 @@ data class Label(
 data class TestDetails @JvmOverloads constructor(
     val engine: String = "",
     val path: String = "",
-    val testName: String,
+    val testName: String = "",
     val params: Map<String, String> = emptyMap(),
     val metadata: Map<String, String> = emptyMap(),
     val labels: Set<Label> = emptySet(),
 ) : Comparable<TestDetails> {
     companion object {
-        val emptyDetails = TestDetails(testName = DEFAULT_TEST_NAME)
+        val emptyDetails = TestDetails()
     }
 
     override fun compareTo(other: TestDetails): Int {
@@ -484,7 +494,7 @@ data class TestOverview(
     val details: TestDetails = TestDetails.emptyDetails,
 ) {
     companion object {
-        val empty = TestOverview("")
+        val empty = TestOverview("", details = TestDetails.emptyDetails)
     }
 }
 
