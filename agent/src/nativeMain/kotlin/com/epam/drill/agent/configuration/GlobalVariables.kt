@@ -24,7 +24,6 @@ private val _drillInstallationDir = AtomicReference<String?>(null).freeze()
 private val _adminAddress = AtomicReference<URL?>(null).freeze()
 private val _secureAdminAddress = AtomicReference<URL?>(null).freeze()
 private val _agentConfig = AtomicReference<AgentConfig?>(null).freeze()
-private val _agentConfigUpdater = AtomicReference<AgentConfigUpdater?>(null).freeze()
 
 var requestPattern: String?
     get() = _requestPattern.value
@@ -54,10 +53,4 @@ var agentConfig: AgentConfig
     get() = _agentConfig.value!!
     set(value) {
         _agentConfig.value = value.freeze()
-    }
-
-var agentConfigUpdater: AgentConfigUpdater
-    get() = _agentConfigUpdater.value!!
-    set(value) {
-        _agentConfigUpdater.value = value.freeze()
     }

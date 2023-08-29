@@ -15,19 +15,19 @@
  */
 package com.epam.drill.agent
 
-import kotlin.native.concurrent.SharedImmutable
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 import kotlinx.collections.immutable.persistentHashMapOf
-import kotlinx.collections.immutable.plus
 import com.epam.drill.common.agent.AgentModule
 
-@SharedImmutable
-private val _pstorage = atomic(persistentHashMapOf<String, AgentModule<*>>())
+actual object PluginStorage {
 
-val pstorage
-    get() = _pstorage.value
+    private val pstorage = atomic(persistentHashMapOf<String, AgentModule<*>>())
 
-fun addPluginToStorage(plugin: AgentModule<*>) {
-    _pstorage.update { it + (plugin.id to plugin) }
+    actual operator fun get(id: String) = pstorage.value.get(id)
+
+    actual fun values(): Collection<AgentModule<*>> = pstorage.value.values
+
+    actual fun add(plugin: AgentModule<*>) = pstorage.update { it.put(plugin.id, plugin) }
+
 }
