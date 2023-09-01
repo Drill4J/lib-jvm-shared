@@ -16,13 +16,11 @@
 package com.epam.drill.agent
 
 import com.epam.drill.agent.request.*
-import com.epam.drill.common.agent.configuration.*
 import kotlin.native.concurrent.*
 
 private val drillRequestCallback = AtomicReference<() -> DrillRequest?>({ null }.freeze()).freeze()
 private val sessionStorageCallback = AtomicReference({ _: DrillRequest -> }.freeze()).freeze()
 private val closeSessionCallback = AtomicReference({ }.freeze()).freeze()
-private val setPackagesPrefixesCallback = AtomicReference({ _: PackagesPrefixes -> }.freeze()).freeze()
 
 var drillRequest: () -> DrillRequest?
     get() = drillRequestCallback.value
@@ -40,10 +38,4 @@ var closeSession: () -> Unit
     get() = closeSessionCallback.value
     set(value) {
         closeSessionCallback.value = value.freeze()
-    }
-
-var setPackagesPrefixes: (PackagesPrefixes) -> Unit
-    get() = setPackagesPrefixesCallback.value
-    set(value) {
-        setPackagesPrefixesCallback.value = value.freeze()
     }

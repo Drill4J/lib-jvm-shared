@@ -23,65 +23,27 @@ import com.epam.drill.common.message.*
 import com.epam.drill.common.ws.dto.*
 import kotlin.native.concurrent.*
 import mu.KotlinLogging
-import mu.KotlinLoggingLevel
-import mu.KotlinLoggingConfiguration
 
 @SharedImmutable
 private val logger = KotlinLogging.logger("com.epam.drill.agent.ws.WsTopicRegister")
 
 fun wsTopicRegister() =
     WsRouter {
-        rawTopic("/plugin/state") {
-            logger.info { "Agent's plugin state sending triggered " }
-            logger.info { "Plugins: ${pstorage.size}" }
-            pstorage.onEach { (_, plugin) ->
-                plugin.onConnect()
-            }
-        }
-
-        rawTopic<LoggingConfig>("/agent/logging/update-config") { lc ->
-            logger.info { "Agent got a logging config: $lc" }
-            KotlinLoggingConfiguration.logLevel = when {
-                lc.trace -> KotlinLoggingLevel.TRACE
-                lc.debug -> KotlinLoggingLevel.DEBUG
-                lc.info -> KotlinLoggingLevel.INFO
-                lc.warn -> KotlinLoggingLevel.WARN
-                else -> KotlinLoggingLevel.ERROR
-            }
-        }
-
-        rawTopic<UpdateInfo>("/agent/update-parameters") { info ->
-            val parameters = info.parameters
-            logger.debug { "Agent update config by $parameters" }
-            val newParameters = HashMap(agentConfig.parameters)
-            parameters.forEach { updateParameter ->
-                newParameters[updateParameter.key]?.let {
-                    newParameters[updateParameter.key] = it.copy(value = updateParameter.value)
-                } ?: logger.warn { "cannot find and update the parameter '$updateParameter'" }
-            }
-            agentConfig = agentConfig.copy(parameters = newParameters)
-            agentConfigUpdater.updateParameters(agentConfig)
-        }
-
         rawTopic("/agent/change-header-name") { headerName ->
             logger.info { "Agent got a new headerMapping: $headerName" }
             requestPattern = headerName.ifEmpty { null }
         }
-
         rawTopic<PackagesPrefixes>("/agent/set-packages-prefixes") { payload ->
-            setPackagesPrefixes(payload)
             logger.info { "Agent packages prefixes have been changed" }
         }
-
         rawTopic<PluginAction>("/plugin/action") { m ->
             logger.debug { "actionPlugin event: message is ${m.message} " }
-            val agentPluginPart = pstorage[m.id]
+            val agentPluginPart = PluginStorage[m.id]
             agentPluginPart?.doRawAction(m.message)
             Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/plugin/action/${m.confirmationKey}"))
         }
-
         rawTopic<TogglePayload>("/plugin/togglePlugin") { (pluginId, forceValue) ->
-            val agentPluginPart = pstorage[pluginId]
+            val agentPluginPart = PluginStorage[pluginId]
             if (agentPluginPart == null) {
                 logger.warn { "Plugin $pluginId not loaded to agent" }
             } else {
@@ -90,5 +52,4 @@ fun wsTopicRegister() =
             }
             Sender.send(Message(MessageType.MESSAGE_DELIVERED, "/agent/plugin/${pluginId}/toggle"))
         }
-
     }
