@@ -95,8 +95,7 @@ data class AgentSessionTestsPayload(val sessionId: String, val tests: List<Strin
  */
 @Serializable
 data class ExecClassData(
-    val id: Long? = null,
-    val className: String,
+    val id: Long,
     @Serializable(with = BitSetSerializer::class)
     @Column("probes", PostgresType.BIT_VARYING)
     val probes: Probes,
