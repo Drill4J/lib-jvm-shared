@@ -27,12 +27,14 @@ import mu.KLogger
 import mu.KotlinLogging
 import com.epam.drill.common.message.Message
 
-class WsClientEndpoint(private val messageHandler: MessageHandler.Whole<Message>) : Endpoint(), MessageHandler.Whole<ByteArray> {
+class WsClientEndpoint(
+    private val messageHandler: MessageHandler.Whole<Message>,
+    private val reconnectHandler: WsClientReconnectHandler?
+) : Endpoint(), MessageHandler.Whole<ByteArray> {
 
     private val latch: CountDownLatch = CountDownLatch(1)
     private val logger: KLogger = KotlinLogging.logger {}
     private var session: Session? = null
-    private var connector: WsClientConnector? = null
 
     override fun onOpen(session: Session, config: EndpointConfig) {
         this.session = session
@@ -45,11 +47,11 @@ class WsClientEndpoint(private val messageHandler: MessageHandler.Whole<Message>
     override fun onClose(session: Session, reason: CloseReason) {
         logger.debug { "onClose: Session closed, requestURI=${session.requestURI}, " +
                 "closeCode=${reason.closeCode}, reasonPhrase=${reason.reasonPhrase}" }
-        connector?.reconnect()
+        reconnectHandler?.reconnect()
     }
 
-    override fun onError(session: Session, e: Throwable) {
-        logger.error(e) { "onError: Error occurred, requestURI=${session.requestURI}, e=$e" }
+    override fun onError(session: Session?, e: Throwable) {
+        logger.error(e) { "onError: Error occurred, requestURI=${session?.requestURI}, e=$e" }
     }
 
     override fun onMessage(bytes: ByteArray) {
@@ -65,9 +67,5 @@ class WsClientEndpoint(private val messageHandler: MessageHandler.Whole<Message>
     }
 
     fun getLatch() = latch
-
-    fun setConnector(connector: WsClientConnector) {
-        this.connector = connector
-    }
 
 }

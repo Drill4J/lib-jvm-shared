@@ -35,11 +35,4 @@ class WsClientConnector(
         logger.debug { "connect: Connected to adminUrl=$uri" }
     }
 
-    fun reconnect() {
-        logger.debug { "reconnect: Connecting to adminUrl=$uri" }
-        container.connectToServer(endpoint, config, uri)
-        endpoint.getLatch().await()
-        logger.debug { "reconnect: Connected to adminUrl=$uri" }
-    }
-
 }

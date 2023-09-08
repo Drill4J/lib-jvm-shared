@@ -27,20 +27,31 @@ import com.epam.drill.common.message.DrillMessageWrapper
 import com.epam.drill.common.message.Message
 import com.epam.drill.common.message.MessageType
 
-object WsClient {
+object WsClient : WsClientReconnectHandler {
 
     private val logger = KotlinLogging.logger {}
-    private val endpoint = WsClientEndpoint(WsMessageHandler)
+    private val endpoint = WsClientEndpoint(WsMessageHandler, this)
     private var connector: WsClientConnector? = null
 
     init {
         WsMessageHandler.registerTopics()
     }
 
+    override fun reconnect() {
+        logger.debug { "reconnect: Starting reconnect attempts" }
+        val logError: (Throwable) -> Unit = { logger.error(it) { "reconnect: Reconnect attempt is failed: $it" } }
+        val timeout: (Throwable) -> Unit = { Thread.sleep(5000) }
+        var connected = false
+        while (!connected) {
+            connected = runCatching(connector!!::connect).onFailure(logError).onFailure(timeout).isSuccess
+
+        }
+        logger.debug { "reconnect: Reconnect is done" }
+    }
+
     @Suppress("UNUSED")
     fun connect(adminUrl: String) {
         connector = WsClientConnector(URI("$adminUrl/agent/attach"), endpoint)
-        endpoint.setConnector(connector!!)
         connector!!.connect()
     }
 
