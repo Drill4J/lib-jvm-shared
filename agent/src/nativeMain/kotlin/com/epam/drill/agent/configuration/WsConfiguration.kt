@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.ws.topic
+package com.epam.drill.agent.configuration
 
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.KSerializer
+import kotlinx.serialization.encodeToHexString
 import kotlinx.serialization.protobuf.ProtoBuf
+import com.benasher44.uuid.uuid4
+import com.epam.drill.common.agent.configuration.AgentConfig
 
-class GenericTopic<T>(
-    override val destination: String,
-    private val deserializer: KSerializer<T>,
-    val block: suspend (T) -> Unit
-) : Topic(destination) {
-    suspend fun deserializeAndRun(message: ByteArray) = withContext(topicContext) {
-        block(ProtoBuf.decodeFromByteArray(deserializer, message))
+actual object WsConfiguration {
+
+    actual fun generateAgentConfigInstanceId() = run {
+        if(agentConfig.instanceId.isEmpty()) agentConfig = agentConfig.copy(instanceId = uuid4().toString())
     }
+
+    actual fun setRequestPattern(pattern: String?) = run { requestPattern = pattern }
+
+    actual fun getAgentConfigHexString() = ProtoBuf.encodeToHexString(AgentConfig.serializer(), agentConfig)
+
 }

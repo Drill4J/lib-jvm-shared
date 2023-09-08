@@ -61,6 +61,13 @@ kotlin {
                 implementation(project(":common"))
             }
         }
+        val jvmMain by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
+                implementation("org.eclipse.jetty.websocket:javax-websocket-client-impl:9.4.51.v20230217")
+            }
+        }
         val nativeMain by creating {
             dependsOn(commonMain)
             dependencies {
@@ -68,7 +75,6 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
                 implementation("com.benasher44:uuid:$uuidVersion")
-                implementation(project(":transport"))
                 implementation(project(":interceptor-http"))
             }
         }

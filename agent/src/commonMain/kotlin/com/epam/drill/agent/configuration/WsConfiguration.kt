@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.ws.topic
+package com.epam.drill.agent.configuration
 
-import kotlin.native.concurrent.freeze
-import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.newSingleThreadContext
+expect object WsConfiguration {
 
-@SharedImmutable
-internal val topicContext = newSingleThreadContext("topic's processor")
+    fun generateAgentConfigInstanceId()
 
-@SharedImmutable
-val mapper = atomic(mapOf<String, Topic>().freeze()).freeze()
+    fun setRequestPattern(pattern: String?)
+
+    fun getAgentConfigHexString(): String
+
+}

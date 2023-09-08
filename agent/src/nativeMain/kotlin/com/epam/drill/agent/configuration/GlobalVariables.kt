@@ -17,7 +17,6 @@ package com.epam.drill.agent.configuration
 
 import kotlin.native.concurrent.*
 import com.epam.drill.common.agent.configuration.*
-import com.epam.drill.transport.*
 
 private val _requestPattern = AtomicReference<String?>(null).freeze()
 private val _drillInstallationDir = AtomicReference<String?>(null).freeze()

@@ -30,6 +30,14 @@ fun callNativeVoidMethod(env: JNIEnv, thiz: jobject, method: () -> Unit) = memSc
 }
 
 @Suppress("UNUSED_PARAMETER")
+fun callNativeVoidMethodWithString(env: JNIEnv, thiz: jobject, method: (String?) -> Unit, string: String?) = memScoped {
+    withJString {
+        ex = env.getPointer(this@memScoped).reinterpret()
+        method(string)
+    }
+}
+
+@Suppress("UNUSED_PARAMETER")
 fun callNativeStringMethod(env: JNIEnv, thiz: jobject, method: () -> String?) = memScoped {
     withJString {
         ex = env.getPointer(this@memScoped).reinterpret()

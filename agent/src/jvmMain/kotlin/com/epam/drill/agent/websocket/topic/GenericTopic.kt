@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.ws.topic
+package com.epam.drill.agent.websocket.topic
 
-import kotlinx.coroutines.withContext
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.protobuf.ProtoBuf
 
-class InfoTopic(
+class GenericTopic<T>(
     override val destination: String,
-    private val block: suspend (String) -> Unit
+    private val deserializer: KSerializer<T>,
+    private val block: (T) -> Unit
 ) : Topic(destination) {
-    suspend fun run(message: ByteArray) = withContext(topicContext) {
-        block(message.decodeToString())
-    }
+    fun deserializeAndRun(message: ByteArray) = block(ProtoBuf.decodeFromByteArray(deserializer, message))
 }

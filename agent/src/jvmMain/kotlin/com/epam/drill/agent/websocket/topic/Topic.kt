@@ -13,6 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.ws.topic
+package com.epam.drill.agent.websocket.topic
 
 open class Topic(open val destination: String)
