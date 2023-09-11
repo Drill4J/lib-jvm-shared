@@ -44,3 +44,8 @@ fun callNativeStringMethod(env: JNIEnv, thiz: jobject, method: () -> String?) = 
         NewStringUTF(method())
     }
 }
+
+@Suppress("UNUSED_PARAMETER")
+fun callNativeLongMethod(env: JNIEnv, thiz: jobject, method: () -> Long?) = memScoped {
+       method()
+}

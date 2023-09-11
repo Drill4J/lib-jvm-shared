@@ -29,8 +29,8 @@ import com.epam.drill.common.message.MessageType
 
 object WsClient : WsClientReconnectHandler {
 
+    val endpoint = WsClientEndpoint(WsMessageHandler, this)
     private val logger = KotlinLogging.logger {}
-    private val endpoint = WsClientEndpoint(WsMessageHandler, this)
     private var connector: WsClientConnector? = null
 
     init {

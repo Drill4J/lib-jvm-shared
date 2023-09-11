@@ -27,16 +27,33 @@ import mu.KLogger
 import mu.KotlinLogging
 import com.epam.drill.common.message.Message
 
+
+abstract class RetentionCallbacks() : Endpoint(), MessageHandler.Whole<ByteArray> {
+    abstract fun setOnAvailable(callback: () -> Unit)
+    abstract fun setOnUnavailable(callback: () -> Unit)
+}
+
 class WsClientEndpoint(
     private val messageHandler: MessageHandler.Whole<Message>,
     private val reconnectHandler: WsClientReconnectHandler?
-) : Endpoint(), MessageHandler.Whole<ByteArray> {
+) : RetentionCallbacks() {
 
     private val latch: CountDownLatch = CountDownLatch(1)
     private val logger: KLogger = KotlinLogging.logger {}
     private var session: Session? = null
+    private var onAvailableCallback: () -> Unit = {}
+    private var onUnavailableCallback: () -> Unit = {}
+
+    override fun setOnAvailable(callback: () -> Unit) {
+        onAvailableCallback = callback
+    }
+
+    override fun setOnUnavailable(callback: () -> Unit) {
+        onUnavailableCallback = callback
+    }
 
     override fun onOpen(session: Session, config: EndpointConfig) {
+        onAvailableCallback.invoke()
         this.session = session
         this.session!!.addMessageHandler(this)
         this.session!!.maxBinaryMessageBufferSize = 33554432
@@ -45,12 +62,16 @@ class WsClientEndpoint(
     }
 
     override fun onClose(session: Session, reason: CloseReason) {
-        logger.debug { "onClose: Session closed, requestURI=${session.requestURI}, " +
-                "closeCode=${reason.closeCode}, reasonPhrase=${reason.reasonPhrase}" }
+        onUnavailableCallback.invoke()
+        logger.debug {
+            "onClose: Session closed, requestURI=${session.requestURI}, " +
+                    "closeCode=${reason.closeCode}, reasonPhrase=${reason.reasonPhrase}"
+        }
         reconnectHandler?.reconnect()
     }
 
     override fun onError(session: Session?, e: Throwable) {
+        onUnavailableCallback.invoke()
         logger.error(e) { "onError: Error occurred, requestURI=${session?.requestURI}, e=$e" }
     }
 
