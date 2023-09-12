@@ -46,6 +46,6 @@ fun callNativeStringMethod(env: JNIEnv, thiz: jobject, method: () -> String?) = 
 }
 
 @Suppress("UNUSED_PARAMETER")
-fun callNativeLongMethod(env: JNIEnv, thiz: jobject, method: () -> Long?) = memScoped {
-       method()
+fun callNativeLongMethod(env: JNIEnv, thiz: jobject, method: () -> Long?): Long = memScoped {
+    return method.invoke()!!
 }
