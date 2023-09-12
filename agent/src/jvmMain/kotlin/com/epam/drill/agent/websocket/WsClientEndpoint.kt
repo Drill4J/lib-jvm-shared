@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.websocket
 
+import com.epam.drill.agent.*
 import kotlinx.serialization.protobuf.ProtoBuf
 import java.util.concurrent.CountDownLatch
 import java.nio.ByteBuffer
@@ -27,16 +28,10 @@ import mu.KLogger
 import mu.KotlinLogging
 import com.epam.drill.common.message.Message
 
-
-abstract class RetentionCallbacks() : Endpoint(), MessageHandler.Whole<ByteArray> {
-    abstract fun setOnAvailable(callback: () -> Unit)
-    abstract fun setOnUnavailable(callback: () -> Unit)
-}
-
 class WsClientEndpoint(
     private val messageHandler: MessageHandler.Whole<Message>,
     private val reconnectHandler: WsClientReconnectHandler?
-) : RetentionCallbacks() {
+) : Endpoint(), MessageHandler.Whole<ByteArray>, RetentionCallbacks {
 
     private val latch: CountDownLatch = CountDownLatch(1)
     private val logger: KLogger = KotlinLogging.logger {}
