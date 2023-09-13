@@ -30,4 +30,6 @@ actual object WsConfiguration {
 
     actual fun getAgentConfigHexString() = ProtoBuf.encodeToHexString(AgentConfig.serializer(), agentConfig)
 
+    actual fun getSslTruststore() = agentConfig.sslTruststore
+
 }

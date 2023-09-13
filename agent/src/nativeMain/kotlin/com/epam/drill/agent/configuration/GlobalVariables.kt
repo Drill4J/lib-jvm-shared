@@ -21,7 +21,6 @@ import com.epam.drill.common.agent.configuration.*
 private val _requestPattern = AtomicReference<String?>(null).freeze()
 private val _drillInstallationDir = AtomicReference<String?>(null).freeze()
 private val _adminAddress = AtomicReference<URL?>(null).freeze()
-private val _secureAdminAddress = AtomicReference<URL?>(null).freeze()
 private val _agentConfig = AtomicReference<AgentConfig?>(null).freeze()
 
 var requestPattern: String?
@@ -40,12 +39,6 @@ var adminAddress: URL?
     get() = _adminAddress.value
     set(value) {
         _adminAddress.value = value.freeze()
-    }
-
-var secureAdminAddress: URL?
-    get() = _secureAdminAddress.value
-    set(value) {
-        _secureAdminAddress.value = value.freeze()
     }
 
 var agentConfig: AgentConfig

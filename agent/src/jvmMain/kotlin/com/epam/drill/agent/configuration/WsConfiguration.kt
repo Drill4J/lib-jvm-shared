@@ -23,4 +23,6 @@ actual object WsConfiguration {
 
     actual external fun generateAgentConfigInstanceId()
 
+    actual external fun getSslTruststore(): String
+
 }
