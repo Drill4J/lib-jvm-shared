@@ -39,10 +39,14 @@ class WsClientConnector(
 
     private fun configureWebSocketContainer(container: WebSocketContainer): Unit = with(container as ClientContainer) {
         if(uri.scheme != "wss") return
-        val sslTrustStore = WsConfiguration.getSslTruststore()
+        val sslTruststore = WsConfiguration.getSslTruststore()
+        val sslTruststorePass = WsConfiguration.getSslTruststorePassword()
         val sslContextFactory = this.client.httpClient.sslContextFactory!!
-        sslTrustStore.let(String::isEmpty).let(sslContextFactory::setTrustAll)
-        sslTrustStore.takeIf(String::isNotEmpty)?.let(sslContextFactory::setTrustStorePath)
+        sslTruststore.let(String::isEmpty).let(sslContextFactory::setTrustAll)
+        sslTruststore.takeIf(String::isNotEmpty)?.let(sslContextFactory::setTrustStorePath)
+        sslTruststorePass.takeIf(String::isNotEmpty)?.let(sslContextFactory::setTrustStorePassword)
+        logger.debug { "configureWebSocketContainer: SSL configured, trustAll: ${sslContextFactory.isTrustAll}" }
+        logger.debug { "configureWebSocketContainer: SSL configured, truststore: ${sslContextFactory.trustStorePath}" }
     }
 
 }

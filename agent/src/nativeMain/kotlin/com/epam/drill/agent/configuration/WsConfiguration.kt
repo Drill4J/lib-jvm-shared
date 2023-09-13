@@ -32,4 +32,6 @@ actual object WsConfiguration {
 
     actual fun getSslTruststore() = agentConfig.sslTruststore
 
+    actual fun getSslTruststorePassword() = agentConfig.sslTruststorePassword
+
 }

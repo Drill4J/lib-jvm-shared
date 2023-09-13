@@ -25,4 +25,6 @@ expect object WsConfiguration {
 
     fun getSslTruststore(): String
 
+    fun getSslTruststorePassword(): String
+
 }
