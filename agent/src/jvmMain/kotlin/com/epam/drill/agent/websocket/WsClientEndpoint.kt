@@ -31,7 +31,7 @@ import com.epam.drill.common.message.Message
 class WsClientEndpoint(
     private val messageHandler: MessageHandler.Whole<Message>,
     private val reconnectHandler: WsClientReconnectHandler?
-) : Endpoint(), MessageHandler.Whole<ByteArray>, RetentionCallbacks {
+) : Endpoint(), MessageHandler.Whole<ByteArray>, ConnectionStatusCallbacks {
 
     private val latch: CountDownLatch = CountDownLatch(1)
     private val logger: KLogger = KotlinLogging.logger {}

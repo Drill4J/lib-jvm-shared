@@ -15,7 +15,7 @@
  */
 package com.epam.drill.agent.websocket
 
-import com.epam.drill.agent.RetentionCallbacks
+import com.epam.drill.agent.ConnectionStatusCallbacks
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import kotlinx.serialization.serializer
@@ -28,7 +28,7 @@ import com.epam.drill.common.message.DrillMessageWrapper
 import com.epam.drill.common.message.Message
 import com.epam.drill.common.message.MessageType
 
-object WsClient : WsClientReconnectHandler, RetentionCallbacks {
+object WsClient : WsClientReconnectHandler, ConnectionStatusCallbacks {
 
     private val endpoint = WsClientEndpoint(WsMessageHandler, this)
     private val logger = KotlinLogging.logger {}
