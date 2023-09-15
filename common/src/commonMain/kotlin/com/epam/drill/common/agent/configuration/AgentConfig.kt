@@ -26,5 +26,7 @@ data class AgentConfig(
     val agentType: AgentType,
     val agentVersion: String = "",
     val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
+    val sslTruststore: String,
+    val sslTruststorePassword: String,
     val parameters: Map<String, AgentParameter> = emptyMap(),
 )

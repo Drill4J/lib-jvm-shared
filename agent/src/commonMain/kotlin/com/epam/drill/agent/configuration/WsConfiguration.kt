@@ -23,4 +23,8 @@ expect object WsConfiguration {
 
     fun getAgentConfigHexString(): String
 
+    fun getSslTruststore(): String
+
+    fun getSslTruststorePassword(): String
+
 }

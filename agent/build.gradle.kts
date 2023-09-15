@@ -1,6 +1,5 @@
 import java.net.URI
 import java.util.Properties
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import com.hierynomus.gradle.license.tasks.LicenseCheck
 import com.hierynomus.gradle.license.tasks.LicenseFormat
 
@@ -27,20 +26,15 @@ repositories {
 }
 
 kotlin {
-    val configureCInterop: KotlinNativeTarget.() -> Unit = {
-        compilations["main"].cinterops.create("zstd_bindings") {
-            includeDirs("src/nativeInterop/cinterop/$targetName")
-        }
-    }
     targets {
         jvm()
-        linuxX64(configure = configureCInterop)
-        mingwX64(configure = configureCInterop).apply {
+        linuxX64()
+        mingwX64().apply {
             binaries.all {
                 linkerOpts("-lpsapi", "-lwsock32", "-lws2_32", "-lmswsock")
             }
         }
-        macosX64(configure = configureCInterop)
+        macosX64()
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
