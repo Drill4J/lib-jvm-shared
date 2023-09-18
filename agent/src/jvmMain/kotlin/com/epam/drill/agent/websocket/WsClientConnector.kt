@@ -24,7 +24,7 @@ import mu.KotlinLogging
 import com.epam.drill.agent.configuration.WsConfiguration
 import com.epam.drill.common.agent.configuration.HEADER_AGENT_CONFIG
 
-//private const val HEADER_CONTENT_ENCODING = "Content-Encoding"
+private const val HEADER_CONTENT_ENCODING = "Content-Encoding"
 
 class WsClientConnector(
     private val uri: URI,
@@ -42,7 +42,7 @@ class WsClientConnector(
     override fun beforeRequest(headers: MutableMap<String, MutableList<String>>) {
         WsConfiguration.generateAgentConfigInstanceId()
         headers.put(HEADER_AGENT_CONFIG, mutableListOf(WsConfiguration.getAgentConfigHexString()))
-        //headers.put(HEADER_CONTENT_ENCODING, mutableListOf("deflate"))
+        headers.put(HEADER_CONTENT_ENCODING, mutableListOf("deflate"))
     }
 
     fun connect() {
