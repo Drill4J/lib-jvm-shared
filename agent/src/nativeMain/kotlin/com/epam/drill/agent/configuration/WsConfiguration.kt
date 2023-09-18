@@ -28,10 +28,12 @@ actual object WsConfiguration {
 
     actual fun setRequestPattern(pattern: String?) = run { requestPattern = pattern }
 
-    actual fun getAgentConfigHexString() = ProtoBuf.encodeToHexString(AgentConfig.serializer(), agentConfig)
+    actual fun getAgentConfigHexString() = agentConfig.copy(parameters = emptyMap()).run {
+        ProtoBuf.encodeToHexString(AgentConfig.serializer(), this)
+    }
 
-    actual fun getSslTruststore() = agentConfig.sslTruststore
+    actual fun getSslTruststore() = agentParameters.sslTruststore
 
-    actual fun getSslTruststorePassword() = agentConfig.sslTruststorePassword
+    actual fun getSslTruststorePassword() = agentParameters.sslTruststorePassword
 
 }

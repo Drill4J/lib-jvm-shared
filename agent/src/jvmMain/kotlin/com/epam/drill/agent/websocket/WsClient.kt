@@ -57,10 +57,9 @@ object WsClient : WsClientReconnectHandler {
 
     fun sendMessage(bytes: ByteArray) {
         logger.trace { "sendMessage: Sending message, size=${bytes.size}" }
-//        val compressed = compress(bytes)
-//        logger.trace { "sendMessage: Compressed message size=${compressed.size}" }
-//        endpoint.sendMessage(compressed)
-        endpoint.sendMessage(bytes)
+        val compressed = compress(bytes)
+        logger.trace { "sendMessage: Compressed message size=${compressed.size}" }
+        endpoint.sendMessage(compressed)
     }
 
     fun sendMessage(pluginId: String, content: String) {
