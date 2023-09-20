@@ -17,13 +17,12 @@ package com.epam.drill.agent.configuration
 
 import kotlin.native.concurrent.*
 import com.epam.drill.common.agent.configuration.*
-import com.epam.drill.transport.*
 
 private val _requestPattern = AtomicReference<String?>(null).freeze()
 private val _drillInstallationDir = AtomicReference<String?>(null).freeze()
 private val _adminAddress = AtomicReference<URL?>(null).freeze()
-private val _secureAdminAddress = AtomicReference<URL?>(null).freeze()
 private val _agentConfig = AtomicReference<AgentConfig?>(null).freeze()
+private val _agentParameters = AtomicReference(AgentParameters().freeze()).freeze()
 
 var requestPattern: String?
     get() = _requestPattern.value
@@ -43,14 +42,14 @@ var adminAddress: URL?
         _adminAddress.value = value.freeze()
     }
 
-var secureAdminAddress: URL?
-    get() = _secureAdminAddress.value
-    set(value) {
-        _secureAdminAddress.value = value.freeze()
-    }
-
 var agentConfig: AgentConfig
     get() = _agentConfig.value!!
     set(value) {
         _agentConfig.value = value.freeze()
+    }
+
+var agentParameters: AgentParameters
+    get() = _agentParameters.value
+    set(params) {
+        _agentParameters.value = params.freeze()
     }

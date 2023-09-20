@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.configuration
+package com.epam.drill.agent.configuration
 
-import kotlinx.serialization.Serializable
+actual object WsConfiguration {
 
-@Serializable
-data class AgentConfig(
-    val id: String,
-    val instanceId: String,
-    val buildVersion: String,
-    val serviceGroupId: String,
-    val agentType: AgentType,
-    val agentVersion: String = "",
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
-    val parameters: Map<String, AgentParameter> = emptyMap()
-)
+    actual external fun getAgentConfigHexString(): String
+
+    actual external fun setRequestPattern(pattern: String?)
+
+    actual external fun generateAgentConfigInstanceId()
+
+    actual external fun getSslTruststore(): String
+
+    actual external fun getSslTruststorePassword(): String
+
+}
