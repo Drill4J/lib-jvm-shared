@@ -19,14 +19,13 @@ import kotlin.concurrent.thread
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import kotlinx.serialization.serializer
-import java.io.ByteArrayOutputStream
 import java.net.URI
-import java.util.zip.Deflater
 import mu.KotlinLogging
 import com.epam.drill.common.message.DrillMessage
 import com.epam.drill.common.message.DrillMessageWrapper
 import com.epam.drill.common.message.Message
 import com.epam.drill.common.message.MessageType
+import com.epam.drill.common.util.JavaZip
 
 object WsClient : WsClientReconnectHandler {
 
@@ -62,7 +61,7 @@ object WsClient : WsClientReconnectHandler {
 
     fun sendMessage(bytes: ByteArray) {
         logger.trace { "sendMessage: Sending message, size=${bytes.size}" }
-        val compressed = compress(bytes)
+        val compressed = JavaZip.compress(bytes)
         logger.trace { "sendMessage: Compressed message size=${compressed.size}" }
         endpoint.sendMessage(compressed)
     }
@@ -89,20 +88,6 @@ object WsClient : WsClientReconnectHandler {
         }
         if(!connector.isContainerRunning()) {
             logger.error { "establishConnection: ClientContainer isn't in running state, stopping connect attempts" }
-        }
-    }
-
-    private fun compress(input: ByteArray): ByteArray = Deflater(1, true).run {
-        ByteArrayOutputStream().use { stream ->
-            this.setInput(input)
-            this.finish()
-            val readBuffer = ByteArray(1024)
-            val readed: (Int) -> Boolean = { it > 0 }
-            while (!this.finished()) {
-                this.deflate(readBuffer).takeIf(readed)?.also { stream.write(readBuffer, 0, it) }
-            }
-            this.end()
-            stream.toByteArray()
         }
     }
 

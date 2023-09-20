@@ -17,12 +17,13 @@ package com.epam.dsm.serializer
 
 import com.epam.dsm.*
 import com.epam.dsm.util.*
-import com.github.luben.zstd.*
+import com.epam.drill.common.util.*
 import com.zaxxer.hikari.pool.*
 import kotlinx.coroutines.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
 import java.io.*
+import java.util.zip.*
 
 
 fun Transaction.storeBinary(id: String, value: ByteArray) {
@@ -32,7 +33,7 @@ fun Transaction.storeBinary(id: String, value: ByteArray) {
         |ON CONFLICT (id) DO UPDATE SET BINARYA = excluded.BINARYA
     """.trimMargin(), false
     )
-    prepareStatement[1] = Zstd.compress(value)
+    prepareStatement[1] = JavaZip.compress(value)
     prepareStatement.executeUpdate()
 }
 
@@ -51,7 +52,7 @@ fun storeBinaryCollection(
     )
     bytes.forEachIndexed { index, value ->
         statement.setString(1, uuid.also { ids.add(it) })
-        statement.setBytes(2, Zstd.compress(value))
+        statement.setBytes(2, JavaZip.compress(value))
         statement.addBatch()
         statement.clearParameters()
         if (index % DSM_PUSH_LIMIT == 0) {
@@ -76,7 +77,7 @@ fun Transaction.getBinary(id: String): ByteArray {
     val resultSet = prepareStatement.executeQuery()
     return if (resultSet.next()) {
         val bytes = resultSet.getBytes(1)
-        Zstd.decompress(bytes, Zstd.decompressedSize(bytes).toInt())
+        JavaZip.decompress(bytes)
     } else throw RuntimeException("Not found with id $id")
 }
 
@@ -96,7 +97,7 @@ fun getBinaryCollection(ids: List<String>): Collection<ByteArray> = transaction 
     statement.executeQuery(stm).let { rs ->
         while (rs.next()) {
             val bytes = rs.getBytes(1)
-            entities.add(Zstd.decompress(bytes, Zstd.decompressedSize(bytes).toInt()))
+            entities.add(JavaZip.decompress(bytes))
         }
     }
     return@transaction entities
@@ -109,7 +110,7 @@ fun Transaction.getBinaryAsStream(id: String): InputStream {
     )
     val resultSet = prepareStatement.executeQuery()
     return if (resultSet.next())
-        ZstdInputStream(resultSet.getBinaryStream(1))
+        ZipInputStream(resultSet.getBinaryStream(1))
     else throw RuntimeException("Not found with id $id")
 
 }

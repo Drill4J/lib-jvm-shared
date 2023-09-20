@@ -47,12 +47,6 @@ kotlin {
                 implementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
             }
         }
-        val jvmTest by getting {
-            dependencies {
-                implementation(kotlin("test-junit"))
-                implementation("org.junit.jupiter:junit-jupiter:5.5.2")
-            }
-        }
     }
 }
 

@@ -21,7 +21,6 @@ val kotlinxCollectionsVersion: String by parent!!.extra
 val kotlinxCoroutinesVersion: String by parent!!.extra
 val kotlinxSerializationVersion: String by parent!!.extra
 val exposedVersion: String by parent!!.extra
-val lubenZstdVersion: String by parent!!.extra
 val microutilsLoggingVersion: String by parent!!.extra
 val postgresSqlVersion: String by parent!!.extra
 val zaxxerHikaricpVersion: String by parent!!.extra
@@ -53,7 +52,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-    implementation("com.github.luben:zstd-jni:$lubenZstdVersion")
     implementation("io.github.microutils:kotlin-logging-jvm:$microutilsLoggingVersion")
     api("org.jetbrains.exposed:exposed-core:$exposedVersion")
     api("org.postgresql:postgresql:$postgresSqlVersion")
