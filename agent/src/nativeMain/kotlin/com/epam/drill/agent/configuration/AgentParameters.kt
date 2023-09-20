@@ -32,5 +32,5 @@ data class AgentParameters(
     val isCadence: Boolean = false,
     val isTlsApp: Boolean = false,
     val coverageRetentionLimit : String = "512Mb",
-    val sendCoverageInterval : Long = 2000
+    val sendCoverageInterval : Long = 2000L
 )
