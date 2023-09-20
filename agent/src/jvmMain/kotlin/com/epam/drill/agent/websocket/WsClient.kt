@@ -32,7 +32,7 @@ object WsClient : WsClientReconnectHandler {
 
     private val logger = KotlinLogging.logger {}
     private val endpoint = WsClientEndpoint(WsMessageHandler, this)
-    private var connector: WsClientConnector? = null
+    private lateinit var connector: WsClientConnector
 
     init {
         WsMessageHandler.registerTopics()
@@ -84,10 +84,10 @@ object WsClient : WsClientReconnectHandler {
         val logError: (Throwable) -> Unit = { logger.error(it) { "establishConnection: Attempt is failed: $it" } }
         val timeout: (Throwable) -> Unit = { Thread.sleep(5000) }
         var connected = false
-        while (!connected && connector!!.isContainerRunning()) {
-            connected = runCatching(connector!!::connect).onFailure(logError).onFailure(timeout).isSuccess
+        while (!connected && connector.isContainerRunning()) {
+            connected = runCatching(connector::connect).onFailure(logError).onFailure(timeout).isSuccess
         }
-        if(!connector!!.isContainerRunning()) {
+        if(!connector.isContainerRunning()) {
             logger.error { "establishConnection: ClientContainer isn't in running state, stopping connect attempts" }
         }
     }
