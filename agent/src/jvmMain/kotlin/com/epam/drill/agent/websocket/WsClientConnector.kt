@@ -52,6 +52,8 @@ class WsClientConnector(
         logger.debug { "connect: Connected to adminUrl=$uri" }
     }
 
+    fun isContainerRunning() = (container as ClientContainer).isRunning
+
     private fun configureWebSocketContainer(container: WebSocketContainer): Unit = with(container as ClientContainer) {
         if(uri.scheme != "wss") return
         val sslTruststore = WsConfiguration.getSslTruststore()

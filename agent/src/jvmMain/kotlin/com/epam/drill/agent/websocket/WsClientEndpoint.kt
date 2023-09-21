@@ -30,12 +30,12 @@ import com.epam.drill.common.message.Message
 
 class WsClientEndpoint(
     private val messageHandler: MessageHandler.Whole<Message>,
-    private val reconnectHandler: WsClientReconnectHandler?
+    private val reconnectHandler: WsClientReconnectHandler
 ) : Endpoint(), MessageHandler.Whole<ByteArray>, ConnectionStatusCallbacks {
 
     private val latch: CountDownLatch = CountDownLatch(1)
     private val logger: KLogger = KotlinLogging.logger {}
-    private var session: Session? = null
+    private lateinit var session: Session
     private var onAvailableCallback: () -> Unit = {}
     private var onUnavailableCallback: () -> Unit = {}
 
@@ -46,23 +46,20 @@ class WsClientEndpoint(
     override fun setOnUnavailable(callback: () -> Unit) {
         onUnavailableCallback = callback
     }
-
     override fun onOpen(session: Session, config: EndpointConfig) {
         onAvailableCallback.invoke()
         this.session = session
-        this.session!!.addMessageHandler(this)
-        this.session!!.maxBinaryMessageBufferSize = 33554432
+        this.session.addMessageHandler(this)
+        this.session.maxBinaryMessageBufferSize = 1024 * 1024 * 32
         latch.countDown()
         logger.debug { "onOpen: Session opened, requestURI=${session.requestURI}" }
     }
 
     override fun onClose(session: Session, reason: CloseReason) {
         onUnavailableCallback.invoke()
-        logger.debug {
-            "onClose: Session closed, requestURI=${session.requestURI}, " +
-                    "closeCode=${reason.closeCode}, reasonPhrase=${reason.reasonPhrase}"
-        }
-        reconnectHandler?.reconnect()
+        logger.debug { "onClose: Session closed, requestURI=${session.requestURI}, " +
+                "closeCode=${reason.closeCode}, reasonPhrase=${reason.reasonPhrase}" }
+        reconnectHandler.reconnect()
     }
 
     override fun onError(session: Session?, e: Throwable) {
@@ -79,7 +76,7 @@ class WsClientEndpoint(
 
     fun sendMessage(bytes: ByteArray) = bytes.runCatching {
         logger.trace { "sendMessage: Sending message, size=${this.size}" }
-        session!!.basicRemote.sendBinary(ByteBuffer.wrap(this))
+        session.basicRemote.sendBinary(ByteBuffer.wrap(this))
     }
 
     fun getLatch() = latch

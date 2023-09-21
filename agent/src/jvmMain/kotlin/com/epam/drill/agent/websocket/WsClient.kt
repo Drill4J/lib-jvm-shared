@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.websocket
 
+import kotlin.concurrent.thread
 import com.epam.drill.agent.ConnectionStatusCallbacks
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
@@ -30,9 +31,9 @@ import com.epam.drill.common.message.MessageType
 
 object WsClient : WsClientReconnectHandler, ConnectionStatusCallbacks {
 
-    private val endpoint = WsClientEndpoint(WsMessageHandler, this)
     private val logger = KotlinLogging.logger {}
-    private var connector: WsClientConnector? = null
+    private val endpoint = WsClientEndpoint(WsMessageHandler, this)
+    private lateinit var connector: WsClientConnector
 
     override fun setOnAvailable(callback: () -> Unit) {
         endpoint.setOnAvailable(callback)
@@ -46,22 +47,26 @@ object WsClient : WsClientReconnectHandler, ConnectionStatusCallbacks {
         WsMessageHandler.registerTopics()
     }
 
-    override fun reconnect() {
-        logger.debug { "reconnect: Starting reconnect attempts" }
-        val logError: (Throwable) -> Unit = { logger.error(it) { "reconnect: Reconnect attempt is failed: $it" } }
-        val timeout: (Throwable) -> Unit = { Thread.sleep(5000) }
-        var connected = false
-        while (!connected) {
-            connected = runCatching(connector!!::connect).onFailure(logError).onFailure(timeout).isSuccess
-
+    override fun reconnect(async: Boolean) {
+        val connectAndLog: () -> Unit = {
+            logger.debug { "reconnect: Starting reconnect attempts" }
+            establishConnection()
+            logger.debug { "reconnect: Reconnect is done" }
         }
-        logger.debug { "reconnect: Reconnect is done" }
+        if(async) thread(block = connectAndLog)
+        else connectAndLog()
     }
 
     @Suppress("UNUSED")
-    fun connect(adminUrl: String) {
-        connector = WsClientConnector(URI("$adminUrl/agent/attach"), endpoint)
-        connector!!.connect()
+    fun connect(adminUrl: String, async: Boolean = false) {
+        val connectAndLog: () -> Unit = {
+            logger.debug { "connect: Connecting to adminUrl=$adminUrl" }
+            connector = WsClientConnector(URI("$adminUrl/agent/attach"), endpoint)
+            establishConnection()
+            logger.debug { "connect: Connected to adminUrl=$adminUrl" }
+        }
+        if(async) thread(block = connectAndLog)
+        else connectAndLog()
     }
 
     fun sendMessage(bytes: ByteArray) {
@@ -82,6 +87,18 @@ object WsClient : WsClientReconnectHandler, ConnectionStatusCallbacks {
 
     inline fun <reified T : Any> sendMessage(message: T) {
         sendMessage(ProtoBuf.encodeToByteArray(T::class.serializer(), message))
+    }
+
+    private fun establishConnection() {
+        val logError: (Throwable) -> Unit = { logger.error(it) { "establishConnection: Attempt is failed: $it" } }
+        val timeout: (Throwable) -> Unit = { Thread.sleep(5000) }
+        var connected = false
+        while (!connected && connector.isContainerRunning()) {
+            connected = runCatching(connector::connect).onFailure(logError).onFailure(timeout).isSuccess
+        }
+        if(!connector.isContainerRunning()) {
+            logger.error { "establishConnection: ClientContainer isn't in running state, stopping connect attempts" }
+        }
     }
 
     private fun compress(input: ByteArray): ByteArray = Deflater(1, true).run {
