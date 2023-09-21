@@ -23,7 +23,6 @@ import kotlinx.coroutines.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.*
 import java.io.*
-import java.util.zip.*
 
 
 fun Transaction.storeBinary(id: String, value: ByteArray) {
@@ -110,7 +109,7 @@ fun Transaction.getBinaryAsStream(id: String): InputStream {
     )
     val resultSet = prepareStatement.executeQuery()
     return if (resultSet.next())
-        ZipInputStream(resultSet.getBinaryStream(1))
+        ByteArrayInputStream(JavaZip.decompress(resultSet.getBytes(1)))
     else throw RuntimeException("Not found with id $id")
 
 }
