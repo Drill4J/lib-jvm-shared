@@ -53,6 +53,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("io.github.microutils:kotlin-logging-jvm:$microutilsLoggingVersion")
+    implementation(project(":common"))
     api("org.jetbrains.exposed:exposed-core:$exposedVersion")
     api("org.postgresql:postgresql:$postgresSqlVersion")
     api("com.zaxxer:HikariCP:$zaxxerHikaricpVersion")
