@@ -27,4 +27,6 @@ expect object WsConfiguration {
 
     fun getSslTruststorePassword(): String
 
+    fun getDrillInstallationDir(): String?
+
 }
