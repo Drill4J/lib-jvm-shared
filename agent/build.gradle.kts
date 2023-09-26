@@ -1,6 +1,5 @@
 import java.net.URI
 import java.util.Properties
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import com.hierynomus.gradle.license.tasks.LicenseCheck
 import com.hierynomus.gradle.license.tasks.LicenseFormat
 
@@ -27,20 +26,15 @@ repositories {
 }
 
 kotlin {
-    val configureCInterop: KotlinNativeTarget.() -> Unit = {
-        compilations["main"].cinterops.create("zstd_bindings") {
-            includeDirs("src/nativeInterop/cinterop/$targetName")
-        }
-    }
     targets {
         jvm()
-        linuxX64(configure = configureCInterop)
-        mingwX64(configure = configureCInterop).apply {
+        linuxX64()
+        mingwX64().apply {
             binaries.all {
                 linkerOpts("-lpsapi", "-lwsock32", "-lws2_32", "-lmswsock")
             }
         }
-        macosX64(configure = configureCInterop)
+        macosX64()
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
@@ -49,7 +43,6 @@ kotlin {
             languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
             languageSettings.optIn("kotlin.RequiresOptIn")
             languageSettings.optIn("kotlin.time.ExperimentalTime")
-            languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
             languageSettings.optIn("kotlinx.serialization.InternalSerializationApi")
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
             languageSettings.optIn("io.ktor.util.InternalAPI")
@@ -61,14 +54,18 @@ kotlin {
                 implementation(project(":common"))
             }
         }
+        val jvmMain by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
+                implementation("org.eclipse.jetty.websocket:javax-websocket-client-impl:9.4.51.v20230217")
+            }
+        }
         val nativeMain by creating {
             dependsOn(commonMain)
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:$kotlinxCollectionsVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
                 implementation("com.benasher44:uuid:$uuidVersion")
-                implementation(project(":transport"))
                 implementation(project(":interceptor-http"))
             }
         }

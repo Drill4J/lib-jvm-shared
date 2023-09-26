@@ -13,18 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.configuration
+package com.epam.drill.agent.websocket.topic
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class AgentConfig(
-    val id: String,
-    val instanceId: String,
-    val buildVersion: String,
-    val serviceGroupId: String,
-    val agentType: AgentType,
-    val agentVersion: String = "",
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
-    val parameters: Map<String, AgentParameter> = emptyMap()
-)
+open class Topic(open val destination: String)

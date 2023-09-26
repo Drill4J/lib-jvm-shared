@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.configuration
+package com.epam.drill.agent.websocket
 
-import kotlinx.serialization.Serializable
+interface WsClientReconnectHandler {
 
-@Serializable
-data class AgentConfig(
-    val id: String,
-    val instanceId: String,
-    val buildVersion: String,
-    val serviceGroupId: String,
-    val agentType: AgentType,
-    val agentVersion: String = "",
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
-    val parameters: Map<String, AgentParameter> = emptyMap()
-)
+    fun reconnect(async: Boolean = false)
+
+}

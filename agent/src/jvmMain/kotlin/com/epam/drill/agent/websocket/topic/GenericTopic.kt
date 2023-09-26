@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.configuration
+package com.epam.drill.agent.websocket.topic
 
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.protobuf.ProtoBuf
 
-@Serializable
-data class AgentConfig(
-    val id: String,
-    val instanceId: String,
-    val buildVersion: String,
-    val serviceGroupId: String,
-    val agentType: AgentType,
-    val agentVersion: String = "",
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
-    val parameters: Map<String, AgentParameter> = emptyMap()
-)
+class GenericTopic<T>(
+    override val destination: String,
+    private val deserializer: KSerializer<T>,
+    private val block: (T) -> Unit
+) : Topic(destination) {
+    fun deserializeAndRun(message: ByteArray) = block(ProtoBuf.decodeFromByteArray(deserializer, message))
+}
