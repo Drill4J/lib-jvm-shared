@@ -30,7 +30,7 @@ internal actual fun drillInstallationDir() = run {
     val isContainsAgentPath: (String) -> Boolean = { it.contains("-agentpath:") }
     val fromEnv: () -> String? = { getenv("JAVA_TOOL_OPTIONS")?.toKString() }
     val agentLine = fromEnv()?.takeIf(isContainsAgentPath) ?: fromWmic().takeIf(isContainsAgentPath)
-    val agentPath = Regex("-agentpath:(.+?)=.+").matchEntire(agentLine!!)!!.groups[1]!!.value
+    val agentPath = Regex("-agentpath:(.+?)($|=.+)").matchEntire(agentLine!!)!!.groups[1]!!.value
     agentPath.substringBeforeLast("\\")
 }
 
