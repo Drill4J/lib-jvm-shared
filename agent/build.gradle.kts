@@ -46,6 +46,7 @@ kotlin {
             languageSettings.optIn("kotlinx.serialization.InternalSerializationApi")
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
             languageSettings.optIn("io.ktor.util.InternalAPI")
+            languageSettings.optIn("io.ktor.utils.io.core.ExperimentalIoApi")
         }
         val commonMain by getting {
             dependencies {

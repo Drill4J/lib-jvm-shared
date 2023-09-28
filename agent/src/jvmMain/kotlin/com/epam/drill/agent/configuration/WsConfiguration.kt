@@ -27,6 +27,6 @@ actual object WsConfiguration {
 
     actual external fun getSslTruststorePassword(): String
 
-    actual external fun getDrillInstallationDir(): String?
+    actual external fun getDrillInstallationDir(): String
 
 }
