@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.websocket
 
+import java.io.File
 import java.net.URI
 import javax.websocket.ClientEndpointConfig
 import javax.websocket.ContainerProvider
@@ -56,7 +57,7 @@ class WsClientConnector(
 
     private fun configureWebSocketContainer(container: WebSocketContainer): Unit = with(container as ClientContainer) {
         if(uri.scheme != "wss") return
-        val sslTruststore = WsConfiguration.getSslTruststore()
+        val sslTruststore = checkSslTruststorePath(WsConfiguration.getSslTruststore())
         val sslTruststorePass = WsConfiguration.getSslTruststorePassword()
         val sslContextFactory = this.client.httpClient.sslContextFactory!!
         sslTruststore.let(String::isEmpty).let(sslContextFactory::setTrustAll)
@@ -64,6 +65,16 @@ class WsClientConnector(
         sslTruststorePass.takeIf(String::isNotEmpty)?.let(sslContextFactory::setTrustStorePassword)
         logger.debug { "configureWebSocketContainer: SSL configured, trustAll: ${sslContextFactory.isTrustAll}" }
         logger.debug { "configureWebSocketContainer: SSL configured, truststore: ${sslContextFactory.trustStorePath}" }
+    }
+
+    private fun checkSslTruststorePath(filePath: String) = File(filePath).run {
+        val drillPath = WsConfiguration.getDrillInstallationDir()
+            ?.removeSuffix(File.pathSeparator)
+            ?.takeIf(String::isNotEmpty)
+            ?: "."
+        this.takeIf(File::exists)?.let(File::getAbsolutePath)
+            ?: this.takeUnless(File::isAbsolute)?.let { File(drillPath).resolve(it).absolutePath }
+            ?: filePath
     }
 
 }

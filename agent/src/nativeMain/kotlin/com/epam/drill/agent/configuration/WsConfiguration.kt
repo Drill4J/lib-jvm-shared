@@ -36,4 +36,6 @@ actual object WsConfiguration {
 
     actual fun getSslTruststorePassword() = agentParameters.sslTruststorePassword
 
+    actual fun getDrillInstallationDir() = drillInstallationDir
+
 }

@@ -15,18 +15,4 @@
  */
 package com.epam.drill.agent.configuration
 
-expect object WsConfiguration {
-
-    fun generateAgentConfigInstanceId()
-
-    fun setRequestPattern(pattern: String?)
-
-    fun getAgentConfigHexString(): String
-
-    fun getSslTruststore(): String
-
-    fun getSslTruststorePassword(): String
-
-    fun getDrillInstallationDir(): String
-
-}
+internal expect fun drillInstallationDir(): String
