@@ -19,6 +19,7 @@ import com.epam.dsm.*
 import com.epam.dsm.util.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
@@ -27,14 +28,24 @@ import kotlinx.serialization.json.*
 import org.jetbrains.exposed.sql.transactions.*
 import java.io.*
 import java.util.*
+import java.util.stream.*
 import kotlin.reflect.*
 
 val DSM_PUSH_LIMIT = System.getenv("DSM_PUSH_LIMIT")?.toIntOrNull() ?: 3_000
 val DSM_FETCH_LIMIT = System.getenv("DSM_FETCH_LIMIT")?.toIntOrNull() ?: 10_000
 
-object BinarySerializer : KSerializer<ByteArray> {
+@Serializable
+data class BynariaData(
+    @Id
+    val id: String = uuid,
+    @Suppress("ArrayInDataClass")
+    val byteArray: ByteArray,
+    val agentKey: String?
+)
 
-    override fun serialize(encoder: Encoder, value: ByteArray) {
+object BinarySerializer : KSerializer<BynariaData> {
+
+    override fun serialize(encoder: Encoder, value: BynariaData) {
         val id = uuid
         transaction {
             val schema = connection.schema
@@ -44,12 +55,12 @@ object BinarySerializer : KSerializer<ByteArray> {
                 }
             }
             logger.trace { "serialize for id '$id' in schema $schema" }
-            storeBinary(id, value)
+            storeBinary(id, value.byteArray, value.agentKey)
         }
         encoder.encodeSerializableValue(String.serializer(), id)
     }
 
-    override fun deserialize(decoder: Decoder): ByteArray {
+    override fun deserialize(decoder: Decoder): BynariaData {
         val id = decoder.decodeSerializableValue(String.serializer())
         return transaction { getBinary(id) }
     }
