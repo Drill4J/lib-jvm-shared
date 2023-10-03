@@ -16,6 +16,7 @@
 package com.epam.drill.agent.websocket
 
 import kotlin.concurrent.thread
+import com.epam.drill.agent.ConnectionStatusCallbacks
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import kotlinx.serialization.serializer
@@ -27,11 +28,19 @@ import com.epam.drill.common.message.Message
 import com.epam.drill.common.message.MessageType
 import com.epam.drill.common.util.JavaZip
 
-object WsClient : WsClientReconnectHandler {
+object WsClient : WsClientReconnectHandler, ConnectionStatusCallbacks {
 
     private val logger = KotlinLogging.logger {}
     private val endpoint = WsClientEndpoint(WsMessageHandler, this)
     private lateinit var connector: WsClientConnector
+
+    override fun setOnAvailable(callback: () -> Unit) {
+        endpoint.setOnAvailable(callback)
+    }
+
+    override fun setOnUnavailable(callback: () -> Unit) {
+        endpoint.setOnUnavailable(callback)
+    }
 
     init {
         WsMessageHandler.registerTopics()

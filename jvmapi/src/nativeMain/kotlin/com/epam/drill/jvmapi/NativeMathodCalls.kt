@@ -15,9 +15,7 @@
  */
 package com.epam.drill.jvmapi
 
-import com.epam.drill.jvmapi.gen.JNIEnv
-import com.epam.drill.jvmapi.gen.NewStringUTF
-import com.epam.drill.jvmapi.gen.jobject
+import com.epam.drill.jvmapi.gen.*
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.reinterpret
 
@@ -43,4 +41,9 @@ fun callNativeStringMethod(env: JNIEnv, thiz: jobject, method: () -> String?) = 
         ex = env.getPointer(this@memScoped).reinterpret()
         NewStringUTF(method())
     }
+}
+
+@Suppress("UNUSED_PARAMETER")
+fun callNativeLongMethod(env: JNIEnv, thiz: jobject, method: () -> Long?): Long = memScoped {
+    return method.invoke()!! // `!!` - is a workaround, method is guaranteed not to return null
 }
