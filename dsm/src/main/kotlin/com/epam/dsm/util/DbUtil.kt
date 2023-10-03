@@ -65,7 +65,7 @@ fun Set<Column>.tableColumns() = takeIf { it.isNotEmpty() }?.joinToString(prefix
 fun Transaction.createBinaryTable() {
     execWrapper(
         """
-             CREATE TABLE IF NOT EXISTS BINARYA ($ID_COLUMN varchar(256) not null constraint binarya_pk primary key, binarya bytea);
+             CREATE TABLE IF NOT EXISTS BINARYA ($ID_COLUMN varchar(256) not null constraint binarya_pk primary key, binarya bytea, agentkey varchar(256));
              ALTER TABLE BINARYA ALTER COLUMN binarya SET STORAGE EXTERNAL; 
              """.trimIndent()
     )
