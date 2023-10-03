@@ -36,7 +36,6 @@ const val DEFAULT_TEST_TYPE = "UNSPECIFIED"
  * @param sessionId the session ID, if defined
  * @param testName the name of first test of the session
  * @param isRealtime a sign that it is necessary to collect test coverage in real time
- * @param isGlobal a sign that the session is global
  * @param labels the set of labels associated with the session
  */
 @Serializable
@@ -45,7 +44,6 @@ data class StartPayload(
     val sessionId: String = "",
     val testName: String? = DEFAULT_TEST_NAME,
     val isRealtime: Boolean = false,
-    val isGlobal: Boolean = false,
     val labels: Set<Label> = emptySet(),
 )
 
@@ -515,7 +513,6 @@ data class ActiveSessionDto(
     val id: String,
     val agentId: String,
     val testType: String,
-    val isGlobal: Boolean,
     val isRealtime: Boolean,
 )
 

@@ -67,7 +67,6 @@ data class ActionScopeResult(
  * @param testType the type of the test (AUTO, MANUAL)
  * @param testName the name of first running test
  * @param isRealtime a sign that it is necessary to collect test coverage in real time
- * @param isGlobal a sign that the session is global
  * @features Test running
  */
 @Serializable
@@ -75,8 +74,7 @@ data class StartSessionPayload(
     val sessionId: String,
     val testType: String,
     val testName: String?,
-    val isRealtime: Boolean,
-    val isGlobal: Boolean,
+    val isRealtime: Boolean
 )
 
 @Serializable
