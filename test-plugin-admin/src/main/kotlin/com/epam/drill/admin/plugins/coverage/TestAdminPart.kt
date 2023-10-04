@@ -39,7 +39,7 @@ class TestAdminPart(
 
     val sendContext = AgentSendContext(agentInfo.id, agentInfo.buildVersion)
 
-    override suspend fun processData(instanceId: String, content: String): Any {
+    override suspend fun processData(instanceId: String, attachedAgentVersion: String, content: String): Any {
         sender.send(sendContext, "/processed-data", listOf("xx"))
         return ""
     }
