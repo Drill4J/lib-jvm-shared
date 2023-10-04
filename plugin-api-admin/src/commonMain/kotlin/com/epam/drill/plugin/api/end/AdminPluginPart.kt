@@ -35,6 +35,7 @@ abstract class AdminPluginPart<A>(
 
     open suspend fun processData(
         instanceId: String,
+        attachedAgentVersion: String,
         content: String
     ): Any = Unit
 
