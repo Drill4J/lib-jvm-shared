@@ -26,7 +26,7 @@ import platform.posix.popen
 import io.ktor.utils.io.core.readText
 import io.ktor.utils.io.streams.Input
 
-internal actual fun drillInstallationDir() = run {
+actual fun drillInstallationDir() = run {
     val isContainsAgentPath: (String) -> Boolean = { it.contains("-agentpath:") }
     val fromEnv: () -> String? = { getenv("JAVA_TOOL_OPTIONS")?.toKString() }
     val agentLine = fromEnv()?.takeIf(isContainsAgentPath) ?: fromWmic().takeIf(isContainsAgentPath)

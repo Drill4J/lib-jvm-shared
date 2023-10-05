@@ -23,7 +23,7 @@ private val _adminAddress = AtomicReference<URL?>(null).freeze()
 private val _agentConfig = AtomicReference<AgentConfig?>(null).freeze()
 private val _agentParameters = AtomicReference(AgentParameters().freeze()).freeze()
 
-val drillInstallationDir: String = drillInstallationDir()
+//val drillInstallationDir: String = drillInstallationDir()
 
 var requestPattern: String?
     get() = _requestPattern.value
