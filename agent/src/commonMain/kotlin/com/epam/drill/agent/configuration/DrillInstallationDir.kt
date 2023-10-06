@@ -15,4 +15,4 @@
  */
 package com.epam.drill.agent.configuration
 
-expect fun drillInstallationDir(): String
+expect fun drillInstallationDir(): String?

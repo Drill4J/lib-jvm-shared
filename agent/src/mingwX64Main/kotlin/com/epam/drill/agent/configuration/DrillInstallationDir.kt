@@ -27,16 +27,22 @@ import io.ktor.utils.io.core.readText
 import io.ktor.utils.io.streams.Input
 
 actual fun drillInstallationDir() = run {
-    val isContainsAgentPath: (String) -> Boolean = { it.contains("-agentpath:") }
+    val isContainsAgentPath: (String?) -> Boolean = { it?.contains("-agentpath:") ?: false }
     val fromEnv: () -> String? = { getenv("JAVA_TOOL_OPTIONS")?.toKString() }
     val agentLine = fromEnv()?.takeIf(isContainsAgentPath) ?: fromWmic().takeIf(isContainsAgentPath)
-    val agentPath = Regex("-agentpath:(.+?)($|=.+)").matchEntire(agentLine!!)!!.groups[1]!!.value
-    agentPath.substringBeforeLast("\\")
+    if (agentLine != null) {
+        val agentPath = Regex("-agentpath:(.+?)($|=.+)").matchEntire(agentLine)!!.groups[1]!!.value
+        return@run agentPath.substringBeforeLast("\\")
+    } else
+        return@run null
 }
 
 private fun fromWmic() = memScoped {
     val pid = getpid()
     val command = "wmic process where \"processid='$pid'\" get commandline"
     val file = popen?.invoke(command.cstr.getPointer(this), "r".cstr.getPointer(this))
-    Input(file!!).readText().also { pclose?.invoke(file) }
+    if (file != null)
+        return@memScoped Input(file).readText().also { pclose?.invoke(file) }
+    else
+        return@memScoped null
 }
