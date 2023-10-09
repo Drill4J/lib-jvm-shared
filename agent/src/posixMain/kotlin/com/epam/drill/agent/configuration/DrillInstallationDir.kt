@@ -26,12 +26,8 @@ import io.ktor.utils.io.streams.Input
 actual fun drillInstallationDir() = run {
     val isContainsAgentPath: (String) -> Boolean = { it.contains("-agentpath:") }
     val fromEnv: () -> String? = { getenv("JAVA_TOOL_OPTIONS")?.toKString() }
-    val agentLine = fromEnv()?.takeIf(isContainsAgentPath) ?: fromProc().takeIf(isContainsAgentPath)
-    if (agentLine != null) {
-        val agentPath = Regex("-agentpath:(.+?)($|=.+)").matchEntire(agentLine)!!.groups[1]!!.value
-        return@run agentPath.substringBeforeLast("/")
-    } else
-        return@run null
+    val agentLine = fromEnv()?.takeIf(isContainsAgentPath) ?: fromProc()?.takeIf(isContainsAgentPath)
+    agentLine?.let { Regex("-agentpath:(.+?)($|=.+)").matchEntire(agentLine)!!.groups[1]!!.value.substringBeforeLast("/") }
 }
 
 private fun fromProc() = run {
