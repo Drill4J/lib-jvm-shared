@@ -18,20 +18,13 @@ package com.epam.drill.agent.configuration
 import kotlinx.cinterop.cstr
 import kotlinx.cinterop.invoke
 import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.toKString
-import platform.posix.getenv
 import platform.posix.getpid
 import platform.posix.pclose
 import platform.posix.popen
 import io.ktor.utils.io.core.readText
 import io.ktor.utils.io.streams.Input
 
-actual fun drillInstallationDir() = run {
-    val isContainsAgentPath: (String) -> Boolean = { it.contains("-agentpath:") }
-    val fromEnv: () -> String? = { getenv("JAVA_TOOL_OPTIONS")?.toKString() }
-    val agentLine = fromEnv()?.takeIf(isContainsAgentPath) ?: fromWmic()?.takeIf(isContainsAgentPath)
-    agentLine?.let { Regex("-agentpath:(.+?)($|=.+)").matchEntire(agentLine)!!.groups[1]!!.value.substringBeforeLast("\\") }
-}
+actual fun getAgentPathCommandFromProcess(): String? = fromWmic()
 
 private fun fromWmic() = memScoped {
     val pid = getpid()
