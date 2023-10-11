@@ -521,7 +521,6 @@ data class ActiveSessionDto(
 
 @Serializable
 data class ScopeSummary(
-    val name: String,
     val id: String,
     val started: Long,
     val finished: Long = 0L,
