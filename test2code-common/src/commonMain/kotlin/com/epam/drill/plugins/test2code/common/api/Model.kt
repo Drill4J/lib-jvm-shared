@@ -99,7 +99,7 @@ data class ExecClassData(
     val className: String,
     @Serializable(with = BitSetSerializer::class)
     @Column("probes", PostgresType.BIT_VARYING)
-    val probes: Probes,
+    var probes: Probes,
     val sessionId: String? = null,
     /**
      * It's full test name hashed by CRC32 algorithm
