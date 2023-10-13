@@ -19,6 +19,7 @@ package com.epam.dsm.util
 import com.epam.dsm.*
 import com.epam.dsm.serializer.*
 import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.internal.*
 import kotlinx.serialization.json.*
@@ -32,7 +33,10 @@ val json = Json {
     encodeDefaults = true
 }
 
-inline fun <reified T : Any> T.id(): String {
+inline fun <reified T : Any> T.id(uuidIfNull: Boolean = false): String {
+    if (T::class.findAnnotation<Serializable>() == null){
+        return UUID.randomUUID().toString()
+    }
     val idNames = T::class.serializer().descriptor.idNames()
     val propertiesWithId = T::class.memberProperties.filter { idNames.contains(it.name) }
     val uniqueId = propertiesWithId.map {
@@ -41,6 +45,9 @@ inline fun <reified T : Any> T.id(): String {
         acc + hashCode.toString()
     }
     if (uniqueId.isEmpty()) {
+        if (uuidIfNull){
+            return UUID.randomUUID().toString()
+        }
         throw RuntimeException("Property with @Id doesn't found")
     }
     return uniqueId

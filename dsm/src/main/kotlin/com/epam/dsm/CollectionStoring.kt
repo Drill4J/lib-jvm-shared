@@ -29,7 +29,7 @@ import kotlin.reflect.*
 /**
  * File is needed to don't keep a huge collection in memory
  */
-fun <T : Any?> storeCollection(
+inline fun <reified T : Any?> storeCollection(
     collection: Iterable<T>,
     parentId: String?,
     elementClass: KClass<*>,
@@ -56,10 +56,10 @@ fun <T : Any?> storeCollection(
         """.trimMargin()
         val statement = (connection.connection as HikariProxyConnection).prepareStatement(stmt)
         file.inputStream().reader().use {
-            sizes.forEachIndexed { index, size ->
-                statement.setString(1, uuid.also { ids.add(it) })
+            collection.filterNotNull().forEachIndexed { index, el ->
+                statement.setString(1, el.id(uuidIfNull = true).also { ids.add(it) })
                 statement.setString(2, parentId)
-                statement.setCharacterStream(3, it, size)
+                statement.setCharacterStream(3, it, sizes[index])
                 statement.addBatch()
                 if (index % DSM_PUSH_LIMIT == 0) {
                     statement.executeBatch()

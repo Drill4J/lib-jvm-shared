@@ -95,7 +95,7 @@ data class AgentSessionTestsPayload(val sessionId: String, val tests: List<Strin
  */
 @Serializable
 data class ExecClassData(
-    val id: Long? = null,
+    @Id val id: Long? = null,
     val className: String,
     @Serializable(with = BitSetSerializer::class)
     @Column("probes", PostgresType.BIT_VARYING)
@@ -105,6 +105,27 @@ data class ExecClassData(
      * It's full test name hashed by CRC32 algorithm
      */
     val testId: String
-)
+){
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
 
+        other as ExecClassData
 
+        if (id != other.id) return false
+        if (className != other.className) return false
+        if (probes != other.probes) return false
+        if (sessionId != other.sessionId) return false
+        if (testId != other.testId) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id?.hashCode() ?: 0
+        result = 31 * result + className.hashCode()
+        result = 31 * result + (sessionId?.hashCode() ?: 0)
+        result = 31 * result + testId.hashCode()
+        return result
+    }
+}
