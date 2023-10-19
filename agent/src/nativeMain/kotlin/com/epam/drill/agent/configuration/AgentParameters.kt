@@ -33,5 +33,6 @@ data class AgentParameters(
     val isTlsApp: Boolean = false,
     val coverageRetentionLimit: String = "512Mb",
     val sendCoverageInterval: Long = 2000L,
+    val initialDelayCoverageSendingJobMs: Long = 30000L,
     val drillInstallationDir: String = ""
 )
