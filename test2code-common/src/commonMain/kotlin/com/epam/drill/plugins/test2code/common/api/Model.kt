@@ -32,6 +32,7 @@ data class AstEntity(
     val path: String,
     val name: String,
     var methods: List<AstMethod>,
+    var annotations: Map<String, List<String>>,
 )
 
 /**
@@ -50,6 +51,7 @@ data class AstMethod(
     val returnType: String,
     val probes: List<Int> = emptyList(),
     val checksum: String = "",
+    val annotations: Map<String, List<String>>
 ) {
     val count: Int = probes.size
 }
