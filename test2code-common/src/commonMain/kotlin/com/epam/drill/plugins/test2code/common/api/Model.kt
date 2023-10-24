@@ -32,7 +32,7 @@ data class AstEntity(
     val path: String,
     val name: String,
     var methods: List<AstMethod>,
-    var annotations: Map<String, List<String>>,
+    var annotations: MutableMap<String, List<String>>,
 )
 
 /**
