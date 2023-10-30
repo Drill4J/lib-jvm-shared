@@ -60,18 +60,6 @@ data class AddTests(val payload: AddTestsPayload) : Action()
 @Serializable
 object StopAllSessions : Action()
 
-@SerialName("SWITCH_ACTIVE_SCOPE")
-@Serializable
-data class SwitchActiveScope(val payload: ActiveScopeChangePayload) : Action()
-
-@SerialName("RENAME_SCOPE")
-@Serializable
-data class RenameScope(val payload: RenameScopePayload) : Action()
-
-@SerialName("TOGGLE_SCOPE")
-@Serializable
-data class ToggleScope(val payload: ScopePayload) : Action()
-
 @SerialName("CREATE_FILTER")
 @Serializable
 data class CreateFilter(val payload: FilterPayload) : Action()
@@ -91,10 +79,6 @@ data class ApplyFilter(val payload: ApplyPayload) : Action()
 @SerialName("DELETE_FILTER")
 @Serializable
 data class DeleteFilter(val payload: DeleteFilterPayload) : Action()
-
-@SerialName("DROP_SCOPE")
-@Serializable
-data class DropScope(val payload: ScopePayload) : Action()
 
 @SerialName("REMOVE_BUILD")
 @Serializable
