@@ -31,28 +31,6 @@ const val DEFAULT_TEST_NAME = "UNSPECIFIED"
 const val DEFAULT_TEST_TYPE = "UNSPECIFIED"
 
 /**
- * Payload for a session starting action
- * @param testType the test type (MANUAL, AUTO)
- * @param sessionId the session ID, if defined
- * @param testName the name of first test of the session
- * @param isRealtime a sign that it is necessary to collect test coverage in real time
- * @param isGlobal a sign that the session is global
- * @param labels the set of labels associated with the session
- */
-@Serializable
-data class StartPayload(
-    val testType: String = DEFAULT_TEST_TYPE,
-    val sessionId: String = "",
-    val testName: String? = DEFAULT_TEST_NAME,
-    val isRealtime: Boolean = false,
-    val isGlobal: Boolean = false,
-    val labels: Set<Label> = emptySet(),
-)
-
-@Serializable
-data class SessionPayload(val sessionId: String)
-
-/**
  * Payload for a session data action
  * @param sessionId the session ID
  * @param data the session data
@@ -72,17 +50,6 @@ class EntityProbes(
     val test: String = "",
     val testId: String = "", //TODO mb make it as required field
     val probes: List<Boolean>,
-)
-
-/**
- * Payload for a session stopping action
- * @param sessionId the session ID
- * @param tests the list of completed tests that have not yet been added
- */
-@Serializable
-data class StopSessionPayload(
-    val sessionId: String,
-    val tests: List<TestInfo> = emptyList(),
 )
 
 /**
@@ -463,12 +430,6 @@ data class TestOverview(
 data class TestData(
     val id: String,
     val details: TestDetails = TestDetails.emptyDetails,
-)
-
-@Serializable
-data class ActiveSessions(
-    val count: Int,
-    val testTypes: Set<String> = emptySet(),
 )
 
 @Serializable
