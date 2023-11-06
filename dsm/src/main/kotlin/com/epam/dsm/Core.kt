@@ -32,6 +32,7 @@ import org.jetbrains.exposed.sql.transactions.*
 import org.jetbrains.exposed.sql.transactions.experimental.*
 import java.io.*
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.*
 import kotlin.time.*
 
@@ -237,7 +238,7 @@ inline fun <reified T : Any> Transaction.storeAsStream(
     }
 }
 
-val createdTables = mutableSetOf<String>()
+val createdTables = ConcurrentHashMap.newKeySet<String>()
 val mutex = Mutex()
 
 fun KClass<*>.tableName() = camelRegex.replace(simpleName!!) {
