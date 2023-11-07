@@ -31,6 +31,7 @@ data class AgentParameters(
     val isKafka: Boolean = false,
     val isCadence: Boolean = false,
     val isTlsApp: Boolean = false,
-    val coverageRetentionLimit : String = "512Mb",
-    val sendCoverageInterval : Long = 2000L
+    val coverageRetentionLimit: String = "512Mb",
+    val sendCoverageInterval: Long = 2000L,
+    val drillInstallationDir: String = ""
 )
