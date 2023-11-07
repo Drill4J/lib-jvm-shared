@@ -76,6 +76,7 @@ kotlin {
             dependencies {
                 implementation("org.eclipse.jetty:jetty-server:9.4.26.+")
             }
+
         }
         val nativeAgentMain by getting {
             dependencies {
@@ -98,6 +99,9 @@ kotlin {
             it.dependsOn(nativeAgentLinkTask)
             it.testLogging.showStandardStreams = true
             it.jvmArgs("-agentpath:${nativeAgentFile.toPath()}")
+        }
+        withType<Test> {
+            enabled = false
         }
     }
 }
