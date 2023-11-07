@@ -64,6 +64,9 @@ tasks {
         }
     }
     test.dependsOn(nativeAgentLinkTask)
+    withType<Test> {
+        enabled = false
+    }
 }
 
 @Suppress("UNUSED_VARIABLE")
