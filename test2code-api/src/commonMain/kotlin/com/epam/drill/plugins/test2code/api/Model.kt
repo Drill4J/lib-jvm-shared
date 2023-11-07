@@ -142,6 +142,7 @@ enum class TestResult {
     UNKNOWN
 }
 
+//TODO remove Scope related payloads
 /**
  * Payload for a scope finishing action
  * @param scopeName the next scope name
@@ -273,20 +274,6 @@ interface Coverage {
     val testTypeOverlap: CoverDto
     val byTestType: List<TestTypeSummary>
 }
-
-@Serializable
-data class ScopeCoverage(
-    override val percentage: Double = 0.0,
-    override val count: Count = zeroCount,
-    val overlap: CoverDto = CoverDto.empty,
-    override val methodCount: Count = zeroCount,
-    override val classCount: Count = zeroCount,
-    override val packageCount: Count = zeroCount,
-    override val riskCount: Count = zeroCount,
-    override val testTypeOverlap: CoverDto = CoverDto.empty,
-    override val byTestType: List<TestTypeSummary> = emptyList(),
-) : Coverage
-
 
 @Serializable
 data class BuildCoverage(
@@ -519,17 +506,6 @@ data class ActiveSessionDto(
     val isRealtime: Boolean,
 )
 
-@Serializable
-data class ScopeSummary(
-    val name: String,
-    val id: String,
-    val started: Long,
-    val finished: Long = 0L,
-    var enabled: Boolean = true,
-    val active: Boolean = true,
-    val sessionsFinished: Int = 0,
-    val coverage: ScopeCoverage = ScopeCoverage(),
-)
 
 val zeroCount = Count(covered = 0, total = 0)
 
@@ -621,7 +597,6 @@ data class SummaryDto(
     val coverage: Double = 0.0,
     val coverageCount: Count = zeroCount,
     val methodCount: Count = zeroCount,
-    val scopeCount: Int = 0,
     val arrow: ArrowType = ArrowType.UNCHANGED,
     val risks: Int = 0, //TODO remove after changes on frontend
     val riskCounts: RiskCounts = RiskCounts(),
