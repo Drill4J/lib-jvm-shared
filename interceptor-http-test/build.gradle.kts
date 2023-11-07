@@ -71,12 +71,12 @@ kotlin {
                 implementation("io.undertow:undertow-servlet:2.0.29.Final")
             }
         }
-//        val jvmJettyServerTest by getting {
-//            dependsOn(jvmMain)
-//            dependencies {
-//                implementation("org.eclipse.jetty:jetty-server:9.4.26.+")
-//            }
-//        }
+        val jvmJettyServerTest by getting {
+            dependsOn(jvmMain)
+            dependencies {
+                implementation("org.eclipse.jetty:jetty-server:9.4.26.+")
+            }
+        }
         val nativeAgentMain by getting {
             dependencies {
                 if(HostManager.hostIsMingw) implementation(project(":logging-native"))
