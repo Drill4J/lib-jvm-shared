@@ -29,8 +29,6 @@ pluginManagement {
     }
 }
 
-include("kni-runtime")
-include("kni-plugin")
 include("jvmapi")
 include("logging-native")
 include("logging")
@@ -40,13 +38,8 @@ include("drill-hook")
 include("http-clients-instrumentation")
 include("interceptor-http")
 include("interceptor-http-test")
-include("interceptor-http2")
-include("interceptor-http2-test")
-include("interceptor-http2-test-grpc")
 include("plugin-api-admin")
 include("agent")
-include("agent-runner-common")
-include("agent-runner-gradle")
 include("dsm")
 include("dsm-annotations")
 include("dsm-test-framework")
