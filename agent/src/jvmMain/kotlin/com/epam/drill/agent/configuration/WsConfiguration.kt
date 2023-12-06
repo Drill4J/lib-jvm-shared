@@ -19,14 +19,14 @@ actual object WsConfiguration {
 
     actual external fun getAgentConfigHexString(): String
 
-    actual external fun setRequestPattern(pattern: String?)
-
-    actual external fun generateAgentConfigInstanceId()
-
     actual external fun getSslTruststore(): String
 
     actual external fun getSslTruststorePassword(): String
 
     actual external fun getDrillInstallationDir(): String
+
+    actual external fun getAdminAddress(): String
+
+    actual external fun getInstanceId(): String
 
 }

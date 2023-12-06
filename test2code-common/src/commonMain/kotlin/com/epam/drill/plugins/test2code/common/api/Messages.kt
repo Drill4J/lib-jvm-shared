@@ -20,23 +20,6 @@ import kotlinx.serialization.*
 @Serializable
 sealed class CoverMessage
 
-@SerialName("INIT")
-@Serializable
-data class InitInfo(
-    val classesCount: Int = 0,
-    val message: String = "",
-    @Deprecated(message = "the parameter is unused")
-    val init: Boolean = true,
-) : CoverMessage()
-
-@SerialName("INIT_DATA_PART")
-@Serializable
-data class InitDataPart(val astEntities: List<AstEntity>) : CoverMessage()
-
-@SerialName("INITIALIZED")
-@Serializable
-data class Initialized(val msg: String = "") : CoverMessage()
-
 //TODO EPMDJ-10321 remove it after supporting on other agents
 @SerialName("SCOPE_INITIALIZED")
 @Serializable

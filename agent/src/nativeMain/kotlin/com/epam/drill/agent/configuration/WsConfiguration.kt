@@ -17,16 +17,9 @@ package com.epam.drill.agent.configuration
 
 import kotlinx.serialization.encodeToHexString
 import kotlinx.serialization.protobuf.ProtoBuf
-import com.benasher44.uuid.uuid4
 import com.epam.drill.common.agent.configuration.AgentConfig
 
 actual object WsConfiguration {
-
-    actual fun generateAgentConfigInstanceId() = run {
-        if(agentConfig.instanceId.isEmpty()) agentConfig = agentConfig.copy(instanceId = uuid4().toString())
-    }
-
-    actual fun setRequestPattern(pattern: String?) = run { requestPattern = pattern }
 
     actual fun getAgentConfigHexString() = agentConfig.copy(parameters = emptyMap()).run {
         ProtoBuf.encodeToHexString(AgentConfig.serializer(), this)
@@ -37,5 +30,9 @@ actual object WsConfiguration {
     actual fun getSslTruststorePassword() = agentParameters.sslTruststorePassword
 
     actual fun getDrillInstallationDir() = agentParameters.drillInstallationDir
+
+    actual fun getAdminAddress() = adminAddress.toString()
+
+    actual fun getInstanceId() = agentConfig.instanceId
 
 }

@@ -18,7 +18,7 @@ version = Properties().run {
 val kotlinxCollectionsVersion: String by parent!!.extra
 val kotlinxCoroutinesVersion: String by parent!!.extra
 val kotlinxSerializationVersion: String by parent!!.extra
-val uuidVersion: String by parent!!.extra
+val apacheHttpClientVersion: String by parent!!.extra
 
 repositories {
     mavenLocal()
@@ -58,7 +58,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
-                implementation("org.eclipse.jetty.websocket:javax-websocket-client-impl:9.4.51.v20230217")
+                implementation("org.apache.httpcomponents.client5:httpclient5:$apacheHttpClientVersion")
             }
         }
         val nativeMain by creating {
@@ -66,7 +66,6 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:$kotlinxCollectionsVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
-                implementation("com.benasher44:uuid:$uuidVersion")
                 implementation(project(":interceptor-http"))
             }
         }
