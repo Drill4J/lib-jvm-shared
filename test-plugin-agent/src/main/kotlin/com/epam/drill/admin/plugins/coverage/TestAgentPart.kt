@@ -16,26 +16,16 @@
 package com.epam.drill.admin.plugins.coverage
 
 import com.epam.drill.common.agent.*
+import com.epam.drill.common.agent.transport.AgentMessageSender
 
 @Suppress("unused")
 class TestAgentPart constructor(
     id: String,
     agentContext: AgentContext,
-    sender: Sender
+    sender: AgentMessageSender
 ) : AgentModule<String>(id, agentContext, sender) {
-
-    override fun on() {
-        send("xx")
-    }
 
     override fun load() {
         println("Plugin $id initialized.")
     }
-
-    override fun doAction(action: String): Any {
-        println(action)
-        return "action"
-    }
-
-    override fun parseAction(rawAction: String) = rawAction
 }
