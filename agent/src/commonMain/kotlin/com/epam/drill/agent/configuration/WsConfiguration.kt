@@ -29,4 +29,8 @@ expect object WsConfiguration {
 
     fun getInstanceId(): String
 
+    fun getAgentId(): String
+
+    fun getBuildVersion(): String
+
 }

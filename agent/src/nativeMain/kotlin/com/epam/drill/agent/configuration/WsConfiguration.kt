@@ -35,4 +35,8 @@ actual object WsConfiguration {
 
     actual fun getInstanceId() = agentConfig.instanceId
 
+    actual fun getAgentId() = agentConfig.id
+
+    actual fun getBuildVersion() = agentConfig.buildVersion
+
 }

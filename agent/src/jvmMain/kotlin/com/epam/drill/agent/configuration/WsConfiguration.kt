@@ -29,4 +29,8 @@ actual object WsConfiguration {
 
     actual external fun getInstanceId(): String
 
+    actual external fun getAgentId(): String
+
+    actual external fun getBuildVersion(): String
+
 }
