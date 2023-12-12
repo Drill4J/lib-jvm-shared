@@ -31,28 +31,6 @@ const val DEFAULT_TEST_NAME = "UNSPECIFIED"
 const val DEFAULT_TEST_TYPE = "UNSPECIFIED"
 
 /**
- * Payload for a session starting action
- * @param testType the test type (MANUAL, AUTO)
- * @param sessionId the session ID, if defined
- * @param testName the name of first test of the session
- * @param isRealtime a sign that it is necessary to collect test coverage in real time
- * @param isGlobal a sign that the session is global
- * @param labels the set of labels associated with the session
- */
-@Serializable
-data class StartPayload(
-    val testType: String = DEFAULT_TEST_TYPE,
-    val sessionId: String = "",
-    val testName: String? = DEFAULT_TEST_NAME,
-    val isRealtime: Boolean = false,
-    val isGlobal: Boolean = false,
-    val labels: Set<Label> = emptySet(),
-)
-
-@Serializable
-data class SessionPayload(val sessionId: String)
-
-/**
  * Payload for a session data action
  * @param sessionId the session ID
  * @param data the session data
@@ -72,17 +50,6 @@ class EntityProbes(
     val test: String = "",
     val testId: String = "", //TODO mb make it as required field
     val probes: List<Boolean>,
-)
-
-/**
- * Payload for a session stopping action
- * @param sessionId the session ID
- * @param tests the list of completed tests that have not yet been added
- */
-@Serializable
-data class StopSessionPayload(
-    val sessionId: String,
-    val tests: List<TestInfo> = emptyList(),
 )
 
 /**
@@ -141,31 +108,6 @@ enum class TestResult {
     SKIPPED,
     UNKNOWN
 }
-
-//TODO remove Scope related payloads
-/**
- * Payload for a scope finishing action
- * @param scopeName the next scope name
- * @param savePrevScope a sign of the need to save the previous state
- * @param prevScopeEnabled the sign of the need to leave the current scope enabled
- * @param forceFinish the sign of the need to close all active sessions
- */
-@Serializable
-data class ActiveScopeChangePayload(
-    val scopeName: String,
-    val savePrevScope: Boolean = false,
-    val prevScopeEnabled: Boolean = true,
-    val forceFinish: Boolean = false,
-)
-
-@Serializable
-data class RenameScopePayload(
-    val scopeId: String,
-    val scopeName: String,
-)
-
-@Serializable
-data class ScopePayload(val scopeId: String = "")
 
 @Serializable
 data class FilterPayload(
@@ -285,7 +227,6 @@ data class BuildCoverage(
     override val riskCount: Count = zeroCount,
     override val testTypeOverlap: CoverDto = CoverDto.empty,
     override val byTestType: List<TestTypeSummary> = emptyList(),
-    val finishedScopesCount: Int = 0,
 ) : Coverage
 
 enum class ArrowType {
@@ -489,12 +430,6 @@ data class TestOverview(
 data class TestData(
     val id: String,
     val details: TestDetails = TestDetails.emptyDetails,
-)
-
-@Serializable
-data class ActiveSessions(
-    val count: Int,
-    val testTypes: Set<String> = emptySet(),
 )
 
 @Serializable

@@ -20,10 +20,6 @@ import kotlinx.serialization.*
 @Serializable
 sealed class Action
 
-@SerialName("START")
-@Serializable
-data class StartNewSession(val payload: StartPayload) : Action()
-
 @SerialName("ADD_SESSION_DATA")
 @Serializable
 data class AddSessionData(val payload: SessionDataPayload) : Action()
@@ -40,37 +36,9 @@ data class ExportCoverage(val payload: BuildPayload) : Action()
 @Serializable
 object ImportCoverage : Action()
 
-@SerialName("CANCEL")
-@Serializable
-data class CancelSession(val payload: SessionPayload) : Action()
-
-@SerialName("CANCEL_ALL")
-@Serializable
-object CancelAllSessions : Action()
-
-@SerialName("STOP")
-@Serializable
-data class StopSession(val payload: StopSessionPayload) : Action()
-
 @SerialName("ADD_TESTS")
 @Serializable
 data class AddTests(val payload: AddTestsPayload) : Action()
-
-@SerialName("STOP_ALL")
-@Serializable
-object StopAllSessions : Action()
-
-@SerialName("SWITCH_ACTIVE_SCOPE")
-@Serializable
-data class SwitchActiveScope(val payload: ActiveScopeChangePayload) : Action()
-
-@SerialName("RENAME_SCOPE")
-@Serializable
-data class RenameScope(val payload: RenameScopePayload) : Action()
-
-@SerialName("TOGGLE_SCOPE")
-@Serializable
-data class ToggleScope(val payload: ScopePayload) : Action()
 
 @SerialName("CREATE_FILTER")
 @Serializable
@@ -91,10 +59,6 @@ data class ApplyFilter(val payload: ApplyPayload) : Action()
 @SerialName("DELETE_FILTER")
 @Serializable
 data class DeleteFilter(val payload: DeleteFilterPayload) : Action()
-
-@SerialName("DROP_SCOPE")
-@Serializable
-data class DropScope(val payload: ScopePayload) : Action()
 
 @SerialName("REMOVE_BUILD")
 @Serializable
