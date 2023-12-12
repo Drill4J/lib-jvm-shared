@@ -25,7 +25,7 @@ import com.epam.drill.common.agent.transport.AgentMessageDestination
 import com.epam.drill.common.agent.transport.AgentMessageSender
 import com.epam.drill.common.agent.transport.ResponseStatus
 
-object HttpAgentMessageSender: AgentMessageSender {
+object HttpAgentMessageSender : AgentMessageSender {
 
     private val logger = KotlinLogging.logger {}
 
@@ -35,8 +35,8 @@ object HttpAgentMessageSender: AgentMessageSender {
 
     override fun isTransportAvailable(): Boolean = attached
 
-    override fun <T: AgentMessage> send(destination: AgentMessageDestination, message: T): ResponseStatus {
-        val status = when(destination.type) {
+    override fun <T : AgentMessage> send(destination: AgentMessageDestination, message: T): ResponseStatus {
+        val status = when (destination.type) {
             "POST" -> HttpClient.post("agents/$agentId/builds/$buildVersion/${destination.target}", message)
             "PUT" -> HttpClient.put("agents/$agentId/builds/$buildVersion/${destination.target}", message)
             else -> -1
@@ -53,15 +53,15 @@ object HttpAgentMessageSender: AgentMessageSender {
                 WsConfiguration.getSslTruststorePassword()
             )
             val agentConfigHex = WsConfiguration.getAgentConfigHexString()
-            val httpCall: (String) -> Int = { HttpClient.put("agent/instance", it) }
-            val logError: (Throwable) -> Unit = { logger.error(it) { "agentAttach: Attempt is failed: $it" } }
-            val timeout: (Throwable) -> Unit = { Thread.sleep(5000) }
+            val httpCall: (String) -> Int = { HttpClient.put("agents", it) }
+            val logError: (Throwable) -> Unit = { logger.error(it) { "sendAgentInstance: Attempt is failed: $it" } }
             var status = 0
             logger.debug { "agentAttach: Sending request to admin server" }
-            while(status != HttpStatus.SC_OK) {
-                status = agentConfigHex.runCatching(httpCall).onFailure(logError).onFailure(timeout).getOrDefault(0)
+            while (status != HttpStatus.SC_OK) {
+                status = agentConfigHex.runCatching(httpCall).onFailure(logError).getOrDefault(0)
+                if (status != HttpStatus.SC_OK) Thread.sleep(5000)
             }
-            logger.debug { "agentAttach: Sending request to admin server: successful" }
+            logger.debug { "sendAgentInstance: Sending request to admin server: successful" }
             attached = true
         }
     }
