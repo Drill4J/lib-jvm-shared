@@ -22,7 +22,6 @@ import io.grpc.stub.StreamObserver
 import org.junit.*
 import java.util.concurrent.TimeUnit
 
-@Ignore
 class GrpcTest {
 
     private lateinit var server: Server

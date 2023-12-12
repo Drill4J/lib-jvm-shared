@@ -18,14 +18,12 @@ package test
 import TestBase
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
-import org.junit.Ignore
 import responseMessage
 import java.io.*
 import java.nio.charset.StandardCharsets.*
 import javax.servlet.*
 import javax.servlet.http.*
 
-@Ignore
 open class JettyTest : TestBase() {
 
     override fun setupServer() {
