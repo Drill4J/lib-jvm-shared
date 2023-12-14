@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.configuration
+package com.epam.drill.agent.transport
 
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
 import com.epam.drill.common.agent.transport.AgentMessage
+import com.epam.drill.common.agent.transport.AgentMessageDestination
 
-@Serializable
-data class AgentConfig(
-    val id: String,
-    val instanceId: String,
-    val buildVersion: String,
-    val serviceGroupId: String,
-    val agentType: AgentType,
-    val agentVersion: String = "",
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
-    val parameters: Map<String, AgentParameter> = emptyMap()
-) : AgentMessage()
+class ProtoBufAgentMessageSerializer : AgentMessageSerializer<ByteArray> {
+    override fun contentType(): String = "application/protobuf"
+    override fun serialize(message: AgentMessage) = ProtoBuf.encodeToByteArray(message)
+    override fun sizeOf(destination: AgentMessageDestination) = destination.type.length + destination.target.length
+    override fun sizeOf(serialized: ByteArray) = serialized.size
+}

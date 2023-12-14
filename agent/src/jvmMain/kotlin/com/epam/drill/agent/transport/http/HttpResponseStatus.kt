@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.transport
+package com.epam.drill.agent.transport.http
 
 import org.apache.hc.core5.http.HttpStatus
 import com.epam.drill.common.agent.transport.ResponseStatus
 
-class HttpResponseStatus(private val status: Int): ResponseStatus {
-    override fun isSuccess() = status == HttpStatus.SC_SUCCESS
-    override fun getStatusObject() = status
+class HttpResponseStatus(private val status: Int) : ResponseStatus {
+
+    override val success
+        get() = status == HttpStatus.SC_SUCCESS
+
+    override val statusObject
+        get() = status
+
 }

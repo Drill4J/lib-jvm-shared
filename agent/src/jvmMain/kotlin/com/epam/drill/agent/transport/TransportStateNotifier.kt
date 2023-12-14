@@ -13,24 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.configuration
+package com.epam.drill.agent.transport
 
-expect object WsConfiguration {
-
-    fun getAgentConfigHexString(): String
-
-    fun getSslTruststore(): String
-
-    fun getSslTruststorePassword(): String
-
-    fun getDrillInstallationDir(): String
-
-    fun getAdminAddress(): String
-
-    fun getInstanceId(): String
-
-    fun getAgentId(): String
-
-    fun getBuildVersion(): String
-
+interface TransportStateNotifier {
+    fun addStateListener(listener: TransportStateListener)
 }

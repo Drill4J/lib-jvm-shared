@@ -18,26 +18,6 @@ package com.epam.drill.jvmapi
 import kotlinx.cinterop.*
 import com.epam.drill.jvmapi.gen.*
 
-fun jbyteArray?.readBytes() = this?.let { jbytes ->
-    val length = GetArrayLength(jbytes)
-    if (length == 0) return@let byteArrayOf()
-    val buffer: COpaquePointer? = GetPrimitiveArrayCritical(jbytes, null)
-    try {
-        ByteArray(length).apply {
-            usePinned { destination ->
-                platform.posix.memcpy(
-                    destination.addressOf(0),
-                    buffer,
-                    length.convert()
-                )
-            }
-        }
-    } finally {
-        ReleasePrimitiveArrayCritical(jbytes, buffer, JNI_ABORT)
-    }
-
-}
-
 inline fun <reified R> withJString(block: JStringConverter.() -> R): R {
     val jStringConverter = JStringConverter()
     try {

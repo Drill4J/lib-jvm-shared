@@ -13,24 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.configuration
+package com.epam.drill.agent.transport
 
-actual object WsConfiguration {
+import com.epam.drill.common.agent.transport.AgentMessageDestination
+import com.epam.drill.common.agent.transport.ResponseStatus
 
-    actual external fun getAgentConfigHexString(): String
-
-    actual external fun getSslTruststore(): String
-
-    actual external fun getSslTruststorePassword(): String
-
-    actual external fun getDrillInstallationDir(): String
-
-    actual external fun getAdminAddress(): String
-
-    actual external fun getInstanceId(): String
-
-    actual external fun getAgentId(): String
-
-    actual external fun getBuildVersion(): String
-
+interface AgentMessageTransport<T> {
+    fun send(destination: AgentMessageDestination, message: T, contentType: String = ""): ResponseStatus
 }
