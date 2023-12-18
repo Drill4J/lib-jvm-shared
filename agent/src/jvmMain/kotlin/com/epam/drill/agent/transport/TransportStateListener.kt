@@ -15,6 +15,17 @@
  */
 package com.epam.drill.agent.transport
 
+/**
+ * A listener interface to receive notification about transport state changes.
+ * Supports both stateful (like websocket sessions) and stateless transports (like HTTP calls).
+ *
+ * It's used to notify [com.epam.drill.common.agent.transport.AgentMessageSender]
+ * about [AgentMessageTransport] state changes using [TransportStateNotifier].
+ *
+ * @see TransportStateNotifier
+ * @see AgentMessageTransport
+ * @see com.epam.drill.common.agent.transport.AgentMessageSender
+ */
 interface TransportStateListener {
     fun onStateAlive()
     fun onStateFailed()

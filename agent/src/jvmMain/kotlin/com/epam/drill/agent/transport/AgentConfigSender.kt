@@ -18,9 +18,14 @@ package com.epam.drill.agent.transport
 import com.epam.drill.common.agent.configuration.AgentConfig
 
 /**
+ * An interface to send [AgentConfig] object.
+ * Moved to the separate interface as no messages should be sent before [AgentConfig] message.
  *
+ * It's used for initial send of [AgentConfig] and has [configSent] property 'false' before that
+ * to indicate that transport is in unavailable state.
  *
- * @see
+ * @see [AgentConfig]
+ * @see [com.epam.drill.common.agent.transport.AgentMessageSender]
  */
 interface AgentConfigSender<T> : TransportStateNotifier {
     val configSent: Boolean

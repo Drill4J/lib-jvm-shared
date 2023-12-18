@@ -21,11 +21,11 @@ import com.epam.drill.common.agent.transport.AgentMessageDestination
 
 class InMemoryAgentMessageQueue<T>(
     private val messageSerializer: AgentMessageSerializer<T>,
-    private val capacity: Int
+    private val capacity: Long
 ) : AgentMessageQueue<T> {
 
     private val queue: Queue<Pair<AgentMessageDestination, T>> = ConcurrentLinkedQueue()
-    private var size: Int = 0
+    private var size: Long = 0
 
     override fun add(e: Pair<AgentMessageDestination, T>) = if (size < capacity) {
         queue.add(e).also { increaseSize(e) }
@@ -46,6 +46,8 @@ class InMemoryAgentMessageQueue<T>(
     override fun element() = queue.element()
 
     override fun peek() = queue.peek()
+
+    override fun size(): Int = queue.size
 
     private fun sizeOf(e: Pair<AgentMessageDestination, T>) =
         messageSerializer.sizeOf(e.first) + messageSerializer.sizeOf(e.second)

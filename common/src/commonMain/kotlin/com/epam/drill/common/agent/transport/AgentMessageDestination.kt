@@ -15,6 +15,13 @@
  */
 package com.epam.drill.common.agent.transport
 
+/**
+ * Simple data class to hold information about message destination.
+ *
+ * It's used with [AgentMessageSender].
+ *
+ * @see [AgentMessageSender]
+ */
 data class AgentMessageDestination(
     val type: String,
     val target: String

@@ -17,5 +17,12 @@ package com.epam.drill.common.agent.transport
 
 import kotlinx.serialization.Serializable
 
+/**
+ * Abstraction for messages of any type.
+ *
+ * It's used in [AgentMessageSender].
+ *
+ * @see [AgentMessageSender]
+ */
 @Serializable
 open class AgentMessage

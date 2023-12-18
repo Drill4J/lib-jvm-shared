@@ -15,6 +15,15 @@
  */
 package com.epam.drill.common.agent.transport
 
+/**
+ * An interface to send [AgentMessage] objects to [AgentMessageDestination].
+ * It has [available] property to indicate transport state.
+ *
+ * It should be provided to all agent message producers.
+ *
+ * @see [AgentMessage]
+ * @see [AgentMessageDestination]
+ */
 interface AgentMessageSender {
     val available: Boolean
     fun send(destination: AgentMessageDestination, message: AgentMessage): ResponseStatus

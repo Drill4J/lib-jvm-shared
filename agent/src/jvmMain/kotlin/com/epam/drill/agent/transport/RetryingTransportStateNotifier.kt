@@ -16,6 +16,7 @@
 package com.epam.drill.agent.transport
 
 import kotlin.concurrent.thread
+import mu.KotlinLogging
 
 class RetryingTransportStateNotifier<T>(
     private val transport: AgentMessageTransport<T>,
@@ -23,6 +24,7 @@ class RetryingTransportStateNotifier<T>(
     private val messageQueue: AgentMessageQueue<T>
 ) : TransportStateNotifier, TransportStateListener {
 
+    private val logger = KotlinLogging.logger {}
     private val stateListeners = mutableSetOf<TransportStateListener>()
     private var retrying = false
 
@@ -31,9 +33,11 @@ class RetryingTransportStateNotifier<T>(
     }
 
     override fun onStateAlive() {
+        logger.debug { "onStateAlive: Alive event received" }
     }
 
     override fun onStateFailed() = synchronized(this) {
+        logger.debug { "onStateFailed: Failed event received, current retrying state: $retrying" }
         if (!retrying) {
             retrying = true
             retryingThread()
@@ -43,11 +47,14 @@ class RetryingTransportStateNotifier<T>(
     private fun retryingThread() = thread {
         val pair = messageQueue.remove()
         val send: () -> Unit = { transport.send(pair.first, pair.second, messageSerializer.contentType()) }
-        while (runCatching(send).isFailure) {
+        val logError: (Throwable) -> Unit = { logger.error(it) { "retryingThread: Attempt is failed: $it" } }
+        logger.debug { "retryingThread: Check state using first queued message" }
+        while (runCatching(send).onFailure(logError).isFailure) {
             Thread.sleep(500)
         }
         retrying = false
         stateListeners.forEach(TransportStateListener::onStateAlive)
+        logger.debug { "retryingThread: Check state using first queued message: success" }
     }
 
 }

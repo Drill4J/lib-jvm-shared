@@ -15,6 +15,14 @@
  */
 package com.epam.drill.common.agent.transport
 
+/**
+ * Abstraction for response of any type.
+ * It has [statusObject] property to hold response details if needed.
+ *
+ * It's used in [AgentMessageSender].
+ *
+ * @see [AgentMessageSender]
+ */
 interface ResponseStatus {
     val success: Boolean
     val statusObject: Any?

@@ -18,6 +18,17 @@ package com.epam.drill.agent.transport
 import com.epam.drill.common.agent.transport.AgentMessage
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 
+/**
+ * A message serializer interface for [AgentMessage] serialization before sending by [AgentMessageTransport].
+ *
+ * It's used to serialize [AgentMessage] before storing in [AgentMessageQueue] or sending by [AgentMessageTransport].
+ * It contains [contentType] and [sizeOf] functions that can be used in [AgentMessageQueue] and [AgentMessageTransport]
+ * to abstract from serialized data details.
+ *
+ * @see AgentMessage
+ * @see AgentMessageQueue
+ * @see AgentMessageTransport
+ */
 interface AgentMessageSerializer<T> {
     fun contentType(): String
     fun serialize(message: AgentMessage): T

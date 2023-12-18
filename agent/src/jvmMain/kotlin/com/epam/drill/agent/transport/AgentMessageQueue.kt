@@ -22,7 +22,7 @@ import com.epam.drill.common.agent.transport.AgentMessageDestination
  * Messages are stored with corresponding [AgentMessageDestination] object.
  * It has the same method signatures as [java.util.Queue] interface.
  *
- * It used to store messages after serialization by [AgentMessageSerializer] and
+ * It's used to store messages after serialization by [AgentMessageSerializer] and
  * destination mapping by [AgentMessageDestinationMapper] before sending by [AgentMessageTransport].
  *
  * @see AgentMessageDestination
@@ -106,5 +106,14 @@ interface AgentMessageQueue<T> {
      * @return the head of this queue, or `null` if this queue is empty
      */
     fun peek(): Pair<AgentMessageDestination, T>?
+
+    /**
+     * Returns the number of elements in this collection.  If this collection
+     * contains more than <tt>Integer.MAX_VALUE</tt> elements, returns
+     * <tt>Integer.MAX_VALUE</tt>.
+     *
+     * @return the number of elements in this collection
+     */
+    fun size(): Int
 
 }

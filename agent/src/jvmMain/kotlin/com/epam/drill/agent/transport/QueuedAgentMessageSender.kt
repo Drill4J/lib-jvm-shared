@@ -17,6 +17,7 @@ package com.epam.drill.agent.transport
 
 import kotlin.concurrent.thread
 import java.io.IOException
+import mu.KotlinLogging
 import com.epam.drill.common.agent.transport.AgentMessage
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 import com.epam.drill.common.agent.transport.AgentMessageSender
@@ -24,7 +25,28 @@ import com.epam.drill.common.agent.transport.ResponseStatus
 
 private const val TRANSPORT_ERR = "Transport is in unavailable state"
 
-//TODO add java-docs
+/**
+ * A [AgentMessageSender] implementation with [AgentMessageQueue] for storing
+ * serialized messages when transport in unavailable state.
+ *
+ * It also implements [AgentConfigSender] for initial availability status.
+ *
+ * The [AgentMessageSender]'s [available] state may be changed to 'false' both by
+ * external [TransportStateNotifier] and exception during message send by [AgentMessageTransport].
+ *
+ * The [AgentMessageSender]'s [available] state may be changed to 'true' only by
+ * external [TransportStateNotifier].
+ *
+ * In case of exception during message send by [AgentMessageTransport]
+ * it also notifies [TransportStateListener] if it's defined.
+ *
+ * @see AgentMessageSender
+ * @see AgentMessageQueue
+ * @see AgentMessageTransport
+ * @see AgentConfigSender
+ * @see TransportStateNotifier
+ * @see TransportStateListener
+ */
 open class QueuedAgentMessageSender<T>(
     private val transport: AgentMessageTransport<T>,
     private val messageSerializer: AgentMessageSerializer<T>,
@@ -34,6 +56,8 @@ open class QueuedAgentMessageSender<T>(
     private val transportStateListener: TransportStateListener?,
     private val messageQueue: AgentMessageQueue<T>
 ) : AgentMessageSender, AgentConfigSender<T> by agentConfigSender, TransportStateListener {
+
+    private val logger = KotlinLogging.logger {}
 
     private var alive = true
 
@@ -57,17 +81,23 @@ open class QueuedAgentMessageSender<T>(
     }
 
     override fun onStateAlive() {
+        logger.debug { "onStateAlive: Alive event received" }
         sendQueue()
     }
 
     override fun onStateFailed() = synchronized(messageQueue) {
+        logger.debug { "onStateFailed: Failed event received" }
         alive = false
     }
 
-    private fun send(message: Pair<AgentMessageDestination, T>) =
-        transport.send(message.first, message.second, messageSerializer.contentType())
+    private fun send(message: Pair<AgentMessageDestination, T>): ResponseStatus {
+        val contentType = messageSerializer.contentType()
+        logger.trace { "execute: Request to ${message.first}, message=${message.second}, contentType=$contentType" }
+        return transport.send(message.first, message.second, contentType)
+    }
 
-    private fun failure(t: Throwable): Unit = synchronized(messageQueue) {
+    private fun failure(t: Throwable) = synchronized(messageQueue) {
+        logger.error(t) { "failure: Error during message sending, current availability state: $available" }
         if (available) {
             alive = false
             transportStateListener?.onStateFailed()
@@ -77,6 +107,7 @@ open class QueuedAgentMessageSender<T>(
     private fun sendQueue() = thread {
         var success = true
         var message = peekMessage()
+        logger.debug { "sendQueue: Starting queue processing, queue size: ${messageQueue.size()}" }
         while (success && message != null) {
             success = message.runCatching(::send).onFailure(::failure).isSuccess
             if (success) {
@@ -84,6 +115,7 @@ open class QueuedAgentMessageSender<T>(
                 message = peekMessage()
             }
         }
+        logger.debug { "sendQueue: Done queue processing, queue size: ${messageQueue.size()}" }
     }
 
     private fun peekMessage() = synchronized(messageQueue) {

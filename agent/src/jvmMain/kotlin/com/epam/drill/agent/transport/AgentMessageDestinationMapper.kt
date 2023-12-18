@@ -21,7 +21,7 @@ import com.epam.drill.common.agent.transport.AgentMessageDestination
  * A destination mapper interface for mapping [AgentMessageDestination]
  * from common form to transport specific form.
  *
- * It used to map [AgentMessageDestination] in the same time as
+ * It's used to map [AgentMessageDestination] in the same time as
  * [com.epam.drill.common.agent.transport.AgentMessage] serialization
  * before storing in [AgentMessageQueue] or sending by [AgentMessageTransport].
  *
