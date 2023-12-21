@@ -26,7 +26,8 @@ class RetryingTransportStateNotifier<T>(
 
     private val logger = KotlinLogging.logger {}
     private val stateListeners = mutableSetOf<TransportStateListener>()
-    private var retrying = false
+    internal var retrying = false
+    internal var retryingThread: Thread? = null
 
     override fun addStateListener(listener: TransportStateListener) {
         stateListeners.add(listener)
@@ -39,8 +40,9 @@ class RetryingTransportStateNotifier<T>(
     override fun onStateFailed() = synchronized(this) {
         logger.debug { "onStateFailed: Failed event received, current retrying state: $retrying" }
         if (!retrying) {
+            messageQueue.element()
             retrying = true
-            retryingThread()
+            retryingThread = retryingThread()
         }
     }
 

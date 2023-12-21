@@ -34,12 +34,12 @@ class RetryingAgentConfigSender<T>(
     override val configSent: Boolean
         get() = sent
 
-    override fun send(config: AgentConfig) =
-        send(messageSerializer.serialize(config), messageSerializer.contentType())
-
     override fun addStateListener(listener: TransportStateListener) {
         stateListeners.add(listener)
     }
+
+    override fun send(config: AgentConfig) =
+        send(messageSerializer.serialize(config), messageSerializer.contentType())
 
     override fun send(config: T, contentType: String) = thread {
         val destination = destinationMapper.map(AgentMessageDestination("PUT", "agent-config"))
@@ -50,7 +50,7 @@ class RetryingAgentConfigSender<T>(
         var success = false
         while(!success) {
             success = runCatching(send).onFailure(logError).getOrElse(::ErrorResponseStatus).success
-            if(!success) Thread.sleep(5000)
+            if(!success) Thread.sleep(500)
         }
         logger.debug { "sendAgentConfig: Sending to admin server: successful" }
         sent = true

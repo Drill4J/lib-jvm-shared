@@ -83,7 +83,6 @@ class HttpAgentMessageTransport(
         request.entity = GzipCompressingEntity(ByteArrayEntity(message, getContentType(mimeType)))
         logger.trace { "execute: Request to ${request.uri}, method: ${request.method}, message=$message" }
         HttpResponseStatus(it.execute(request, ::statusResponseHandler)!!)
-
     }
 
     private fun statusResponseHandler(response: ClassicHttpResponse) = response.code

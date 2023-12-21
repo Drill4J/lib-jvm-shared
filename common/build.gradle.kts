@@ -43,8 +43,8 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-test-common")
-                implementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
+                implementation(kotlin("test-common"))
+                implementation(kotlin("test-annotations-common"))
             }
         }
         val jvmTest by getting {

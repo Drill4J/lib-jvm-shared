@@ -15,17 +15,25 @@
  */
 package com.epam.drill.agent.transport.http
 
-import com.epam.drill.agent.transport.AgentMessageDestinationMapper
-import com.epam.drill.common.agent.transport.AgentMessageDestination
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 
-class HttpAgentMessageDestinationMapper(
-    private val agentId: String,
-    private val buildVersion: String
-) : AgentMessageDestinationMapper {
+class HttpResponseStatusTest {
 
-    override fun map(destination: AgentMessageDestination): AgentMessageDestination = when(destination.target) {
-        "agent-config" -> destination.copy(target = "agents")
-        else -> destination.copy(target = "agents/$agentId/builds/$buildVersion/${destination.target}")
+    @Test
+    fun `success for HTTP 200`() {
+        val status = HttpResponseStatus(200)
+        assertTrue(status.success)
+        assertEquals(200, status.statusObject)
+    }
+
+    @Test
+    fun `failed for HTTP 500`() {
+        val status = HttpResponseStatus(500)
+        assertFalse(status.success)
+        assertEquals(500, status.statusObject)
     }
 
 }

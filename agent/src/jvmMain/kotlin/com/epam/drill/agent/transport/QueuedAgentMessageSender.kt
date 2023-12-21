@@ -60,6 +60,7 @@ open class QueuedAgentMessageSender<T>(
     private val logger = KotlinLogging.logger {}
 
     private var alive = true
+    internal var sendingThread: Thread? = null
 
     init {
         agentConfigSender.addStateListener(this)
@@ -72,7 +73,10 @@ open class QueuedAgentMessageSender<T>(
     override fun send(destination: AgentMessageDestination, message: AgentMessage): ResponseStatus {
         val mappedDestination = destinationMapper.map(destination)
         val serializedMessage = messageSerializer.serialize(message)
-        val store: (Throwable) -> Unit = { messageQueue.offer(Pair(mappedDestination, serializedMessage)) }
+        val store: (Throwable) -> Unit = {
+            logger.trace { "send: Storing for ${mappedDestination}, message=${serializedMessage}" }
+            messageQueue.offer(Pair(mappedDestination, serializedMessage))
+        }
         synchronized(messageQueue) {
             if (!available) return IOException(TRANSPORT_ERR).also(store).let(::ErrorResponseStatus)
         }
@@ -82,7 +86,7 @@ open class QueuedAgentMessageSender<T>(
 
     override fun onStateAlive() {
         logger.debug { "onStateAlive: Alive event received" }
-        sendQueue()
+        sendingThread = sendQueue()
     }
 
     override fun onStateFailed() = synchronized(messageQueue) {
@@ -92,7 +96,7 @@ open class QueuedAgentMessageSender<T>(
 
     private fun send(message: Pair<AgentMessageDestination, T>): ResponseStatus {
         val contentType = messageSerializer.contentType()
-        logger.trace { "execute: Request to ${message.first}, message=${message.second}, contentType=$contentType" }
+        logger.trace { "execute: Sending to ${message.first}, message=${message.second}, contentType=$contentType" }
         return transport.send(message.first, message.second, contentType)
     }
 

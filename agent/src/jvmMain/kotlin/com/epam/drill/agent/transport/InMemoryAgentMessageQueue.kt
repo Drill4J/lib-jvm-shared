@@ -25,15 +25,15 @@ class InMemoryAgentMessageQueue<T>(
 ) : AgentMessageQueue<T> {
 
     private val queue: Queue<Pair<AgentMessageDestination, T>> = ConcurrentLinkedQueue()
-    private var size: Long = 0
+    private var bytesSize: Long = 0
 
-    override fun add(e: Pair<AgentMessageDestination, T>) = if (size < capacity) {
+    override fun add(e: Pair<AgentMessageDestination, T>) = if (bytesSize + sizeOf(e) <= capacity) {
         queue.add(e).also { increaseSize(e) }
     } else {
-        throw IllegalArgumentException("Queue full")
+        throw IllegalArgumentException("Queue is out of capacity")
     }
 
-    override fun offer(e: Pair<AgentMessageDestination, T>) = if (size < capacity) {
+    override fun offer(e: Pair<AgentMessageDestination, T>) = if (bytesSize + sizeOf(e) <= capacity) {
         queue.offer(e).also { if (it) increaseSize(e) }
     } else {
         false
@@ -49,15 +49,17 @@ class InMemoryAgentMessageQueue<T>(
 
     override fun size(): Int = queue.size
 
+    fun bytesSize(): Long = bytesSize
+
     private fun sizeOf(e: Pair<AgentMessageDestination, T>) =
         messageSerializer.sizeOf(e.first) + messageSerializer.sizeOf(e.second)
 
     private fun increaseSize(e: Pair<AgentMessageDestination, T>) {
-        size += sizeOf(e)
+        bytesSize += sizeOf(e)
     }
 
     private fun decreaseSize(e: Pair<AgentMessageDestination, T>) {
-        size -= sizeOf(e)
+        bytesSize -= sizeOf(e)
     }
 
 }

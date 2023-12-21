@@ -61,6 +61,12 @@ kotlin {
                 implementation("org.apache.httpcomponents.client5:httpclient5:$apacheHttpClientVersion")
             }
         }
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test-junit"))
+                implementation("io.mockk:mockk:1.9.3")
+            }
+        }
         val nativeMain by creating {
             dependsOn(commonMain)
             dependencies {
