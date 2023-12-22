@@ -45,14 +45,15 @@ class RetryingAgentConfigSender<T>(
         val destination = destinationMapper.map(AgentMessageDestination("PUT", "agent-config"))
         val cType = contentType.takeIf(String::isNotEmpty) ?: messageSerializer.contentType()
         val send: () -> ResponseStatus = { transport.send(destination, config, cType) }
-        val logError: (Throwable) -> Unit = { logger.error(it) { "sendAgentConfig: Attempt is failed: $it" } }
-        logger.debug { "sendAgentConfig: Sending to admin server" }
+        val logError: (Throwable) -> Unit = { logger.error(it) { "send: Attempt is failed: $it" } }
+        val logResp: (ResponseStatus) -> Unit = { logger.info { "send: HTTP status received: ${it.statusObject}" } }
+        logger.debug { "send: Sending to admin server" }
         var success = false
         while(!success) {
-            success = runCatching(send).onFailure(logError).getOrElse(::ErrorResponseStatus).success
+            success = runCatching(send).onFailure(logError).onSuccess(logResp).getOrElse(::ErrorResponseStatus).success
             if(!success) Thread.sleep(500)
         }
-        logger.debug { "sendAgentConfig: Sending to admin server: successful" }
+        logger.debug { "send: Sending to admin server: successful" }
         sent = true
         stateListeners.forEach(TransportStateListener::onStateAlive)
     }

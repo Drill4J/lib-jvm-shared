@@ -96,7 +96,7 @@ open class QueuedAgentMessageSender<T>(
 
     private fun send(message: Pair<AgentMessageDestination, T>): ResponseStatus {
         val contentType = messageSerializer.contentType()
-        logger.trace { "execute: Sending to ${message.first}, message=${message.second}, contentType=$contentType" }
+        logger.trace { "send: Sending to ${message.first}, message=${message.second}, contentType=$contentType" }
         return transport.send(message.first, message.second, contentType)
     }
 
