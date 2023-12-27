@@ -15,8 +15,7 @@ version = Properties().run {
     getProperty("version.$name") ?: Project.DEFAULT_VERSION
 }
 
-val kotlinxSerializationVersion: String by parent!!.extra
-val apacheHttpClientVersion: String by parent!!.extra
+val ktorVersion: String by parent!!.extra
 
 repositories {
     mavenLocal()
@@ -25,23 +24,29 @@ repositories {
 
 kotlin {
     targets {
-        jvm()
+        linuxX64()
+        mingwX64()
+        macosX64()
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        val jvmMain by getting {
+        val commonMain by getting
+        val posixMain by creating {
+            dependsOn(commonMain)
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
-                implementation("org.apache.httpcomponents.client5:httpclient5:$apacheHttpClientVersion")
-                implementation(project(":logging"))
-                implementation(project(":common"))
+                implementation("io.ktor:ktor-utils:$ktorVersion")
             }
         }
-        val jvmTest by getting {
+        val mingwX64Main by getting {
             dependencies {
-                implementation(kotlin("test-junit"))
-                implementation("io.mockk:mockk:1.9.3")
+                implementation("io.ktor:ktor-utils:$ktorVersion")
             }
+        }
+        val linuxX64Main by getting {
+            dependsOn(posixMain)
+        }
+        val macosX64Main by getting {
+            dependsOn(posixMain)
         }
     }
 }

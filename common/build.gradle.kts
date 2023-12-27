@@ -28,14 +28,9 @@ kotlin {
         linuxX64()
         mingwX64()
         macosX64()
-        macosArm64()
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        all {
-            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
-            languageSettings.optIn("kotlinx.serialization.InternalSerializationApi")
-        }
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
