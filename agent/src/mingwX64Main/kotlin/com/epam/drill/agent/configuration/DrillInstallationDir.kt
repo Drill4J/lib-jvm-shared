@@ -30,5 +30,5 @@ private fun fromWmic() = memScoped {
     val pid = getpid()
     val command = "wmic process where \"processid='$pid'\" get commandline"
     val file = popen?.invoke(command.cstr.getPointer(this), "r".cstr.getPointer(this))
-    file?.let { Input(file).readText().also { pclose?.invoke(file) } }
+    file?.let(::Input)?.readText()?.also { pclose?.invoke(file) }
 }

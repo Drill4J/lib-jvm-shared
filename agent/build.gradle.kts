@@ -19,6 +19,7 @@ val kotlinxCollectionsVersion: String by parent!!.extra
 val kotlinxCoroutinesVersion: String by parent!!.extra
 val kotlinxSerializationVersion: String by parent!!.extra
 val apacheHttpClientVersion: String by parent!!.extra
+val ktorVersion: String by parent!!.extra
 
 repositories {
     mavenLocal()
@@ -48,17 +49,13 @@ kotlin {
             languageSettings.optIn("io.ktor.util.InternalAPI")
             languageSettings.optIn("io.ktor.utils.io.core.ExperimentalIoApi")
         }
-        val commonMain by getting {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
-                implementation(project(":logging"))
-                implementation(project(":common"))
-            }
-        }
+        val commonMain by getting
         val jvmMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
                 implementation("org.apache.httpcomponents.client5:httpclient5:$apacheHttpClientVersion")
+                implementation(project(":logging"))
+                implementation(project(":common"))
             }
         }
         val jvmTest by getting {
@@ -67,22 +64,19 @@ kotlin {
                 implementation("io.mockk:mockk:1.9.3")
             }
         }
-        val nativeMain by creating {
+        val posixMain by creating {
             dependsOn(commonMain)
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:$kotlinxCollectionsVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
-                implementation(project(":interceptor-http"))
+                implementation("io.ktor:ktor-utils:$ktorVersion")
             }
         }
-        val posixMain by creating {
-            dependsOn(nativeMain)
+        val mingwX64Main by getting {
+            dependencies {
+                implementation("io.ktor:ktor-utils:$ktorVersion")
+            }
         }
         val linuxX64Main by getting {
             dependsOn(posixMain)
-        }
-        val mingwX64Main by getting {
-            dependsOn(nativeMain)
         }
         val macosX64Main by getting {
             dependsOn(posixMain)

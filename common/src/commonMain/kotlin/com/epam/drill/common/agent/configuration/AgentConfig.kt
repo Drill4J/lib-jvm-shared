@@ -26,6 +26,5 @@ data class AgentConfig(
     val serviceGroupId: String,
     val agentType: AgentType,
     val agentVersion: String = "",
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
-    val parameters: Map<String, AgentParameter> = emptyMap()
+    val packagesPrefixes: List<String> = emptyList()
 ) : AgentMessage()
