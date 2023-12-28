@@ -15,20 +15,20 @@
  */
 package com.epam.drill.agent.transport
 
-import com.epam.drill.common.agent.configuration.AgentConfig
+import com.epam.drill.common.agent.configuration.AgentMetadata
 
 /**
- * An interface to send [AgentConfig] object.
- * Moved to the separate interface as no messages should be sent before [AgentConfig] message.
+ * An interface to send [AgentMetadata] object.
+ * Moved to the separate interface as no messages should be sent before [AgentMetadata] message.
  *
- * It's used for initial send of [AgentConfig] and has [configSent] property 'false' before that
+ * It's used for initial send of [AgentMetadata] and has [metadataSent] property 'false' before that
  * to indicate that transport is in unavailable state.
  *
- * @see [AgentConfig]
+ * @see [AgentMetadata]
  * @see [com.epam.drill.common.agent.transport.AgentMessageSender]
  */
-interface AgentConfigSender<T> : TransportStateNotifier {
-    val configSent: Boolean
-    fun send(config: T, contentType: String = ""): Thread
-    fun send(config: AgentConfig): Thread
+interface AgentMetadataSender<T> : TransportStateNotifier {
+    val metadataSent: Boolean
+    fun send(metadata: T, contentType: String = ""): Thread
+    fun send(metadata: AgentMetadata): Thread
 }

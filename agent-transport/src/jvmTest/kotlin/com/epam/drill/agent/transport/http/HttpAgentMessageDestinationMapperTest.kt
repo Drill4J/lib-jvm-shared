@@ -24,8 +24,8 @@ class HttpAgentMessageDestinationMapperTest {
     private val mapper = HttpAgentMessageDestinationMapper("someAgentId", "someBuildVer")
 
     @Test
-    fun `map AgentConfig`() {
-        val destination = AgentMessageDestination("SOME", "agent-config")
+    fun `map AgentMetadata`() {
+        val destination = AgentMessageDestination("SOME", "agent-metadata")
         val mapped = mapper.map(destination)
         assertEquals("api/agents", mapped.target)
         assertEquals("SOME", mapped.type)

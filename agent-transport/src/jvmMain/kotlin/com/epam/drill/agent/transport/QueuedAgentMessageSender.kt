@@ -29,7 +29,7 @@ private const val TRANSPORT_ERR = "Transport is in unavailable state"
  * A [AgentMessageSender] implementation with [AgentMessageQueue] for storing
  * serialized messages when transport in unavailable state.
  *
- * It also implements [AgentConfigSender] for initial availability status.
+ * It also implements [AgentMetadataSender] for initial availability status.
  *
  * The [AgentMessageSender]'s [available] state may be changed to 'false' both by
  * external [TransportStateNotifier] and exception during message send by [AgentMessageTransport].
@@ -43,7 +43,7 @@ private const val TRANSPORT_ERR = "Transport is in unavailable state"
  * @see AgentMessageSender
  * @see AgentMessageQueue
  * @see AgentMessageTransport
- * @see AgentConfigSender
+ * @see AgentMetadataSender
  * @see TransportStateNotifier
  * @see TransportStateListener
  */
@@ -51,11 +51,11 @@ open class QueuedAgentMessageSender<T>(
     private val transport: AgentMessageTransport<T>,
     private val messageSerializer: AgentMessageSerializer<T>,
     private val destinationMapper: AgentMessageDestinationMapper,
-    agentConfigSender: AgentConfigSender<T>,
+    agentMetadataSender: AgentMetadataSender<T>,
     transportStateNotifier: TransportStateNotifier,
     private val transportStateListener: TransportStateListener?,
     private val messageQueue: AgentMessageQueue<T>
-) : AgentMessageSender, AgentConfigSender<T> by agentConfigSender, TransportStateListener {
+) : AgentMessageSender, AgentMetadataSender<T> by agentMetadataSender, TransportStateListener {
 
     private val logger = KotlinLogging.logger {}
 
@@ -63,12 +63,12 @@ open class QueuedAgentMessageSender<T>(
     internal var sendingThread: Thread? = null
 
     init {
-        agentConfigSender.addStateListener(this)
+        agentMetadataSender.addStateListener(this)
         transportStateNotifier.addStateListener(this)
     }
 
     override val available
-        get() = configSent && alive
+        get() = metadataSent && alive
 
     override fun send(destination: AgentMessageDestination, message: AgentMessage): ResponseStatus {
         val mappedDestination = destinationMapper.map(destination)

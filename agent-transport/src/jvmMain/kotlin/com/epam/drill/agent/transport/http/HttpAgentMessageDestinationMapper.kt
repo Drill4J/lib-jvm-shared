@@ -24,7 +24,7 @@ class HttpAgentMessageDestinationMapper(
 ) : AgentMessageDestinationMapper {
 
     override fun map(destination: AgentMessageDestination): AgentMessageDestination = when(destination.target) {
-        "agent-config" -> destination.copy(target = "api/agents")
+        "agent-metadata" -> destination.copy(target = "api/agents")
         else -> destination.copy(target = "api/agents/$agentId/builds/$buildVersion/${destination.target}")
     }
 

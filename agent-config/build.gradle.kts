@@ -24,13 +24,21 @@ repositories {
 
 kotlin {
     targets {
+        jvm()
         linuxX64()
         mingwX64()
         macosX64()
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        val commonMain by getting
+        all {
+            languageSettings.optIn("io.ktor.utils.io.core.ExperimentalIoApi")
+        }
+        val commonMain by getting {
+            dependencies {
+                implementation(project(":common"))
+            }
+        }
         val posixMain by creating {
             dependsOn(commonMain)
             dependencies {

@@ -16,35 +16,35 @@
 package com.epam.drill.agent.transport
 
 import kotlin.concurrent.thread
-import com.epam.drill.common.agent.configuration.AgentConfig
+import com.epam.drill.common.agent.configuration.AgentMetadata
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 import com.epam.drill.common.agent.transport.ResponseStatus
 import mu.KotlinLogging
 
-class RetryingAgentConfigSender<T>(
+class RetryingAgentMetadataSender<T>(
     private val transport: AgentMessageTransport<T>,
     private val messageSerializer: AgentMessageSerializer<T>,
     private val destinationMapper: AgentMessageDestinationMapper
-) : AgentConfigSender<T> {
+) : AgentMetadataSender<T> {
 
     private val logger = KotlinLogging.logger {}
     private val stateListeners = mutableSetOf<TransportStateListener>()
     private var sent = false
 
-    override val configSent: Boolean
+    override val metadataSent: Boolean
         get() = sent
 
     override fun addStateListener(listener: TransportStateListener) {
         stateListeners.add(listener)
     }
 
-    override fun send(config: AgentConfig) =
-        send(messageSerializer.serialize(config), messageSerializer.contentType())
+    override fun send(metadata: AgentMetadata) =
+        send(messageSerializer.serialize(metadata), messageSerializer.contentType())
 
-    override fun send(config: T, contentType: String) = thread {
-        val destination = destinationMapper.map(AgentMessageDestination("PUT", "agent-config"))
+    override fun send(metadata: T, contentType: String) = thread {
+        val destination = destinationMapper.map(AgentMessageDestination("PUT", "agent-metadata"))
         val cType = contentType.takeIf(String::isNotEmpty) ?: messageSerializer.contentType()
-        val send: () -> ResponseStatus = { transport.send(destination, config, cType) }
+        val send: () -> ResponseStatus = { transport.send(destination, metadata, cType) }
         val logError: (Throwable) -> Unit = { logger.error(it) { "send: Attempt is failed: $it" } }
         val logResp: (ResponseStatus) -> Unit = { logger.info { "send: HTTP status received: ${it.statusObject}" } }
         logger.debug { "send: Sending to admin server" }

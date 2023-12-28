@@ -19,7 +19,7 @@ import kotlinx.serialization.Serializable
 import com.epam.drill.common.agent.transport.AgentMessage
 
 @Serializable
-data class AgentConfig(
+data class AgentMetadata(
     val id: String,
     val instanceId: String,
     val buildVersion: String,

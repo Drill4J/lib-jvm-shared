@@ -21,7 +21,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import java.io.IOException
-import com.epam.drill.common.agent.configuration.AgentConfig
+import com.epam.drill.common.agent.configuration.AgentMetadata
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 import com.epam.drill.common.agent.transport.ResponseStatus
 import io.mockk.ConstantAnswer
@@ -34,7 +34,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 
-class RetryingAgentConfigSenderTest {
+class RetryingAgentMetadataSenderTest {
 
     @MockK
     private lateinit var messageTransport: AgentMessageTransport<String>
@@ -49,7 +49,7 @@ class RetryingAgentConfigSenderTest {
     @MockK
     private lateinit var stateListener: TransportStateListener
 
-    private lateinit var sender: RetryingAgentConfigSender<String>
+    private lateinit var sender: RetryingAgentMetadataSender<String>
 
     private val destination = slot<AgentMessageDestination>()
 
@@ -59,17 +59,17 @@ class RetryingAgentConfigSenderTest {
         every { messageSerializer.contentType() } returns "test/test"
         every { destinationMapper.map(capture(destination)) } returns messageDestination
         every { stateListener.onStateAlive() } returns Unit
-        sender = RetryingAgentConfigSender(messageTransport, messageSerializer, destinationMapper)
+        sender = RetryingAgentMetadataSender(messageTransport, messageSerializer, destinationMapper)
         sender.addStateListener(stateListener)
     }
 
     @Test
-    fun `sending successful for AgentConfig`() {
+    fun `sending successful for AgentMetadata`() {
         every { messageTransport.send(any(), any(), any()) } returns responseStatus
         every { responseStatus.success } returns true
 
-        assertFalse(sender.configSent)
-        val config = mockk<AgentConfig>()
+        assertFalse(sender.metadataSent)
+        val config = mockk<AgentMetadata>()
         val thread = sender.send(config)
 
         thread.join(5000)
@@ -83,7 +83,7 @@ class RetryingAgentConfigSenderTest {
         every { messageTransport.send(any(), any(), any()) } returns responseStatus
         every { responseStatus.success } returns true
 
-        assertFalse(sender.configSent)
+        assertFalse(sender.metadataSent)
         val thread = sender.send("somestring")
 
         thread.join(5000)
@@ -95,7 +95,7 @@ class RetryingAgentConfigSenderTest {
         every { messageTransport.send(any(), any(), any()) } returns responseStatus
         every { responseStatus.success } returns true
 
-        assertFalse(sender.configSent)
+        assertFalse(sender.metadataSent)
         val thread = sender.send("somestring", "test/custom")
 
         thread.join(5000)
@@ -107,8 +107,8 @@ class RetryingAgentConfigSenderTest {
         every { messageTransport.send(any(), any(), any()) } returns responseStatus
         every { responseStatus.success } returnsMany listOf(false, false, false, false, true)
 
-        assertFalse(sender.configSent)
-        val thread = sender.send(mockk<AgentConfig>())
+        assertFalse(sender.metadataSent)
+        val thread = sender.send(mockk<AgentMetadata>())
 
         Thread.sleep(1000)
         verifyMethodCallsBeforeSend("serialized", "test/test")
@@ -128,8 +128,8 @@ class RetryingAgentConfigSenderTest {
         ))
         every { responseStatus.success } returns true
 
-        assertFalse(sender.configSent)
-        val thread = sender.send(mockk<AgentConfig>())
+        assertFalse(sender.metadataSent)
+        val thread = sender.send(mockk<AgentMetadata>())
 
         Thread.sleep(1000)
         verifyMethodCallsBeforeSend("serialized", "test/test")
@@ -142,7 +142,7 @@ class RetryingAgentConfigSenderTest {
     private fun verifyMethodCallsBeforeSend(payload: String, contentType: String) {
         verify(atLeast = 1) { messageTransport.send(messageDestination, payload, contentType) }
         verify(exactly = 0) { stateListener.onStateAlive() }
-        assertFalse(sender.configSent)
+        assertFalse(sender.metadataSent)
     }
 
     private fun verifyMethodCallsAfterSend(sendCount: Int, payload: String, contentType: String) {
@@ -151,9 +151,9 @@ class RetryingAgentConfigSenderTest {
         verify(exactly = 1) { destinationMapper.map(any()) }
         verify(exactly = 1) { destinationMapper.map(destination.captured) }
         verify(exactly = 1) { stateListener.onStateAlive() }
-        assertTrue(sender.configSent)
+        assertTrue(sender.metadataSent)
         assertEquals("PUT", destination.captured.type)
-        assertEquals("agent-config", destination.captured.target)
+        assertEquals("agent-metadata", destination.captured.target)
     }
 
 }

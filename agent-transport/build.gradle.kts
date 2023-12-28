@@ -29,6 +29,9 @@ kotlin {
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
+        all {
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+        }
         val jvmMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")

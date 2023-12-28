@@ -23,10 +23,10 @@ open class SimpleAgentMessageSender<T>(
     private val transport: AgentMessageTransport<T>,
     private val messageSerializer: AgentMessageSerializer<T>,
     private val destinationMapper: AgentMessageDestinationMapper,
-    agentConfigSender: AgentConfigSender<T>
-) : AgentMessageSender, AgentConfigSender<T> by agentConfigSender {
+    agentMetadataSender: AgentMetadataSender<T>
+) : AgentMessageSender, AgentMetadataSender<T> by agentMetadataSender {
 
-    override val available: Boolean by agentConfigSender::configSent
+    override val available: Boolean by agentMetadataSender::metadataSent
 
     override fun send(destination: AgentMessageDestination, message: AgentMessage) = transport.send(
         destinationMapper.map(destination),

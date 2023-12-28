@@ -43,7 +43,7 @@ class InMemoryAgentMessageQueueTest {
         for(i in 1..10) queue.add(Pair(messageDestination, "somestring"))
 
         assertEquals(10, queue.size())
-        assertEquals(110 * 10, queue.bytesSize())
+        assertEquals(110L * 10, queue.bytesSize())
     }
 
     @Test
@@ -52,7 +52,7 @@ class InMemoryAgentMessageQueueTest {
         for(i in 1..10) queue.offer(Pair(messageDestination, "somestring"))
 
         assertEquals(10, queue.size())
-        assertEquals(110 * 10, queue.bytesSize())
+        assertEquals(110L * 10, queue.bytesSize())
     }
 
     @Test
@@ -109,7 +109,7 @@ class InMemoryAgentMessageQueueTest {
         for(i in 1..9) queue.add(Pair(messageDestination, "somestring"))
 
         assertEquals(9, queue.size())
-        assertEquals(110 * 9, queue.bytesSize())
+        assertEquals(110L * 9, queue.bytesSize())
 
         queue.add(Pair(messageDestination, "somestring"))
     }
@@ -120,7 +120,7 @@ class InMemoryAgentMessageQueueTest {
         for(i in 1..10) queue.offer(Pair(messageDestination, "somestring"))
 
         assertEquals(9, queue.size())
-        assertEquals(110 * 9, queue.bytesSize())
+        assertEquals(110L * 9, queue.bytesSize())
     }
 
     @Test(expected = NoSuchElementException::class)

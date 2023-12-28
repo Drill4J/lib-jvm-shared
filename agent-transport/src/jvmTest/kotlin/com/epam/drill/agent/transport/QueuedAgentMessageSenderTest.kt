@@ -47,7 +47,7 @@ class QueuedAgentMessageSenderTest {
     @MockK
     private lateinit var destinationMapper: AgentMessageDestinationMapper
     @MockK
-    private lateinit var configSender: AgentConfigSender<String>
+    private lateinit var configSender: AgentMetadataSender<String>
     @MockK
     private lateinit var stateNotifier: TransportStateNotifier
     @MockK
@@ -95,10 +95,10 @@ class QueuedAgentMessageSenderTest {
 
     @Test
     fun `available only after config sent`() {
-        every { configSender.configSent } returns false
+        every { configSender.metadataSent } returns false
         assertFalse(sender.available)
 
-        every { configSender.configSent } returns true
+        every { configSender.metadataSent } returns true
         assertTrue(sender.available)
 
         verifyInitialization()
@@ -106,7 +106,7 @@ class QueuedAgentMessageSenderTest {
 
     @Test
     fun `sending successful after config sent`() {
-        every { configSender.configSent } returns true
+        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns true
         every {messageTransport.send(
             capture(toSendDestinations),
@@ -138,7 +138,7 @@ class QueuedAgentMessageSenderTest {
 
     @Test
     fun `sending queued before config sent`() {
-        every { configSender.configSent } returns false
+        every { configSender.metadataSent } returns false
         every { responseStatus.success } returns true
         every { messageTransport.send(any(), any(), any()) } returns responseStatus
 
@@ -165,7 +165,7 @@ class QueuedAgentMessageSenderTest {
 
     @Test
     fun `sending successful for error response`() {
-        every { configSender.configSent } returns true
+        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns false
         every { messageTransport.send(
             capture(toSendDestinations),
@@ -197,7 +197,7 @@ class QueuedAgentMessageSenderTest {
 
     @Test
     fun `sending queued for exception response`() {
-        every { configSender.configSent } returns true
+        every { configSender.metadataSent } returns true
         every {messageTransport.send(
             capture(toSendDestinations),
             capture(toSendMessages),
@@ -232,7 +232,7 @@ class QueuedAgentMessageSenderTest {
 
     @Test
     fun `queue sent successful after state-alive`() {
-        every { configSender.configSent } returns true
+        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns true
         every { messageTransport.send(
             capture(toSendDestinations),
@@ -258,7 +258,7 @@ class QueuedAgentMessageSenderTest {
 
     @Test
     fun `queue send failed after state-alive`() {
-        every { configSender.configSent } returns true
+        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns true
         every { messageTransport.send(
             capture(toSendDestinations),
@@ -282,7 +282,7 @@ class QueuedAgentMessageSenderTest {
 
     @Test
     fun `queue send partially after state-alive`() {
-        every { configSender.configSent } returns true
+        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns true
         every { messageTransport.send(
             capture(toSendDestinations),

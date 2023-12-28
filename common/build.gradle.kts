@@ -31,6 +31,9 @@ kotlin {
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
+        all {
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
+        }
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
