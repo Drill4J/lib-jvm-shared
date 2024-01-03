@@ -50,6 +50,7 @@ data class AstMethod(
     val returnType: String,
     val probes: List<Int> = emptyList(),
     val checksum: String = "",
+    val probesStartPos: Int = 0,
 ) {
     val count: Int = probes.size
 }
