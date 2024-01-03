@@ -18,29 +18,10 @@ package com.epam.drill.agent.configuration
 import com.epam.drill.common.agent.configuration.AgentParameterDefinition
 import com.epam.drill.common.agent.configuration.AgentParameters
 
-class DefaultAgentParameters(
-    private val inputParameters: Map<String, String>,
-    private val definedParameters: MutableMap<String, Any> = mutableMapOf()
+expect class DefaultAgentParameters(
+    inputParameters: Map<String, String>
 ) : AgentParameters {
-
-    private val definitions = mutableMapOf<String, AgentParameterDefinition<out Any>>()
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> get(name: String): T = definedParameters[name]!! as T
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> get(definition: AgentParameterDefinition<T>): T {
-        if(!definedParameters.containsKey(definition.name)) define(definition)
-        return definedParameters[definition.name]!! as T
-    }
-
-    override fun define(definition: AgentParameterDefinition<out Any>) {
-        definitions[definition.name] = definition
-        definedParameters[definition.name] = inputParameters[definition.name]
-            .also(definition.validator)
-            ?.runCatching(definition.parser)
-            ?.getOrNull()
-            ?: definition.defaultValue
-    }
-
+    override fun <T : Any> get(name: String): T
+    override fun <T : Any> get(definition: AgentParameterDefinition<T>): T
+    override fun define(vararg definitions: AgentParameterDefinition<out Any>)
 }

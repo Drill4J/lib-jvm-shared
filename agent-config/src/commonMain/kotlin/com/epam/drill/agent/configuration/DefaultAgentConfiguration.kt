@@ -22,4 +22,5 @@ import com.epam.drill.common.agent.configuration.AgentParameters
 expect class DefaultAgentConfiguration : AgentConfiguration {
     override val agentMetadata: AgentMetadata
     override val parameters: AgentParameters
+    val inputParameters: Map<String, String>
 }

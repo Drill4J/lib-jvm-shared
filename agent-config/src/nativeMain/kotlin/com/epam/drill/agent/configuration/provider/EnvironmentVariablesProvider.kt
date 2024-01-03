@@ -22,7 +22,9 @@ class EnvironmentVariablesProvider(
     override val priority: Int = 500
 ) : AgentConfigurationProvider {
 
-    override val configuration = runCatching(AgentProcessMetadata::environmentVars::get).getOrNull()
+    override val configuration = configuration()
+
+    private fun configuration() = runCatching(AgentProcessMetadata::environmentVars::get).getOrNull()
         ?.filterKeys { it.startsWith("DRILL_") }
         ?.mapKeys(::toParameterName)
         ?: emptyMap()

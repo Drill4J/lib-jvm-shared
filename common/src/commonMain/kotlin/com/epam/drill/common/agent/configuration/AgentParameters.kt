@@ -21,6 +21,6 @@ interface AgentParameters {
 
     operator fun <T : Any> get(definition: AgentParameterDefinition<T>): T
 
-    fun define(definition: AgentParameterDefinition<out Any>)
+    fun define(vararg definitions: AgentParameterDefinition<out Any>)
 
 }

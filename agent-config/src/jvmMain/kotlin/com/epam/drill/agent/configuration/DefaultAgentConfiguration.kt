@@ -18,13 +18,26 @@ package com.epam.drill.agent.configuration
 import com.epam.drill.common.agent.configuration.AgentConfiguration
 import com.epam.drill.common.agent.configuration.AgentMetadata
 import com.epam.drill.common.agent.configuration.AgentParameters
+import com.epam.drill.common.agent.configuration.AgentType
 
 actual class DefaultAgentConfiguration(
-    actual override val agentMetadata: AgentMetadata,
-    inputParameters: Map<String, String>,
-    definedParameters: MutableMap<String, Any>
+    private val _inputParameters: Map<String, String>
 ) : AgentConfiguration {
 
-    actual override val parameters: AgentParameters = DefaultAgentParameters(inputParameters, definedParameters)
+    actual override val parameters: AgentParameters = DefaultAgentParameters(_inputParameters)
+    actual override val agentMetadata = agentMetadata()
+
+    actual val inputParameters: Map<String, String>
+        get() = _inputParameters.toMap()
+
+    private fun agentMetadata() = AgentMetadata(
+        id = parameters[DefaultParameterDefinitions.AGENT_ID],
+        instanceId = parameters[DefaultParameterDefinitions.INSTANCE_ID],
+        buildVersion = parameters[DefaultParameterDefinitions.BUILD_VERSION],
+        serviceGroupId = parameters[DefaultParameterDefinitions.GROUP_ID],
+        agentType = AgentType.JAVA,
+        agentVersion = parameters[DefaultParameterDefinitions.AGENT_VERSION],
+        packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES]
+    )
 
 }
