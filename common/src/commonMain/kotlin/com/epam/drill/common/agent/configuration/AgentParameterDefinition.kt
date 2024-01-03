@@ -20,50 +20,57 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-open class AgentParameterDefinition<T> (
+class AgentParameterDefinition<T : Any>(
     val name: String,
-    val type: KClass<out Any>,
+    val type: KClass<T>,
+    val defaultValue: T,
     val parser: (String) -> T,
-    val validator: (String) -> Unit,
-    val defaultValue: T?
+    val validator: (String?) -> Unit
 ) {
 
     companion object {
 
+        inline fun <reified T : Any> forType(
+            name: String,
+            defaultValue: T,
+            noinline parser: (String) -> T,
+            noinline validator: (String?) -> Unit = {}
+        ) = AgentParameterDefinition(name, T::class, defaultValue, parser, validator)
+
         fun forString(
             name: String,
+            defaultValue: String = "",
             parser: (String) -> String = { it },
-            validator: (String) -> Unit = {},
-            defaultValue: String? = null
-        ) = AgentParameterDefinition(name, String::class, parser, validator, defaultValue)
+            validator: (String?) -> Unit = {}
+        ) = AgentParameterDefinition(name, String::class, defaultValue, parser, validator)
 
         fun forBoolean(
             name: String,
+            defaultValue: Boolean = false,
             parser: (String) -> Boolean = { it.toBoolean() },
-            validator: (String) -> Unit = {},
-            defaultValue: Boolean? = null
-        ) = AgentParameterDefinition(name, Boolean::class, parser, validator, defaultValue)
+            validator: (String?) -> Unit = {}
+        ) = AgentParameterDefinition(name, Boolean::class, defaultValue, parser, validator)
 
         fun forInt(
             name: String,
+            defaultValue: Int = 0,
             parser: (String) -> Int = { it.toInt() },
-            validator: (String) -> Unit = {},
-            defaultValue: Int? = null
-        ) = AgentParameterDefinition(name, Int::class, parser, validator, defaultValue)
+            validator: (String?) -> Unit = {}
+        ) = AgentParameterDefinition(name, Int::class, defaultValue, parser, validator)
 
         fun forLong(
             name: String,
+            defaultValue: Long = 0L,
             parser: (String) -> Long = { it.toLong() },
-            validator: (String) -> Unit = {},
-            defaultValue: Long? = null
-        ) = AgentParameterDefinition(name, Long::class, parser, validator, defaultValue)
+            validator: (String?) -> Unit = {}
+        ) = AgentParameterDefinition(name, Long::class, defaultValue, parser, validator)
 
         fun forDuration(
             name: String,
+            defaultValue: Duration = Duration.ZERO,
             parser: (String) -> Duration = { it.toLong().toDuration(DurationUnit.MILLISECONDS) },
-            validator: (String) -> Unit = {},
-            defaultValue: Duration? = null
-        ) = AgentParameterDefinition(name, Duration::class, parser, validator, defaultValue)
+            validator: (String?) -> Unit = {}
+        ) = AgentParameterDefinition(name, Duration::class, defaultValue, parser, validator)
 
     }
 

@@ -17,10 +17,10 @@ package com.epam.drill.common.agent.configuration
 
 interface AgentParameters {
 
-    operator fun <T> get(name: String): T?
+    operator fun <T : Any> get(name: String): T
 
-    operator fun <T> get(definition: AgentParameterDefinition<T>): T?
+    operator fun <T : Any> get(definition: AgentParameterDefinition<T>): T
 
-    fun define(definition: AgentParameterDefinition<Any>)
+    fun define(definition: AgentParameterDefinition<out Any>)
 
 }

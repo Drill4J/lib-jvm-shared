@@ -1,7 +1,4 @@
-import java.net.URI
 import java.util.Properties
-import com.hierynomus.gradle.license.tasks.LicenseCheck
-import com.hierynomus.gradle.license.tasks.LicenseFormat
 
 plugins {
     kotlin("multiplatform")

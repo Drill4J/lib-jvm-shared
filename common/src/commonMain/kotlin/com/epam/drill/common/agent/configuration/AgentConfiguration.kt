@@ -17,7 +17,5 @@ package com.epam.drill.common.agent.configuration
 
 interface AgentConfiguration {
     val agentMetadata: AgentMetadata
-    val adminAddress: String
-    val requestPattern: String
     val parameters: AgentParameters
 }
