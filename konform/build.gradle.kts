@@ -24,11 +24,6 @@ kotlin {
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                kotlin("stdlib")
-            }
-        }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
