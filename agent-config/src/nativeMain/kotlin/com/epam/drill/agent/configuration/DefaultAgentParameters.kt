@@ -17,6 +17,7 @@ package com.epam.drill.agent.configuration
 
 import kotlin.native.concurrent.AtomicReference
 import kotlin.native.concurrent.freeze
+import kotlin.reflect.KProperty
 import com.epam.drill.common.agent.configuration.AgentParameterDefinition
 import com.epam.drill.common.agent.configuration.AgentParameters
 
@@ -28,13 +29,18 @@ actual class DefaultAgentParameters actual constructor(
     private val parameterDefinitions = AtomicReference(mapOf<String, AgentParameterDefinition<out Any>>())
 
     @Suppress("UNCHECKED_CAST")
-    actual override fun <T : Any> get(name: String): T = definedParameters.value[name]!! as T
+    actual override operator fun <T : Any> get(name: String): T =
+        definedParameters.value[name]!! as T
 
     @Suppress("UNCHECKED_CAST")
-    actual override fun <T : Any> get(definition: AgentParameterDefinition<T>): T {
+    actual override operator fun <T : Any> get(definition: AgentParameterDefinition<T>): T {
         if (!parameterDefinitions.value.containsKey(definition.name)) define(definition)
         return definedParameters.value[definition.name]!! as T
     }
+
+    @Suppress("UNCHECKED_CAST")
+    actual override operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T =
+        definedParameters.value[property.name]!! as T
 
     actual override fun define(vararg definitions: AgentParameterDefinition<out Any>) {
         val updatedDefinitions = parameterDefinitions.value.toMutableMap()

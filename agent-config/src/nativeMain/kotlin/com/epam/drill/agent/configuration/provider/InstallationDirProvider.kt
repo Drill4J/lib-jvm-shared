@@ -28,9 +28,7 @@ class InstallationDirProvider(
 
     private val pathSeparator = if (Platform.osFamily == OsFamily.WINDOWS) "\\" else "/"
 
-    override val configuration = configuration()
-
-    private fun configuration() = mapOf(Pair(DefaultParameterDefinitions.INSTALLATION_DIR.name, installationDir()))
+    override val configuration = mapOf(Pair(DefaultParameterDefinitions.INSTALLATION_DIR.name, installationDir()))
 
     private fun installationDir() = fromProviders()
         ?: fromJavaToolOptions()

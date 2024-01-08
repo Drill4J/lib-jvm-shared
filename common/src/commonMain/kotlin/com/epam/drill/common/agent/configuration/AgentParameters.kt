@@ -15,12 +15,11 @@
  */
 package com.epam.drill.common.agent.configuration
 
+import kotlin.reflect.KProperty
+
 interface AgentParameters {
-
     operator fun <T : Any> get(name: String): T
-
     operator fun <T : Any> get(definition: AgentParameterDefinition<T>): T
-
+    operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T
     fun define(vararg definitions: AgentParameterDefinition<out Any>)
-
 }

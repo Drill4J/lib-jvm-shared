@@ -35,7 +35,7 @@ actual class DefaultAgentConfiguration(
     private fun inputParameters() = configurationProviders
         .sortedBy(AgentConfigurationProvider::priority)
         .map(AgentConfigurationProvider::configuration)
-        .reduce { acc, map -> acc.plus(map) }
+        .reduce { acc, map -> acc + map }
 
     private fun defineDefaults(agentParameters: AgentParameters) = agentParameters.define(
         DefaultParameterDefinitions.AGENT_ID,

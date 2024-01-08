@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.configuration
 
+import kotlin.reflect.KProperty
 import com.epam.drill.common.agent.configuration.AgentParameterDefinition
 import com.epam.drill.common.agent.configuration.AgentParameters
 
@@ -26,13 +27,18 @@ actual class DefaultAgentParameters actual constructor(
     private val parameterDefinitions = mutableMapOf<String, AgentParameterDefinition<out Any>>()
 
     @Suppress("UNCHECKED_CAST")
-    actual override fun <T : Any> get(name: String): T = definedParameters[name]!! as T
+    actual override operator fun <T : Any> get(name: String): T =
+        definedParameters[name]!! as T
 
     @Suppress("UNCHECKED_CAST")
-    actual override fun <T : Any> get(definition: AgentParameterDefinition<T>): T {
+    actual override operator fun <T : Any> get(definition: AgentParameterDefinition<T>): T {
         if (!parameterDefinitions.containsKey(definition.name)) define(definition)
         return definedParameters[definition.name]!! as T
     }
+
+    @Suppress("UNCHECKED_CAST")
+    actual override operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T =
+        definedParameters[property.name]!! as T
 
     actual override fun define(vararg definitions: AgentParameterDefinition<out Any>) {
         definitions.forEach {
