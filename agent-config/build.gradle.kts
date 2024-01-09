@@ -39,23 +39,25 @@ kotlin {
                 implementation(project(":common"))
             }
         }
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
         val nativeMain by creating {
             dependsOn(commonMain)
             dependencies {
                 implementation("io.ktor:ktor-utils:$ktorVersion")
             }
         }
-        val posixMain by creating {
-            dependsOn(nativeMain)
-        }
         val mingwX64Main by getting {
             dependsOn(nativeMain)
         }
         val linuxX64Main by getting {
-            dependsOn(posixMain)
+            dependsOn(nativeMain)
         }
         val macosX64Main by getting {
-            dependsOn(posixMain)
+            dependsOn(nativeMain)
         }
     }
 }

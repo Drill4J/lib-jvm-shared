@@ -23,10 +23,12 @@ import com.epam.drill.agent.configuration.DefaultParameterDefinitions
 
 class InstallationDirProvider(
     private val configurationProviders: Set<AgentConfigurationProvider>,
-    override val priority: Int = 300
+    override val priority: Int = 300,
+    agentLibName: String = "drill-agent"
 ) : AgentConfigurationProvider {
 
-    private val pathSeparator = if (Platform.osFamily == OsFamily.WINDOWS) "\\" else "/"
+    private val agentLibNamePattern = "(lib)?${agentLibName.replace("-", "_")}(\\.so|\\.dll)"
+    private val agentLibPathRegex = Regex("[\"]?(.*[/\\\\])?$agentLibNamePattern([ =\"].*)?")
 
     override val configuration = mapOf(Pair(DefaultParameterDefinitions.INSTALLATION_DIR.name, installationDir()))
 
@@ -35,21 +37,18 @@ class InstallationDirProvider(
         ?: fromCommandLine()
         ?: "."
 
-    private fun fromProviders() = configurationProviders
+    internal fun fromProviders() = configurationProviders
         .sortedBy(AgentConfigurationProvider::priority)
         .mapNotNull { it.configuration[DefaultParameterDefinitions.INSTALLATION_DIR.name] }
         .lastOrNull()
 
-    private fun fromJavaToolOptions() = getenv("JAVA_TOOL_OPTIONS")?.toKString()
-        ?.substringAfter("-agentpath:", "")
-        ?.takeIf(String::isNotEmpty)
-        ?.substringBefore("=")
-        ?.substringBeforeLast(pathSeparator)
+    private fun fromJavaToolOptions() = getenv("JAVA_TOOL_OPTIONS")?.toKString()?.let(::parse)
 
-    private fun fromCommandLine() = runCatching(AgentProcessMetadata::commandLine::get).getOrNull()
-        ?.substringAfter("-agentpath:", "")
-        ?.takeIf(String::isNotEmpty)
-        ?.substringBefore("=")
-        ?.substringBeforeLast(pathSeparator)
+    private fun fromCommandLine() = runCatching(AgentProcessMetadata::commandLine::get).getOrNull()?.let(::parse)
+
+    internal fun parse(value: String) = value.split("-agentpath:").drop(1).map(String::trim)
+        .find { it.matches(agentLibPathRegex) }
+        ?.let { agentLibPathRegex.matchEntire(it)!!.groupValues[1] }
+        ?.let { it.takeIf("/"::equals) ?: it.removeSuffix("/").removeSuffix("\\").takeIf(String::isNotEmpty) ?: "." }
 
 }

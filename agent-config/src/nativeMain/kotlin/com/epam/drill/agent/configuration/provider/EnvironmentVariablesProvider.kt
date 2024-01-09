@@ -25,11 +25,14 @@ class EnvironmentVariablesProvider(
     override val configuration = configuration()
 
     private fun configuration() = runCatching(AgentProcessMetadata::environmentVars::get).getOrNull()
-        ?.filterKeys { it.startsWith("DRILL_") }
-        ?.mapKeys(::toParameterName)
+        ?.let(::parseKeys)
         ?: emptyMap()
 
-    private fun toParameterName(entry: Map.Entry<String, String>) = entry.key
+    internal fun parseKeys(vars: Map<String, String>) = vars
+        .filterKeys { it.startsWith("DRILL_") }
+        .mapKeys(::toParameterName)
+
+    internal fun toParameterName(entry: Map.Entry<String, String>) = entry.key
         .removePrefix("DRILL_")
         .lowercase()
         .split("_")

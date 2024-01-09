@@ -25,6 +25,7 @@ class AgentOptionsProvider(
     override val configuration = configuration()
 
     private fun configuration() = agentOptions.split(",")
+        .filter(String::isNotEmpty)
         .associate { it.substringBefore("=") to it.substringAfter("=", "") }
 
 }

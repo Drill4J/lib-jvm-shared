@@ -35,29 +35,32 @@ class PropertiesFileProvider(
     override val configuration = configuration()
 
     private fun configuration() = configPath().runCatching(::readFile).getOrNull()
-        ?.map(String::trim)
-        ?.filter { it.isNotEmpty() && !it.startsWith("#") }
-        ?.associate { it.substringBefore("=") to it.substringAfter("=", "") }
+        ?.let(::parseLines)
         ?: emptyMap()
 
-    private fun configPath() = fromProviders()
+    private fun readFile(filepath: String) = memScoped {
+        val file = open(filepath, O_RDONLY)
+        Input(file).readText().also { close(file) }
+    }
+
+    internal fun parseLines(text: String) = text.lines()
+        .map(String::trim)
+        .filter { it.isNotEmpty() && !it.startsWith("#") }
+        .associate { it.substringBefore("=") to it.substringAfter("=", "") }
+
+    internal fun configPath() = fromProviders()
         ?: fromInstallationDir()
         ?: defaultPath
 
-    private fun fromProviders() = configurationProviders
+    internal fun fromProviders() = configurationProviders
         .sortedBy(AgentConfigurationProvider::priority)
         .mapNotNull { it.configuration[DefaultParameterDefinitions.CONFIG_PATH.name] }
         .lastOrNull()
 
-    private fun fromInstallationDir() = configurationProviders
+    internal fun fromInstallationDir() = configurationProviders
         .sortedBy(AgentConfigurationProvider::priority)
         .mapNotNull { it.configuration[DefaultParameterDefinitions.INSTALLATION_DIR.name] }
         .lastOrNull()
         ?.let { "${it}${pathSeparator}drill.properties" }
-
-    private fun readFile(filepath: String): List<String> = memScoped {
-        val file = open(filepath, O_RDONLY)
-        Input(file).readText().lines().also { close(file) }
-    }
 
 }
