@@ -23,7 +23,7 @@ class TestAgentPart constructor(
     id: String,
     agentContext: AgentContext,
     sender: AgentMessageSender
-) : AgentModule<String>(id, agentContext, sender) {
+) : AgentModule(id, agentContext, sender) {
 
     override fun load() {
         println("Plugin $id initialized.")
