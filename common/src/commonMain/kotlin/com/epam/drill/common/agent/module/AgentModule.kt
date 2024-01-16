@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent
+package com.epam.drill.common.agent.module
 
+import com.epam.drill.common.agent.AgentContext
 import com.epam.drill.common.agent.configuration.AgentConfiguration
 import com.epam.drill.common.agent.transport.AgentMessageSender
 
