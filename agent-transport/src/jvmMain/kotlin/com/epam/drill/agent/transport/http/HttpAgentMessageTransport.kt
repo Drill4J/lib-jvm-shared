@@ -30,9 +30,11 @@ import org.apache.hc.core5.http.ContentType
 import org.apache.hc.core5.http.HttpHeaders
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity
 import org.apache.hc.core5.ssl.SSLContextBuilder
+import mu.KotlinLogging
 import com.epam.drill.agent.transport.AgentMessageTransport
 import com.epam.drill.common.agent.transport.AgentMessageDestination
-import mu.KotlinLogging
+
+private const val HEADER_DRILL_INTERNAL = "drill-internal"
 
 class HttpAgentMessageTransport(
     adminAddress: String,
@@ -79,6 +81,7 @@ class HttpAgentMessageTransport(
             else -> throw IllegalArgumentException("Unknown destination type: ${destination.type}")
         }
         val mimeType = contentType.takeIf(String::isNotEmpty) ?: ContentType.WILDCARD.mimeType
+        request.setHeader(HEADER_DRILL_INTERNAL, true)
         request.setHeader(HttpHeaders.CONTENT_TYPE, mimeType)
         request.entity = GzipCompressingEntity(ByteArrayEntity(message, getContentType(mimeType)))
         logger.trace { "execute: Request to ${request.uri}, method: ${request.method}, message=$message" }
