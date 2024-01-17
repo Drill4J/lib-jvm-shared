@@ -15,15 +15,18 @@
  */
 package com.epam.drill.admin.plugins.coverage
 
-import com.epam.drill.common.agent.*
+import com.epam.drill.common.agent.AgentContext
+import com.epam.drill.common.agent.configuration.AgentConfiguration
+import com.epam.drill.common.agent.module.AgentModule
 import com.epam.drill.common.agent.transport.AgentMessageSender
 
 @Suppress("unused")
 class TestAgentPart constructor(
     id: String,
     agentContext: AgentContext,
-    sender: AgentMessageSender
-) : AgentModule(id, agentContext, sender) {
+    sender: AgentMessageSender,
+    configuration: AgentConfiguration
+) : AgentModule(id, agentContext, sender, configuration) {
 
     override fun load() {
         println("Plugin $id initialized.")
