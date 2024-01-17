@@ -1,5 +1,10 @@
 import java.net.URI
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.konan.target.HostManager
+import org.jetbrains.kotlin.konan.target.presetName
 import com.hierynomus.gradle.license.tasks.LicenseCheck
 import com.hierynomus.gradle.license.tasks.LicenseFormat
 
@@ -20,34 +25,61 @@ repositories {
 }
 
 kotlin {
+    val currentPlatformTarget: KotlinMultiplatformExtension.() -> KotlinNativeTarget = {
+        targets.withType<KotlinNativeTarget>()[HostManager.host.presetName]
+    }
     targets {
         linuxX64()
         mingwX64()
         macosX64()
+        currentPlatformTarget().compilations["main"].defaultSourceSet {
+            kotlin.srcDir("src/nativeMain/kotlin")
+            resources.srcDir("src/nativeMain/resources")
+        }
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
-            languageSettings.optIn("io.ktor.utils.io.core.ExperimentalIoApi")
-        }
-        val commonMain by getting
-        val nativeMain by creating {
-            dependsOn(commonMain)
+        val configureNativeDependencies: KotlinSourceSet.() -> Unit = {
             dependencies {
-                implementation(project(":drill-hook"))
                 implementation(project(":logging"))
+                implementation(project(":common"))
+                implementation(project(":interceptor-hook"))
             }
         }
-        val linuxX64Main by getting {
-            dependsOn(nativeMain)
+        val linuxX64Main by getting(configuration = configureNativeDependencies)
+        val mingwX64Main by getting(configuration = configureNativeDependencies)
+        val macosX64Main by getting(configuration = configureNativeDependencies)
+        mingwX64Main.dependencies {
+            implementation(project(":logging-native"))
         }
-        val mingwX64Main by getting {
-            dependsOn(nativeMain)
+        macosX64Main.dependencies {
+            implementation(project(":logging-native"))
         }
-        val macosX64Main by getting {
-            dependsOn(nativeMain)
+    }
+    val copyNativeClassesForTarget: TaskContainer.(KotlinNativeTarget) -> Task = {
+        val copyNativeClasses:TaskProvider<Copy> = register("copyNativeClasses${it.targetName.capitalize()}", Copy::class) {
+            group = "build"
+            from("src/nativeMain/kotlin")
+            into("src/${it.targetName}Main/kotlin/gen")
         }
+        copyNativeClasses.get()
+    }
+    val filterOutCurrentPlatform: (KotlinNativeTarget) -> Boolean = {
+        it.targetName != HostManager.host.presetName
+    }
+    tasks {
+        targets.withType<KotlinNativeTarget>().filter(filterOutCurrentPlatform).forEach {
+            val copyNativeClasses = copyNativeClassesForTarget(it)
+            it.compilations["main"].compileKotlinTask.dependsOn(copyNativeClasses)
+        }
+        val clean by getting
+        val cleanGeneratedClasses by registering(Delete::class) {
+            group = "build"
+            targets.withType<KotlinNativeTarget> {
+                delete("src/${name}Main/kotlin/gen")
+            }
+        }
+        clean.dependsOn(cleanGeneratedClasses)
     }
 }
 
