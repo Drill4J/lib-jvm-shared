@@ -16,13 +16,27 @@
 package com.epam.drill.jvmapi
 
 import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.toByte
 import com.epam.drill.jvmapi.gen.JNIEnv
 import com.epam.drill.jvmapi.gen.NewStringUTF
 import com.epam.drill.jvmapi.gen.jobject
+import com.epam.drill.jvmapi.gen.jstring
 
 @Suppress("UNUSED_PARAMETER")
 fun callNativeVoidMethod(env: JNIEnv, thiz: jobject, method: () -> Unit) = memScoped {
     method()
+}
+
+@Suppress("UNUSED_PARAMETER")
+fun callNativeVoidMethodWithString(env: JNIEnv, thiz: jobject, method: (String?) -> Unit, string: jstring?) = memScoped {
+    withStringsRelease {
+        method(string?.let(this::toKString))
+    }
+}
+
+@Suppress("UNUSED_PARAMETER")
+fun callNativeBooleanMethod(env: JNIEnv, thiz: jobject, method: () -> Boolean?) = memScoped {
+    method()?.toByte()?.toUByte()
 }
 
 @Suppress("UNUSED_PARAMETER")

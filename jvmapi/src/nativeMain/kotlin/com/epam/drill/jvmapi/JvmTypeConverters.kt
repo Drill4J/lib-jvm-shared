@@ -19,13 +19,7 @@ import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.usePinned
 import platform.posix.memcpy
-import com.epam.drill.jvmapi.gen.GetArrayLength
-import com.epam.drill.jvmapi.gen.GetPrimitiveArrayCritical
-import com.epam.drill.jvmapi.gen.JNI_ABORT
-import com.epam.drill.jvmapi.gen.NewByteArray
-import com.epam.drill.jvmapi.gen.ReleasePrimitiveArrayCritical
-import com.epam.drill.jvmapi.gen.SetByteArrayRegion
-import com.epam.drill.jvmapi.gen.jobject
+import com.epam.drill.jvmapi.gen.*
 
 fun toJByteArray(array: ByteArray) = NewByteArray(array.size)!!.apply {
     array.usePinned { SetByteArrayRegion(this, 0, array.size, it.addressOf(0)) }
@@ -38,5 +32,14 @@ fun toByteArray(jarray: jobject) = ByteArray(GetArrayLength(jarray)).apply {
         this.usePinned { memcpy(it.addressOf(0), buffer, this.size.convert()) }
     } finally {
         ReleasePrimitiveArrayCritical(jarray, buffer, JNI_ABORT)
+    }
+}
+
+fun <R> withStringsRelease(block: StringConverter.() -> R): R {
+    val stringConverter = StringConverter()
+    try {
+        return stringConverter.block()
+    } finally {
+        stringConverter.release()
     }
 }
