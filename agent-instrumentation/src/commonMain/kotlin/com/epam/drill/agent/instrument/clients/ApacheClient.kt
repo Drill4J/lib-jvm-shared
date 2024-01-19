@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.request
+package com.epam.drill.agent.instrument.clients
 
-import kotlinx.serialization.Serializable
+import com.epam.drill.agent.instrument.IStrategy
 
-@Serializable
-data class DrillRequest(
-    val drillSessionId: String,
-    val headers: Map<String, String> = emptyMap()
-)
+expect object ApacheClient : IStrategy {
+
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
+
+    override fun transform(
+        className: String,
+        classFileBuffer: ByteArray,
+        loader: Any?,
+        protectionDomain: Any?,
+    ): ByteArray?
+}

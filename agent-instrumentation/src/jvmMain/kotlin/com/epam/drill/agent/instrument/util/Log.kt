@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.request
+package com.epam.drill.agent.instrument.util
 
-import kotlinx.serialization.Serializable
+import mu.KotlinLogging
 
-@Serializable
-data class DrillRequest(
-    val drillSessionId: String,
-    val headers: Map<String, String> = emptyMap()
-)
+object Log {
+    private val logger = KotlinLogging.logger {}
+    fun injectHeaderLog(headers: Map<String, String>) {
+        logger.trace { "Adding headers: $headers" }
+    }
+}
