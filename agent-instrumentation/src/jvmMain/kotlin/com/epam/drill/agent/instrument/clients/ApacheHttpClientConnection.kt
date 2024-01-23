@@ -28,7 +28,7 @@ actual object ApacheHttpClientConnection : TransformerObject, AbstractTransforme
     actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         interfaces.any("org/apache/http/HttpClientConnection"::equals)
 
-    override fun transform(ctClass: CtClass) {
+    override fun transform(className:String, ctClass: CtClass) {
         ctClass.getDeclaredMethod("sendRequestHeader").insertBefore(
             """
             if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isSendCondition.name}()) { 

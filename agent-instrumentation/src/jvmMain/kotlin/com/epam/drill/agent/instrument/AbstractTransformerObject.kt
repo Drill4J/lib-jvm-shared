@@ -37,18 +37,23 @@ abstract class AbstractTransformerObject : TransformerObject {
         classFileBuffer: ByteArray,
         loader: Any?,
         protectionDomain: Any?
-    ): ByteArray? = ClassPool(true).run {
+    ): ByteArray = ClassPool(true).run {
         val classLoader = loader ?: ClassLoader.getSystemClassLoader()
         this.appendClassPath(LoaderClassPath(classLoader as? ClassLoader))
         this.makeClass(ByteArrayInputStream(classFileBuffer), false).let {
-            val logError: (Throwable) -> Unit = { e -> logger.error { "Error during instrumenting, class=${it.name}" } }
+            val logError: (Throwable) -> Unit = { e ->
+                logger.error { "transform: Error during instrumenting, class=${it.name}" }
+            }
+            val transform: (CtClass) -> Unit = { ctClass ->
+                transform(className, ctClass)
+            }
             it.defrost()
-            it.runCatching(::transform).onFailure(logError)
+            it.runCatching(transform).onFailure(logError)
             it.toBytecode()
         }
     }
 
-    open fun transform(ctClass: CtClass): Unit =
+    open fun transform(className: String, ctClass: CtClass): Unit =
         throw NotImplementedError()
 
     open fun logInjectingHeaders(headers: Map<String, String>) =

@@ -32,7 +32,7 @@ abstract class AbstractTransformerObject : TransformerObject {
         classFileBuffer: ByteArray,
         loader: Any?,
         protectionDomain: Any?,
-    ): ByteArray? =
+    ): ByteArray =
         getObjectMethod(
             this::class,
             this::transform.name,
@@ -45,7 +45,7 @@ abstract class AbstractTransformerObject : TransformerObject {
                 toJByteArray(classFileBuffer),
                 loader as jobject?,
                 protectionDomain as jobject?
-            )?.let(::toByteArray)
+            )!!.let(::toByteArray)
         }
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =

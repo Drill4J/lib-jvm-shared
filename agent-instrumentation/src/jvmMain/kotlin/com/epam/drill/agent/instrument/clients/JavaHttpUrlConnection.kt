@@ -28,7 +28,7 @@ actual object JavaHttpUrlConnection : TransformerObject, AbstractTransformerObje
     actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         "java/net/HttpURLConnection" == superName || "javax/net/ssl/HttpsURLConnection" == superName
 
-    override fun transform(ctClass: CtClass) {
+    override fun transform(className:String, ctClass: CtClass) {
         ctClass.constructors.forEach {
             it.insertAfter(
                 """

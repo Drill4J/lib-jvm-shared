@@ -29,6 +29,6 @@ expect object ApacheHttpClientConnection : TransformerObject {
         classFileBuffer: ByteArray,
         loader: Any?,
         protectionDomain: Any?,
-    ): ByteArray?
+    ): ByteArray
 
 }

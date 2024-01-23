@@ -28,7 +28,7 @@ actual object OkHttp3Codec : TransformerObject, AbstractTransformerObject() {
     actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         interfaces.any("okhttp3/internal/http/HttpCodec"::equals)
 
-    override fun transform(ctClass: CtClass) {
+    override fun transform(className:String, ctClass: CtClass) {
         ctClass.getDeclaredMethod("writeRequestHeaders").insertBefore(
             """
             if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isSendCondition.name}()) {
