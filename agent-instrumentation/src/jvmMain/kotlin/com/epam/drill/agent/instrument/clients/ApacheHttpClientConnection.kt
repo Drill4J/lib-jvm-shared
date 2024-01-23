@@ -15,66 +15,48 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import java.security.ProtectionDomain
-import javassist.ClassPool
 import javassist.CtClass
+import mu.KotlinLogging
+import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.ClientsCallback
 import com.epam.drill.agent.instrument.TransformerObject
-import com.epam.drill.agent.instrument.Transformer
-import com.epam.drill.agent.instrument.util.Log
 
-actual object ApacheHttpClientConnection : TransformerObject(), Transformer {
+actual object ApacheHttpClientConnection : TransformerObject, AbstractTransformerObject() {
 
-    // TODO Waiting for this feature to move this permit to common part https://youtrack.jetbrains.com/issue/KT-20427
-    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
-        return interfaces.any { "org/apache/http/HttpClientConnection" == it }
-    }
+    override val logger = KotlinLogging.logger {}
 
-    actual override fun transform(
-        className: String,
-        classFileBuffer: ByteArray,
-        loader: Any?,
-        protectionDomain: Any?,
-    ): ByteArray? {
-        return super.transform(className, classFileBuffer, loader, protectionDomain)
-    }
+    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
+        interfaces.any("org/apache/http/HttpClientConnection"::equals)
 
-    override fun instrument(
-        ctClass: CtClass,
-        pool: ClassPool,
-        classLoader: ClassLoader?,
-        protectionDomain: ProtectionDomain?,
-    ): ByteArray? {
-        runCatching {
-            ctClass.getDeclaredMethod("sendRequestHeader").insertBefore(
-                """
-                    if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isSendCondition.name}()) { 
-                        try {
-                            java.util.Map headers = ${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::getHeaders.name}();
-                            java.util.Iterator iterator = headers.entrySet().iterator();             
-                            while (iterator.hasNext()) {
-                                java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
-                                $1.setHeader((String) entry.getKey(), (String) entry.getValue());
-                            }
-                            ${Log::class.java.name}.INSTANCE.${Log::injectHeaderLog.name}(headers);
-                        } catch (Exception e) {};
+    override fun transform(ctClass: CtClass) {
+        ctClass.getDeclaredMethod("sendRequestHeader").insertBefore(
+            """
+            if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isSendCondition.name}()) { 
+                try {
+                    java.util.Map headers = ${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::getHeaders.name}();
+                    java.util.Iterator iterator = headers.entrySet().iterator();             
+                    while (iterator.hasNext()) {
+                        java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
+                        $1.setHeader((String) entry.getKey(), (String) entry.getValue());
                     }
-                """.trimIndent()
-            )
-            ctClass.getDeclaredMethod("receiveResponseEntity").insertBefore(
-                """
-                    if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isResponseCallbackSet.name}()) {
-                        java.util.Map allHeaders = new java.util.HashMap();
-                        java.util.Iterator iterator = $1.headerIterator();
-                        while (iterator.hasNext()) {
-                            org.apache.http.Header header = (org.apache.http.Header) iterator.next();
-                            allHeaders.put(header.getName(), header.getValue());
-                        }
-                        ${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::storeHeaders.name}(allHeaders);
-                    }
-            """.trimIndent())
-        }
-        return ctClass.toBytecode()
+                    ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(headers);
+                } catch (Exception e) {};
+            }
+            """.trimIndent()
+        )
+        ctClass.getDeclaredMethod("receiveResponseEntity").insertBefore(
+            """
+            if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isResponseCallbackSet.name}()) {
+                java.util.Map allHeaders = new java.util.HashMap();
+                java.util.Iterator iterator = $1.headerIterator();
+                while (iterator.hasNext()) {
+                    org.apache.http.Header header = (org.apache.http.Header) iterator.next();
+                    allHeaders.put(header.getName(), header.getValue());
+                }
+                ${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::storeHeaders.name}(allHeaders);
+            }
+            """.trimIndent()
+        )
     }
 
 }

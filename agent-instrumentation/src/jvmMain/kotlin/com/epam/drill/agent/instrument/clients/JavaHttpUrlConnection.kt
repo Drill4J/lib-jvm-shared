@@ -15,75 +15,51 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import java.security.ProtectionDomain
-import javassist.ClassPool
 import javassist.CtClass
 import mu.KotlinLogging
+import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.ClientsCallback
 import com.epam.drill.agent.instrument.TransformerObject
-import com.epam.drill.agent.instrument.Transformer
-import com.epam.drill.agent.instrument.util.Log
 
-actual object JavaHttpUrlConnection : TransformerObject(), Transformer {
+actual object JavaHttpUrlConnection : TransformerObject, AbstractTransformerObject() {
 
-    private val logger = KotlinLogging.logger {}
+    override val logger = KotlinLogging.logger {}
 
-    // TODO Waiting for this feature to move this permit to common part https://youtrack.jetbrains.com/issue/KT-20427
-    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
-        return superName != null && (
-                superName == "java/net/HttpURLConnection" ||
-                superName == "javax/net/ssl/HttpsURLConnection")
-    }
+    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
+        "java/net/HttpURLConnection" == superName || "javax/net/ssl/HttpsURLConnection" == superName
 
-    actual override fun transform(
-        className: String,
-        classFileBuffer: ByteArray,
-        loader: Any?,
-        protectionDomain: Any?,
-    ): ByteArray? {
-        return super.transform(className, classFileBuffer, loader, protectionDomain)
-    }
-
-    override fun instrument(
-        ctClass: CtClass,
-        pool: ClassPool,
-        classLoader: ClassLoader?,
-        protectionDomain: ProtectionDomain?,
-    ): ByteArray? {
-        runCatching {
-            ctClass.constructors.forEach {
-                it.insertAfter(
-                    """
-                        if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isSendCondition.name}()) {
-                            try {
-                                java.util.Map headers = ${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::getHeaders.name}();
-                                java.util.Iterator iterator = headers.entrySet().iterator();                      
-                                while (iterator.hasNext()) {
-                                    java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
-                                    this.setRequestProperty((String) entry.getKey(), (String) entry.getValue());
-                                }
-                                ${Log::class.java.name}.INSTANCE.${Log::injectHeaderLog.name}(headers);   
-                            } catch (Exception e) {};
-                        }
-                    """.trimIndent()
-                )
-            }
-            ctClass.getMethod("getContent", "()Ljava/lang/Object;").insertAfter(
+    override fun transform(ctClass: CtClass) {
+        ctClass.constructors.forEach {
+            it.insertAfter(
                 """
-                    if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isResponseCallbackSet.name}()) {
-                        java.util.Map allHeaders = new java.util.HashMap();
-                        java.util.Iterator iterator = this.getHeaderFields().keySet().iterator();
+                if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isSendCondition.name}()) {
+                    try {
+                        java.util.Map headers = ${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::getHeaders.name}();
+                        java.util.Iterator iterator = headers.entrySet().iterator();                      
                         while (iterator.hasNext()) {
-                            String key = (String) iterator.next();
-                            String value = this.getHeaderField(key);
-                            allHeaders.put(key, value);
+                            java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
+                            this.setRequestProperty((String) entry.getKey(), (String) entry.getValue());
                         }
-                        ${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::storeHeaders.name}(allHeaders);
+                        ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(headers);   
+                    } catch (Exception e) {};
                 }
-            """.trimIndent())
-        }.onFailure {
-            logger.error(it) { "Error while instrumenting the class ${ctClass.name}" }
+                """.trimIndent()
+            )
         }
-        return ctClass.toBytecode()
+        ctClass.getMethod("getContent", "()Ljava/lang/Object;").insertAfter(
+            """
+            if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isResponseCallbackSet.name}()) {
+                java.util.Map allHeaders = new java.util.HashMap();
+                java.util.Iterator iterator = this.getHeaderFields().keySet().iterator();
+                while (iterator.hasNext()) {
+                    String key = (String) iterator.next();
+                    String value = this.getHeaderField(key);
+                    allHeaders.put(key, value);
+                }
+                ${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::storeHeaders.name}(allHeaders);
+            }
+            """.trimIndent()
+        )
     }
+
 }

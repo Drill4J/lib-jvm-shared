@@ -15,28 +15,7 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import com.epam.drill.agent.instrument.Transformer
-import com.epam.drill.agent.instrument.callIStrategyTransformMethod
+import com.epam.drill.agent.instrument.AbstractTransformerObject
+import com.epam.drill.agent.instrument.TransformerObject
 
-actual object OkHttp3Codec : Transformer {
-
-    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
-        return interfaces.any { it == "okhttp3/internal/http/HttpCodec" }
-    }
-
-    actual override fun transform(
-        className: String,
-        classFileBuffer: ByteArray,
-        loader: Any?,
-        protectionDomain: Any?,
-    ): ByteArray? =
-        callIStrategyTransformMethod(
-            OkHttp3Codec::class,
-            OkHttp3Codec::transform,
-            className,
-            classFileBuffer,
-            loader,
-            protectionDomain
-        )
-
-}
+actual object OkHttp3Codec : TransformerObject, AbstractTransformerObject()

@@ -15,30 +15,7 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import com.epam.drill.agent.instrument.Transformer
-import com.epam.drill.agent.instrument.callIStrategyTransformMethod
+import com.epam.drill.agent.instrument.AbstractTransformerObject
+import com.epam.drill.agent.instrument.TransformerObject
 
-actual object JavaHttpUrlConnection : Transformer {
-
-    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
-        return superName != null && (
-                superName == "java/net/HttpURLConnection" ||
-                superName == "javax/net/ssl/HttpsURLConnection")
-    }
-
-    actual override fun transform(
-        className: String,
-        classFileBuffer: ByteArray,
-        loader: Any?,
-        protectionDomain: Any?,
-    ): ByteArray? =
-        callIStrategyTransformMethod(
-            JavaHttpUrlConnection::class,
-            JavaHttpUrlConnection::transform,
-            className,
-            classFileBuffer,
-            loader,
-            protectionDomain
-        )
-
-}
+actual object JavaHttpUrlConnection : TransformerObject, AbstractTransformerObject()

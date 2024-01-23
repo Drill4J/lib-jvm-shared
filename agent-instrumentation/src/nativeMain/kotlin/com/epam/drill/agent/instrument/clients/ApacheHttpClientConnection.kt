@@ -15,28 +15,7 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import com.epam.drill.agent.instrument.Transformer
-import com.epam.drill.agent.instrument.callIStrategyTransformMethod
+import com.epam.drill.agent.instrument.AbstractTransformerObject
+import com.epam.drill.agent.instrument.TransformerObject
 
-actual object ApacheHttpClientConnection : Transformer {
-
-    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
-        return interfaces.any { "org/apache/http/HttpClientConnection" == it }
-    }
-
-    actual override fun transform(
-        className: String,
-        classFileBuffer: ByteArray,
-        loader: Any?,
-        protectionDomain: Any?,
-    ): ByteArray? =
-        callIStrategyTransformMethod(
-            ApacheHttpClientConnection::class,
-            ApacheHttpClientConnection::transform,
-            className,
-            classFileBuffer,
-            loader,
-            protectionDomain
-        )
-
-}
+actual object ApacheHttpClientConnection : TransformerObject, AbstractTransformerObject()

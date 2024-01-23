@@ -15,11 +15,14 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import com.epam.drill.agent.instrument.Transformer
+import com.epam.drill.agent.instrument.TransformerObject
 
-expect object JavaHttpUrlConnection : Transformer {
+expect object JavaHttpUrlConnection : TransformerObject {
 
+    // TODO Waiting for this feature to move this permit to common part: https://youtrack.jetbrains.com/issue/KT-20427
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
+
+    override fun permit(className: String?, superName: String?, interfaces: String?): Boolean
 
     override fun transform(
         className: String,
@@ -27,4 +30,5 @@ expect object JavaHttpUrlConnection : Transformer {
         loader: Any?,
         protectionDomain: Any?,
     ): ByteArray?
+
 }

@@ -45,6 +45,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":logging"))
+                implementation(project(":common"))
             }
         }
         val jvmMain by getting {

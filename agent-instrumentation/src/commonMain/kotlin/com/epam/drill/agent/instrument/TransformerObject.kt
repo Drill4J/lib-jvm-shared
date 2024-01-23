@@ -15,7 +15,6 @@
  */
 package com.epam.drill.agent.instrument
 
-interface Transformer {
-    fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
-    fun transform(className: String, classFileBuffer: ByteArray, loader: Any?, protectionDomain: Any?): ByteArray?
+interface TransformerObject : Transformer {
+    fun permit(className: String?, superName: String?, interfaces: String?): Boolean
 }
