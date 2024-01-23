@@ -15,10 +15,10 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import com.epam.drill.agent.instrument.IStrategy
+import com.epam.drill.agent.instrument.Transformer
 import com.epam.drill.agent.instrument.callIStrategyTransformMethod
 
-actual object OkHttpClient : IStrategy {
+actual object OkHttp3Codec : Transformer {
 
     actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
         return interfaces.any { it == "okhttp3/internal/http/HttpCodec" }
@@ -31,8 +31,8 @@ actual object OkHttpClient : IStrategy {
         protectionDomain: Any?,
     ): ByteArray? =
         callIStrategyTransformMethod(
-            OkHttpClient::class,
-            OkHttpClient::transform,
+            OkHttp3Codec::class,
+            OkHttp3Codec::transform,
             className,
             classFileBuffer,
             loader,

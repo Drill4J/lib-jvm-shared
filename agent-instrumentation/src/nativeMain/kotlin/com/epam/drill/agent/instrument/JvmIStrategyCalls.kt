@@ -26,7 +26,7 @@ import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
 internal fun callIStrategyTransformMethod(
-    clazz: KClass<out IStrategy>,
+    clazz: KClass<out Transformer>,
     method: KCallable<ByteArray?>,
     className: String,
     classFileBuffer: ByteArray,

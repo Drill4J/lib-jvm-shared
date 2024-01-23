@@ -20,7 +20,7 @@ import javassist.ClassPool
 import javassist.CtClass
 import com.epam.drill.agent.instrument.util.createAndTransform
 
-abstract class TransformStrategy : IStrategy {
+abstract class TransformerObject : Transformer {
 
     override fun transform(
         className: String,

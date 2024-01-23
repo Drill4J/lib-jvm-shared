@@ -15,9 +15,9 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import com.epam.drill.agent.instrument.IStrategy
+import com.epam.drill.agent.instrument.Transformer
 
-expect object JavaHttpUrlConnection : IStrategy {
+expect object JavaHttpUrlConnection : Transformer {
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
 

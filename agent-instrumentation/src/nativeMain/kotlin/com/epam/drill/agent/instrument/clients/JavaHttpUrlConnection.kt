@@ -15,10 +15,10 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import com.epam.drill.agent.instrument.IStrategy
+import com.epam.drill.agent.instrument.Transformer
 import com.epam.drill.agent.instrument.callIStrategyTransformMethod
 
-actual object JavaHttpUrlConnection : IStrategy {
+actual object JavaHttpUrlConnection : Transformer {
 
     actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
         return superName != null && (

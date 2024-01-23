@@ -20,11 +20,11 @@ import javassist.ClassPool
 import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.ClientsCallback
-import com.epam.drill.agent.instrument.IStrategy
-import com.epam.drill.agent.instrument.TransformStrategy
+import com.epam.drill.agent.instrument.TransformerObject
+import com.epam.drill.agent.instrument.Transformer
 import com.epam.drill.agent.instrument.util.Log
 
-actual object OkHttpClient : TransformStrategy(), IStrategy {
+actual object OkHttp3Codec : TransformerObject(), Transformer {
 
     private val logger = KotlinLogging.logger {}
 

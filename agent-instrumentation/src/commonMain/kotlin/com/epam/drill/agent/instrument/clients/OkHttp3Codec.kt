@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument
+package com.epam.drill.agent.instrument.clients
 
-interface IStrategy {
+import com.epam.drill.agent.instrument.Transformer
 
-    fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
+expect object OkHttp3Codec : Transformer {
 
-    fun transform(className: String, classFileBuffer: ByteArray, loader: Any?, protectionDomain: Any?): ByteArray?
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean
 
+    override fun transform(
+        className: String,
+        classFileBuffer: ByteArray,
+        loader: Any?,
+        protectionDomain: Any?,
+    ): ByteArray?
 }

@@ -15,10 +15,10 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import com.epam.drill.agent.instrument.IStrategy
+import com.epam.drill.agent.instrument.Transformer
 import com.epam.drill.agent.instrument.callIStrategyTransformMethod
 
-actual object ApacheClient : IStrategy {
+actual object ApacheHttpClientConnection : Transformer {
 
     actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
         return interfaces.any { "org/apache/http/HttpClientConnection" == it }
@@ -31,8 +31,8 @@ actual object ApacheClient : IStrategy {
         protectionDomain: Any?,
     ): ByteArray? =
         callIStrategyTransformMethod(
-            ApacheClient::class,
-            ApacheClient::transform,
+            ApacheHttpClientConnection::class,
+            ApacheHttpClientConnection::transform,
             className,
             classFileBuffer,
             loader,

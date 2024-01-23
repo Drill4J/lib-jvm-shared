@@ -19,11 +19,11 @@ import java.security.ProtectionDomain
 import javassist.ClassPool
 import javassist.CtClass
 import com.epam.drill.agent.instrument.ClientsCallback
-import com.epam.drill.agent.instrument.IStrategy
-import com.epam.drill.agent.instrument.TransformStrategy
+import com.epam.drill.agent.instrument.TransformerObject
+import com.epam.drill.agent.instrument.Transformer
 import com.epam.drill.agent.instrument.util.Log
 
-actual object ApacheClient : TransformStrategy(), IStrategy {
+actual object ApacheHttpClientConnection : TransformerObject(), Transformer {
 
     // TODO Waiting for this feature to move this permit to common part https://youtrack.jetbrains.com/issue/KT-20427
     actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
