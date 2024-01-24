@@ -25,14 +25,13 @@ repositories {
 }
 
 kotlin {
-    val currentPlatformTarget: KotlinMultiplatformExtension.() -> KotlinNativeTarget = {
-        targets.withType<KotlinNativeTarget>()[HostManager.host.presetName]
+    val currentPlatformTarget: KotlinMultiplatformExtension.() -> KotlinNativeTarget? = {
+        targets.withType<KotlinNativeTarget>().findByName(HostManager.host.presetName)
     }
     targets {
         linuxX64()
         mingwX64()
-        macosX64()
-        currentPlatformTarget().compilations["main"].defaultSourceSet {
+        currentPlatformTarget()?.compilations?.get("main")?.defaultSourceSet {
             kotlin.srcDir("src/nativeMain/kotlin")
             resources.srcDir("src/nativeMain/resources")
         }
@@ -48,11 +47,7 @@ kotlin {
         }
         val linuxX64Main by getting(configuration = configureNativeDependencies)
         val mingwX64Main by getting(configuration = configureNativeDependencies)
-        val macosX64Main by getting(configuration = configureNativeDependencies)
         mingwX64Main.dependencies {
-            implementation(project(":logging-native"))
-        }
-        macosX64Main.dependencies {
             implementation(project(":logging-native"))
         }
     }
