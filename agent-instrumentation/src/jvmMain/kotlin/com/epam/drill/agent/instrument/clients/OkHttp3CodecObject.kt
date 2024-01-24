@@ -18,22 +18,21 @@ package com.epam.drill.agent.instrument.clients
 import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
-import com.epam.drill.agent.instrument.ClientsCallback
-import com.epam.drill.agent.instrument.TransformerObject
+import com.epam.drill.agent.instrument.HeadersProcessor
 
-actual object OkHttp3Codec : TransformerObject, AbstractTransformerObject() {
+abstract class OkHttp3CodecObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
-    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         interfaces.any("okhttp3/internal/http/HttpCodec"::equals)
 
     override fun transform(className:String, ctClass: CtClass) {
         ctClass.getDeclaredMethod("writeRequestHeaders").insertBefore(
             """
-            if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isSendCondition.name}()) {
+            if (${this::class.qualifiedName}.INSTANCE.${this::hasHeaders.name}()) {
                 okhttp3.Request.Builder builder = $1.newBuilder();
-                java.util.Map headers = ${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::getHeaders.name}();
+                java.util.Map headers = ${this::class.qualifiedName}.INSTANCE.${this::retrieveHeaders.name}();
                 java.util.Iterator iterator = headers.entrySet().iterator();             
                 while (iterator.hasNext()) {
                     java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
@@ -46,7 +45,7 @@ actual object OkHttp3Codec : TransformerObject, AbstractTransformerObject() {
         )
         ctClass.getDeclaredMethod("openResponseBody").insertBefore(
             """
-            if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isResponseCallbackSet.name}()) {
+            if (${this::class.qualifiedName}.INSTANCE.${this::isProcessResponses.name}()) {
                 java.util.Map allHeaders = new java.util.HashMap();
                 java.util.Iterator iterator = $1.headers().names().iterator();
                 while (iterator.hasNext()) { 
@@ -54,7 +53,7 @@ actual object OkHttp3Codec : TransformerObject, AbstractTransformerObject() {
                     String value = $1.headers().get(key);
                     allHeaders.put(key, value);
                 }
-                ${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::storeHeaders.name}(allHeaders);
+                ${this::class.qualifiedName}.INSTANCE.${this::storeHeaders.name}(allHeaders);
             }
             """.trimIndent()
         )

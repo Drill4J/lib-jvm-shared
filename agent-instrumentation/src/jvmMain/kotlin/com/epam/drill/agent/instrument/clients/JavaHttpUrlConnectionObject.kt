@@ -18,23 +18,22 @@ package com.epam.drill.agent.instrument.clients
 import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
-import com.epam.drill.agent.instrument.ClientsCallback
-import com.epam.drill.agent.instrument.TransformerObject
+import com.epam.drill.agent.instrument.HeadersProcessor
 
-actual object JavaHttpUrlConnection : TransformerObject, AbstractTransformerObject() {
+abstract class JavaHttpUrlConnectionObject() : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
-    actual override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         "java/net/HttpURLConnection" == superName || "javax/net/ssl/HttpsURLConnection" == superName
 
     override fun transform(className:String, ctClass: CtClass) {
         ctClass.constructors.forEach {
             it.insertAfter(
                 """
-                if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isSendCondition.name}()) {
+                if (${this::class.qualifiedName}.INSTANCE.${this::hasHeaders.name}()) {
                     try {
-                        java.util.Map headers = ${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::getHeaders.name}();
+                        java.util.Map headers = ${this::class.qualifiedName}.INSTANCE.${this::retrieveHeaders.name}();
                         java.util.Iterator iterator = headers.entrySet().iterator();                      
                         while (iterator.hasNext()) {
                             java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
@@ -48,7 +47,7 @@ actual object JavaHttpUrlConnection : TransformerObject, AbstractTransformerObje
         }
         ctClass.getMethod("getContent", "()Ljava/lang/Object;").insertAfter(
             """
-            if (${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::isResponseCallbackSet.name}()) {
+            if (${this::class.qualifiedName}.INSTANCE.${this::isProcessResponses.name}()) {
                 java.util.Map allHeaders = new java.util.HashMap();
                 java.util.Iterator iterator = this.getHeaderFields().keySet().iterator();
                 while (iterator.hasNext()) {
@@ -56,7 +55,7 @@ actual object JavaHttpUrlConnection : TransformerObject, AbstractTransformerObje
                     String value = this.getHeaderField(key);
                     allHeaders.put(key, value);
                 }
-                ${ClientsCallback::class.qualifiedName}.INSTANCE.${ClientsCallback::storeHeaders.name}(allHeaders);
+                ${this::class.qualifiedName}.INSTANCE.${this::storeHeaders.name}(allHeaders);
             }
             """.trimIndent()
         )

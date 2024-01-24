@@ -29,9 +29,6 @@ abstract class AbstractTransformerObject : TransformerObject {
     override fun permit(className: String?, superName: String?, interfaces: String?) =
         permit(className, superName, interfaces?.split(";")?.toTypedArray() ?: emptyArray())
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
-        throw NotImplementedError()
-
     override fun transform(
         className: String,
         classFileBuffer: ByteArray,
@@ -53,8 +50,7 @@ abstract class AbstractTransformerObject : TransformerObject {
         }
     }
 
-    open fun transform(className: String, ctClass: CtClass): Unit =
-        throw NotImplementedError()
+    abstract fun transform(className: String, ctClass: CtClass)
 
     open fun logInjectingHeaders(headers: Map<String, String>) =
         logger.trace { "logInjectingHeaders: Adding headers: $headers" }
@@ -73,7 +69,7 @@ abstract class AbstractTransformerObject : TransformerObject {
             """.trimIndent()
         )
     } catch (e: Throwable) {
-        logError(e, "insertCatching: Can't insert code, method name: $name")
+        logger.error(e) { "insertCatching: Can't insert code, method name: $name" }
     }
 
 }
