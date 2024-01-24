@@ -21,7 +21,7 @@ import com.epam.drill.common.agent.request.DrillRequest
 import com.epam.drill.common.agent.request.HeadersRetriever
 import com.epam.drill.common.agent.request.RequestHolder
 
-class DrillRequestHeadersProcessor(
+open class DrillRequestHeadersProcessor(
     private val headersRetriever: HeadersRetriever,
     private val requestHolder: RequestHolder
 ) : HeadersProcessor {
