@@ -1,6 +1,6 @@
 import java.net.URI
 import java.util.Properties
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.HostManager
@@ -25,19 +25,16 @@ repositories {
 }
 
 kotlin {
-    val currentPlatformTarget: KotlinMultiplatformExtension.() -> KotlinNativeTarget? = {
-        targets.withType<KotlinNativeTarget>().findByName(HostManager.host.presetName)
-    }
     targets {
         linuxX64()
         mingwX64()
-        currentPlatformTarget()?.compilations?.get("main")?.defaultSourceSet {
-            kotlin.srcDir("src/nativeMain/kotlin")
-            resources.srcDir("src/nativeMain/resources")
-        }
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
+        targets.withType<KotlinNativeTarget>()[HostManager.host.presetName].compilations.forEach {
+            it.defaultSourceSet.kotlin.srcDir("src/native${it.name.capitalize()}/kotlin")
+            it.defaultSourceSet.resources.srcDir("src/native${it.name.capitalize()}/resources")
+        }
         val configureNativeDependencies: KotlinSourceSet.() -> Unit = {
             dependencies {
                 implementation(project(":logging"))
@@ -51,30 +48,31 @@ kotlin {
             implementation(project(":logging-native"))
         }
     }
-    val copyNativeClassesForTarget: TaskContainer.(KotlinNativeTarget) -> Task = {
-        val copyNativeClasses:TaskProvider<Copy> = register("copyNativeClasses${it.targetName.capitalize()}", Copy::class) {
-            group = "build"
-            from("src/nativeMain/kotlin")
-            into("src/${it.targetName}Main/kotlin/gen")
-        }
-        copyNativeClasses.get()
-    }
-    val filterOutCurrentPlatform: (KotlinNativeTarget) -> Boolean = {
-        it.targetName != HostManager.host.presetName
-    }
     tasks {
-        targets.withType<KotlinNativeTarget>().filter(filterOutCurrentPlatform).forEach {
-            val copyNativeClasses = copyNativeClassesForTarget(it)
-            it.compilations["main"].compileKotlinTask.dependsOn(copyNativeClasses)
+        val filterOutCurrentPlatform: (KotlinNativeTarget) -> Boolean = {
+            it.targetName != HostManager.host.presetName
         }
-        val clean by getting
-        val cleanGeneratedClasses by registering(Delete::class) {
-            group = "build"
-            targets.withType<KotlinNativeTarget> {
-                delete("src/${name}Main/kotlin/gen")
+        val copyNativeClassesTask: (KotlinCompilation<*>) -> Unit = {
+            val taskName = "copyNativeClasses${it.target.targetName.capitalize()}${it.compilationName.capitalize()}"
+            val copyNativeClasses: TaskProvider<Copy> = register(taskName, Copy::class) {
+                group = "build"
+                from("src/native${it.compilationName.capitalize()}/kotlin")
+                into("src/${it.target.targetName}${it.compilationName.capitalize()}/kotlin/gen")
             }
+            it.compileKotlinTask.dependsOn(copyNativeClasses.get())
         }
-        clean.dependsOn(cleanGeneratedClasses)
+        val cleanNativeClassesTask: (KotlinCompilation<*>) -> Unit = {
+            val taskName = "cleanNativeClasses${it.target.targetName.capitalize()}${it.compilationName.capitalize()}"
+            val cleanNativeClasses: TaskProvider<Delete> = register(taskName, Delete::class) {
+                group = "build"
+                delete("src/${it.target.targetName}${it.compilationName.capitalize()}/kotlin/gen")
+            }
+            clean.get().dependsOn(cleanNativeClasses.get())
+        }
+        targets.withType<KotlinNativeTarget>().filter(filterOutCurrentPlatform)
+            .flatMap(KotlinNativeTarget::compilations)
+            .onEach(copyNativeClassesTask)
+            .onEach(cleanNativeClassesTask)
     }
 }
 
