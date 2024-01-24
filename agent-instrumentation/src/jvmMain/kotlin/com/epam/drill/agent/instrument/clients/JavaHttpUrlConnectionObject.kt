@@ -20,7 +20,7 @@ import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 
-abstract class JavaHttpUrlConnectionObject() : HeadersProcessor, AbstractTransformerObject() {
+abstract class JavaHttpUrlConnectionObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 

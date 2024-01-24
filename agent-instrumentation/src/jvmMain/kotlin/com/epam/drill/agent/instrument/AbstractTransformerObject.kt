@@ -39,7 +39,7 @@ abstract class AbstractTransformerObject : TransformerObject {
         this.appendClassPath(LoaderClassPath(classLoader as? ClassLoader))
         this.makeClass(ByteArrayInputStream(classFileBuffer), false).let {
             val logError: (Throwable) -> Unit = { e ->
-                logger.error { "transform: Error during instrumenting, class=${it.name}" }
+                logger.error(e) { "transform: Error during instrumenting, class=${it.name}" }
             }
             val transform: (CtClass) -> Unit = { ctClass ->
                 transform(className, ctClass)

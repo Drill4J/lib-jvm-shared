@@ -20,6 +20,7 @@ version = Properties().run {
 }
 
 val javassistVersion: String by parent!!.extra
+val transmittableThreadLocalVersion: String by parent!!.extra
 
 repositories {
     mavenLocal()
@@ -51,6 +52,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation("org.javassist:javassist:$javassistVersion")
+                implementation("com.alibaba:transmittable-thread-local:$transmittableThreadLocalVersion")
             }
         }
         val configureNativeDependencies: KotlinSourceSet.() -> Unit = {
