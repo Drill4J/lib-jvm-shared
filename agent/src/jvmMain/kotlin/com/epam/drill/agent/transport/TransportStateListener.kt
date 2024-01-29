@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.configuration
+package com.epam.drill.agent.transport
 
-import kotlinx.serialization.Serializable
-import com.epam.drill.common.agent.transport.AgentMessage
-
-@Serializable
-data class AgentConfig(
-    val id: String,
-    val instanceId: String,
-    val buildVersion: String,
-    val serviceGroupId: String,
-    val agentType: AgentType,
-    val agentVersion: String = "",
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
-    val parameters: Map<String, AgentParameter> = emptyMap()
-) : AgentMessage()
+/**
+ * A listener interface to receive notification about transport state changes.
+ * Supports both stateful (like websocket sessions) and stateless transports (like HTTP calls).
+ *
+ * It's used to notify [com.epam.drill.common.agent.transport.AgentMessageSender]
+ * about [AgentMessageTransport] state changes using [TransportStateNotifier].
+ *
+ * @see TransportStateNotifier
+ * @see AgentMessageTransport
+ * @see com.epam.drill.common.agent.transport.AgentMessageSender
+ */
+interface TransportStateListener {
+    fun onStateAlive()
+    fun onStateFailed()
+}

@@ -22,10 +22,7 @@ import kotlinx.cinterop.toByte
 
 @Suppress("UNUSED_PARAMETER")
 fun callNativeVoidMethod(env: JNIEnv, thiz: jobject, method: () -> Unit) = memScoped {
-    withJString {
-        ex = env.getPointer(this@memScoped).reinterpret()
-        method()
-    }
+    method()
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -38,21 +35,20 @@ fun callNativeVoidMethodWithString(env: JNIEnv, thiz: jobject, method: (String?)
 
 @Suppress("UNUSED_PARAMETER")
 fun callNativeStringMethod(env: JNIEnv, thiz: jobject, method: () -> String?) = memScoped {
-    withJString {
-        ex = env.getPointer(this@memScoped).reinterpret()
-        NewStringUTF(method())
-    }
+    NewStringUTF(method())
 }
 
 @Suppress("UNUSED_PARAMETER")
 fun callNativeBooleanMethod(env: JNIEnv, thiz: jobject, method: () -> Boolean?) = memScoped {
-    withJString {
-        ex = env.getPointer(this@memScoped).reinterpret()
-        method()?.toByte()?.toUByte()
-    }
+    method()?.toByte()?.toUByte()
 }
 
 @Suppress("UNUSED_PARAMETER")
-fun callNativeLongMethod(env: JNIEnv, thiz: jobject, method: () -> Long?): Long = memScoped {
-    return method.invoke()!! // `!!` - is a workaround, method is guaranteed not to return null
+fun callNativeByteArrayMethod(env: JNIEnv, thiz: jobject, method: () -> ByteArray?) = memScoped {
+    method()?.let(::toJByteArray)
+}
+
+@Suppress("UNUSED_PARAMETER")
+fun callNativeLongMethod(env: JNIEnv, thiz: jobject, method: () -> Long?) = memScoped {
+    method()!! // `!!` - is a workaround, method is guaranteed not to return null
 }

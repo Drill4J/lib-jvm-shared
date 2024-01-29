@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.configuration
+package com.epam.drill.agent.transport.http
 
-import kotlinx.serialization.Serializable
-import com.epam.drill.common.agent.transport.AgentMessage
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 
-@Serializable
-data class AgentConfig(
-    val id: String,
-    val instanceId: String,
-    val buildVersion: String,
-    val serviceGroupId: String,
-    val agentType: AgentType,
-    val agentVersion: String = "",
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
-    val parameters: Map<String, AgentParameter> = emptyMap()
-) : AgentMessage()
+class HttpResponseStatusTest {
+
+    @Test
+    fun `success for HTTP 200`() {
+        val status = HttpResponseStatus(200)
+        assertTrue(status.success)
+        assertEquals(200, status.statusObject)
+    }
+
+    @Test
+    fun `failed for HTTP 500`() {
+        val status = HttpResponseStatus(500)
+        assertFalse(status.success)
+        assertEquals(500, status.statusObject)
+    }
+
+}

@@ -34,10 +34,8 @@ abstract class AdminPluginPart<A>(
     suspend fun doRawAction(rawAction: String, data: Any? = null): Any = doAction(parseAction(rawAction), data)
 
     open suspend fun processData(
-        instanceId: String,
-        attachedAgentVersion: String,
-        content: String
-    ): Any = Unit
+        message: Any,
+    ): Any? = null
 
     open suspend fun applyPackagesChanges() = Unit
 

@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.configuration
+package com.epam.drill.agent.transport.http
 
-import kotlinx.serialization.Serializable
-import com.epam.drill.common.agent.transport.AgentMessage
+import org.apache.hc.core5.http.HttpStatus
+import com.epam.drill.common.agent.transport.ResponseStatus
 
-@Serializable
-data class AgentConfig(
-    val id: String,
-    val instanceId: String,
-    val buildVersion: String,
-    val serviceGroupId: String,
-    val agentType: AgentType,
-    val agentVersion: String = "",
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
-    val parameters: Map<String, AgentParameter> = emptyMap()
-) : AgentMessage()
+class HttpResponseStatus(private val status: Int) : ResponseStatus {
+
+    override val success
+        get() = status == HttpStatus.SC_SUCCESS
+
+    override val statusObject
+        get() = status
+
+}

@@ -17,7 +17,6 @@ package com.epam.dsm.serializer
 
 import com.epam.dsm.*
 import com.epam.dsm.util.*
-import com.epam.drill.common.util.*
 import com.zaxxer.hikari.pool.*
 import kotlinx.coroutines.*
 import org.jetbrains.exposed.sql.*

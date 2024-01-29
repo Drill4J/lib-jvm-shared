@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.configuration
+package com.epam.drill.common.agent.transport
 
-import kotlinx.serialization.Serializable
-import com.epam.drill.common.agent.transport.AgentMessage
-
-@Serializable
-data class AgentConfig(
-    val id: String,
-    val instanceId: String,
-    val buildVersion: String,
-    val serviceGroupId: String,
-    val agentType: AgentType,
-    val agentVersion: String = "",
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
-    val parameters: Map<String, AgentParameter> = emptyMap()
-) : AgentMessage()
+/**
+ * Abstraction for response of any type.
+ * It has [statusObject] property to hold response details if needed.
+ *
+ * It's used in [AgentMessageSender].
+ *
+ * @see [AgentMessageSender]
+ */
+interface ResponseStatus {
+    val success: Boolean
+    val statusObject: Any?
+}

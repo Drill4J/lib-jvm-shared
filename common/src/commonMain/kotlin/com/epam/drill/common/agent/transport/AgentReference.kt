@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.configuration
+package com.epam.drill.common.agent.transport
 
 import kotlinx.serialization.Serializable
-import com.epam.drill.common.agent.transport.AgentMessage
 
 @Serializable
-data class AgentConfig(
-    val id: String,
+data class AgentReference(
     val instanceId: String,
-    val buildVersion: String,
-    val serviceGroupId: String,
-    val agentType: AgentType,
-    val agentVersion: String = "",
-    val packagesPrefixes: PackagesPrefixes = PackagesPrefixes(),
-    val parameters: Map<String, AgentParameter> = emptyMap()
-) : AgentMessage()
+    val agentId: String,
+    val groupId: String,
+    val buildVersion: String
+)
