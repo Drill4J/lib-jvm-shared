@@ -36,7 +36,7 @@ fun agentOnLoad(vmPointer: CPointer<JavaVMVar>, options: String, reservedPtr: Lo
 
     LoggingConfiguration.readDefaultConfiguration()
     LoggingConfiguration.setLoggingLevels("TRACE")
-    LoggingConfiguration.setLogMessageLimit(500000)
+    LoggingConfiguration.setLogMessageLimit(524288)
 
     val alloc = alloc<jvmtiEventCallbacks>()
     alloc.VMInit = staticCFunction(::vmInitEvent)

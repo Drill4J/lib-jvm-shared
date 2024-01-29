@@ -58,6 +58,8 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-junit"))
                 implementation(project(":common"))
+                implementation("org.eclipse.jetty:jetty-server:9.4.26.v20200117")
+                implementation("io.undertow:undertow-core:2.0.29.Final")
             }
         }
         val configureNativeMainDependencies: KotlinSourceSet.() -> Unit = {
