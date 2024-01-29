@@ -24,6 +24,11 @@ import com.epam.drill.agent.configuration.DefaultParameterDefinitions
 
 class PropertiesFileProviderTest {
 
+    private val separator = if (Platform.osFamily == OsFamily.WINDOWS) "\\" else "/"
+    private val fullPath = if (Platform.osFamily == OsFamily.WINDOWS) "C:\\data\\agent" else "/data/agent"
+    private val testPath1 = if (Platform.osFamily == OsFamily.WINDOWS) "C:\\data1" else "/data1"
+    private val testPath2 = if (Platform.osFamily == OsFamily.WINDOWS) "C:\\data2" else "/data2"
+
     @Test
     fun `parse empty lines`() {
         val result = PropertiesFileProvider(emptySet()).parseLines("")
@@ -47,24 +52,24 @@ class PropertiesFileProviderTest {
     @Test
     fun `config path default`() {
         val result = PropertiesFileProvider(emptySet()).configPath()
-        assertEquals(".\\drill.properties", result)
+        assertEquals(".${separator}drill.properties", result)
     }
 
     @Test
     fun `config path from installation dir`() {
         val result = PropertiesFileProvider(setOf(SimpleMapProvider(mapOf(
-            DefaultParameterDefinitions.INSTALLATION_DIR.name to "C:\\data\\agent"
+            DefaultParameterDefinitions.INSTALLATION_DIR.name to fullPath
         )))).configPath()
-        assertEquals("C:\\data\\agent\\drill.properties", result)
+        assertEquals("$fullPath${separator}drill.properties", result)
     }
 
     @Test
     fun `config path from property`() {
         val result = PropertiesFileProvider(setOf(SimpleMapProvider(mapOf(
-            DefaultParameterDefinitions.INSTALLATION_DIR.name to "C:\\data\\agent",
-            DefaultParameterDefinitions.CONFIG_PATH.name to "C:\\data\\agent\\config.properties"
+            DefaultParameterDefinitions.INSTALLATION_DIR.name to fullPath,
+            DefaultParameterDefinitions.CONFIG_PATH.name to "$fullPath${separator}config.properties"
         )))).configPath()
-        assertEquals("C:\\data\\agent\\config.properties", result)
+        assertEquals("$fullPath${separator}config.properties", result)
     }
 
     @Test
@@ -84,17 +89,17 @@ class PropertiesFileProviderTest {
     @Test
     fun `from providers one entry`() {
         val provider1 = SimpleMapProvider(mapOf("foo" to "bar1"))
-        val provider2 = SimpleMapProvider(mapOf(DefaultParameterDefinitions.CONFIG_PATH.name to "C:\\config1.properties"))
+        val provider2 = SimpleMapProvider(mapOf(DefaultParameterDefinitions.CONFIG_PATH.name to "/config1.properties"))
         val result = PropertiesFileProvider(setOf(provider1, provider2)).fromProviders()
-        assertEquals("C:\\config1.properties", result)
+        assertEquals("/config1.properties", result)
     }
 
     @Test
     fun `from providers two entry prioritized`() {
-        val provider1 = SimpleMapProvider(mapOf(DefaultParameterDefinitions.CONFIG_PATH.name to "C:\\config1.properties"), 100)
-        val provider2 = SimpleMapProvider(mapOf(DefaultParameterDefinitions.CONFIG_PATH.name to "C:\\config2.properties"), 200)
+        val provider1 = SimpleMapProvider(mapOf(DefaultParameterDefinitions.CONFIG_PATH.name to "/config1.properties"), 100)
+        val provider2 = SimpleMapProvider(mapOf(DefaultParameterDefinitions.CONFIG_PATH.name to "/config2.properties"), 200)
         val result = PropertiesFileProvider(setOf(provider1, provider2)).fromProviders()
-        assertEquals("C:\\config2.properties", result)
+        assertEquals("/config2.properties", result)
     }
 
     @Test
@@ -114,17 +119,17 @@ class PropertiesFileProviderTest {
     @Test
     fun `from installation dir one entry`() {
         val provider1 = SimpleMapProvider(mapOf("foo" to "bar1"))
-        val provider2 = SimpleMapProvider(mapOf(DefaultParameterDefinitions.INSTALLATION_DIR.name to "C:\\data1"))
+        val provider2 = SimpleMapProvider(mapOf(DefaultParameterDefinitions.INSTALLATION_DIR.name to testPath1))
         val result = PropertiesFileProvider(setOf(provider1, provider2)).fromInstallationDir()
-        assertEquals("C:\\data1\\drill.properties", result)
+        assertEquals("$testPath1${separator}drill.properties", result)
     }
 
     @Test
     fun `from installation dir two entry prioritized`() {
-        val provider1 = SimpleMapProvider(mapOf(DefaultParameterDefinitions.INSTALLATION_DIR.name to "C:\\data1"), 100)
-        val provider2 = SimpleMapProvider(mapOf(DefaultParameterDefinitions.INSTALLATION_DIR.name to "C:\\data2"), 200)
+        val provider1 = SimpleMapProvider(mapOf(DefaultParameterDefinitions.INSTALLATION_DIR.name to testPath1), 100)
+        val provider2 = SimpleMapProvider(mapOf(DefaultParameterDefinitions.INSTALLATION_DIR.name to testPath2), 200)
         val result = PropertiesFileProvider(setOf(provider1, provider2)).fromInstallationDir()
-        assertEquals("C:\\data2\\drill.properties", result)
+        assertEquals("$testPath2${separator}drill.properties", result)
     }
 
     private class SimpleMapProvider(

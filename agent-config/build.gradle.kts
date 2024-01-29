@@ -50,14 +50,26 @@ kotlin {
                 implementation("io.ktor:ktor-utils:$ktorVersion")
             }
         }
+        val nativeTest by creating {
+            dependsOn(commonTest)
+        }
         val mingwX64Main by getting {
             dependsOn(nativeMain)
+        }
+        val mingwX64Test by getting {
+            dependsOn(nativeTest)
         }
         val linuxX64Main by getting {
             dependsOn(nativeMain)
         }
+        val linuxX64Test by getting {
+            dependsOn(nativeTest)
+        }
         val macosX64Main by getting {
             dependsOn(nativeMain)
+        }
+        val macosX64Test by getting {
+            dependsOn(nativeTest)
         }
     }
 }

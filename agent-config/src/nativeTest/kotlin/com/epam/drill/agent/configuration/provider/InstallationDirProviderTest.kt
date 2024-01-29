@@ -23,73 +23,79 @@ import com.epam.drill.agent.configuration.DefaultParameterDefinitions
 
 class InstallationDirProviderTest {
 
+    private val separator = if (Platform.osFamily == OsFamily.WINDOWS) "\\" else "/"
+    private val libName = if (Platform.osFamily == OsFamily.WINDOWS) "drill_agent.dll" else "libdrill_agent.so"
+    private val fullPath = if (Platform.osFamily == OsFamily.WINDOWS) "C:\\data\\agent" else "/data/agent"
+    private val rootPath = if (Platform.osFamily == OsFamily.WINDOWS) "C:" else "/"
+    private val rootLibPath = if (Platform.osFamily == OsFamily.WINDOWS) "C:\\drill_agent.dll" else "/libdrill_agent.so"
+
     @Test
     fun `parse platform specific style path`() {
         val result = InstallationDirProvider(emptySet())
-            .parse("-agentpath:/data/agent/libdrill_agent.so=param1=1,param2=2")
-        assertEquals("/data/agent", result)
+            .parse("-agentpath:$fullPath$separator$libName=param1=1,param2=2")
+        assertEquals(fullPath, result)
     }
 
     @Test
     fun `parse with root directory`() {
         val result = InstallationDirProvider(emptySet())
-            .parse("-agentpath:/libdrill_agent.so")
-        assertEquals("/", result)
+            .parse("-agentpath:$rootLibPath")
+        assertEquals(rootPath, result)
     }
 
     @Test
     fun `parse without options`() {
         val result = InstallationDirProvider(emptySet())
-            .parse("-agentpath:/data/agent/libdrill_agent.so")
+            .parse("-agentpath:/data/agent/$libName")
         assertEquals("/data/agent", result)
     }
 
     @Test
     fun `parse with equal separator without options`() {
         val result = InstallationDirProvider(emptySet())
-            .parse("-agentpath:/data/agent/libdrill_agent.so=")
+            .parse("-agentpath:/data/agent/$libName=")
         assertEquals("/data/agent", result)
     }
 
     @Test
     fun `parse with space separator without options`() {
         val result = InstallationDirProvider(emptySet())
-            .parse("-agentpath:/data/agent/libdrill_agent.so -Dparam=foo/bar")
+            .parse("-agentpath:/data/agent/$libName -Dparam=foo/bar")
         assertEquals("/data/agent", result)
     }
 
     @Test
     fun `parse with options`() {
         val result = InstallationDirProvider(emptySet())
-            .parse("-agentpath:/data/agent/libdrill_agent.so=opt1,opt2")
+            .parse("-agentpath:/data/agent/$libName=opt1,opt2")
         assertEquals("/data/agent", result)
     }
 
     @Test
     fun `parse without leading directory separator`() {
         val result = InstallationDirProvider(emptySet())
-            .parse("-agentpath:libdrill_agent.so")
+            .parse("-agentpath:$libName")
         assertEquals(".", result)
     }
 
     @Test
     fun `parse with other arguments`() {
         val result = InstallationDirProvider(emptySet())
-            .parse("-Dparam=foo/bar -agentpath:/data/agent/libdrill_agent.so /other/path")
+            .parse("-Dparam=foo/bar -agentpath:/data/agent/$libName /other/path")
         assertEquals("/data/agent", result)
     }
 
     @Test
     fun `parse with quotes`() {
         val result = InstallationDirProvider(emptySet())
-            .parse("-agentpath:\"/data/agent/libdrill_agent.so=opt1,opt2\"")
+            .parse("-agentpath:\"/data/agent/$libName=opt1,opt2\"")
         assertEquals("/data/agent", result)
     }
 
     @Test
     fun `parse with quotes and spaces`() {
         val result = InstallationDirProvider(emptySet())
-            .parse("-agentpath: \"/data space/agent/libdrill_agent.so\" /other/path")
+            .parse("-agentpath: \"/data space/agent/$libName\" /other/path")
         assertEquals("/data space/agent", result)
     }
 
@@ -99,7 +105,7 @@ class InstallationDirProviderTest {
             """
             java -jar some.jar
             
-            -agentpath:/data/agent/libdrill_agent.so
+            -agentpath:/data/agent/$libName
             """
         )
         assertEquals("/data/agent", result)
@@ -110,7 +116,7 @@ class InstallationDirProviderTest {
         val result = InstallationDirProvider(emptySet()).parse(
             """            
             -agentpath:/other/path/other_agent.dll
-            -agentpath:/data/agent/libdrill_agent.so
+            -agentpath:/data/agent/$libName
             -agentpath:/another/path/libanother_agent.so
             """.trimIndent()
         )
