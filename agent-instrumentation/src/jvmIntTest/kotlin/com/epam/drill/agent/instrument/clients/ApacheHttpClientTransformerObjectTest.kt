@@ -1,8 +1,6 @@
 package com.epam.drill.agent.instrument.clients
 
-import com.epam.drill.agent.instrument.AbstractClientTransformerObjectTest
-
-class ApacheHttpClientConnectionObjectTest : AbstractClientTransformerObjectTest() {
+class ApacheHttpClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
 
     override fun callHttpEndpoint(
         endpoint: String,

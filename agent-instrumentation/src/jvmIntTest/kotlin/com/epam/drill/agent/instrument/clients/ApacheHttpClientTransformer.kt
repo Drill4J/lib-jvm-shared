@@ -15,7 +15,11 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import com.epam.drill.agent.instrument.AbstractTransformerObject
-import com.epam.drill.agent.instrument.TransformerObject
+import com.epam.drill.agent.instrument.DrillRequestHeadersProcessor
+import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.agent.instrument.TestHeadersRetriever
+import com.epam.drill.agent.instrument.TestRequestHolder
 
-object JavaHttpUrlConnection : TransformerObject, AbstractTransformerObject()
+object ApacheHttpClientTransformer :
+    ApacheHttpClientTransformerObject(),
+    HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder)

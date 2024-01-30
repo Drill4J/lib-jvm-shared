@@ -20,6 +20,6 @@ import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.instrument.TestHeadersRetriever
 import com.epam.drill.agent.instrument.TestRequestHolder
 
-object OkHttp3Codec :
-    OkHttp3CodecObject(),
+object OkHttp3ClientTransformer :
+    OkHttp3ClientTransformerObject(),
     HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder)

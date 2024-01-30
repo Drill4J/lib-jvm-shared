@@ -20,39 +20,37 @@ import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 
-abstract class JavaHttpUrlConnectionObject : HeadersProcessor, AbstractTransformerObject() {
+abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        "java/net/HttpURLConnection" == superName || "javax/net/ssl/HttpsURLConnection" == superName
+        interfaces.any("okhttp3/internal/http/HttpCodec"::equals)
 
     override fun transform(className:String, ctClass: CtClass) {
-        ctClass.constructors.forEach {
-            it.insertAfter(
-                """
-                if (${this::class.qualifiedName}.INSTANCE.${this::hasHeaders.name}()) {
-                    try {
-                        java.util.Map headers = ${this::class.qualifiedName}.INSTANCE.${this::retrieveHeaders.name}();
-                        java.util.Iterator iterator = headers.entrySet().iterator();                      
-                        while (iterator.hasNext()) {
-                            java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
-                            this.setRequestProperty((String) entry.getKey(), (String) entry.getValue());
-                        }
-                        ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(headers);   
-                    } catch (Exception e) {};
+        ctClass.getDeclaredMethod("writeRequestHeaders").insertBefore(
+            """
+            if (${this::class.qualifiedName}.INSTANCE.${this::hasHeaders.name}()) {
+                okhttp3.Request.Builder builder = $1.newBuilder();
+                java.util.Map headers = ${this::class.qualifiedName}.INSTANCE.${this::retrieveHeaders.name}();
+                java.util.Iterator iterator = headers.entrySet().iterator();             
+                while (iterator.hasNext()) {
+                    java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
+                    builder.addHeader((String) entry.getKey(), (String) entry.getValue());
                 }
-                """.trimIndent()
-            )
-        }
-        ctClass.getMethod("getContent", "()Ljava/lang/Object;").insertAfter(
+                $1 = builder.build();
+                ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(headers);                    
+            }
+            """.trimIndent()
+        )
+        ctClass.getDeclaredMethod("openResponseBody").insertBefore(
             """
             if (${this::class.qualifiedName}.INSTANCE.${this::isProcessResponses.name}()) {
                 java.util.Map allHeaders = new java.util.HashMap();
-                java.util.Iterator iterator = this.getHeaderFields().keySet().iterator();
-                while (iterator.hasNext()) {
+                java.util.Iterator iterator = $1.headers().names().iterator();
+                while (iterator.hasNext()) { 
                     String key = (String) iterator.next();
-                    String value = this.getHeaderField(key);
+                    String value = $1.headers().get(key);
                     allHeaders.put(key, value);
                 }
                 ${this::class.qualifiedName}.INSTANCE.${this::storeHeaders.name}(allHeaders);

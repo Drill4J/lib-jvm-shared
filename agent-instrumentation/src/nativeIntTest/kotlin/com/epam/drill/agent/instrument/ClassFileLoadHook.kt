@@ -20,9 +20,9 @@ import org.objectweb.asm.ClassReader
 import io.ktor.utils.io.bits.Memory
 import io.ktor.utils.io.bits.loadByteArray
 import io.ktor.utils.io.bits.of
-import com.epam.drill.agent.instrument.clients.ApacheHttpClientConnection
-import com.epam.drill.agent.instrument.clients.JavaHttpUrlConnection
-import com.epam.drill.agent.instrument.clients.OkHttp3Codec
+import com.epam.drill.agent.instrument.clients.ApacheHttpClientTransformer
+import com.epam.drill.agent.instrument.clients.JavaHttpClientTransformer
+import com.epam.drill.agent.instrument.clients.OkHttp3ClientTransformer
 import com.epam.drill.jvmapi.gen.Allocate
 import com.epam.drill.jvmapi.gen.jint
 import com.epam.drill.jvmapi.gen.jintVar
@@ -30,7 +30,11 @@ import com.epam.drill.jvmapi.gen.jobject
 
 object ClassFileLoadHook {
 
-    private val clientTransformers = listOf(JavaHttpUrlConnection, ApacheHttpClientConnection, OkHttp3Codec)
+    private val clientTransformers = listOf(
+        JavaHttpClientTransformer,
+        ApacheHttpClientTransformer,
+        OkHttp3ClientTransformer
+    )
 
     operator fun invoke(
         loader: jobject?,

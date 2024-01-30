@@ -5,7 +5,7 @@ import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.instrument.TestHeadersRetriever
 import com.epam.drill.agent.instrument.TestRequestHolder
 
-object JavaHttpUrlConnection :
-    JavaHttpUrlConnectionObject(),
+object JavaHttpClientTransformer :
+    JavaHttpClientTransformerObject(),
     HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder) {
 }

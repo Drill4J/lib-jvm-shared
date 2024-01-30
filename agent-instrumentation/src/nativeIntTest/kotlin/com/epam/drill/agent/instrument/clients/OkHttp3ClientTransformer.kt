@@ -18,4 +18,4 @@ package com.epam.drill.agent.instrument.clients
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.TransformerObject
 
-object OkHttp3Codec : TransformerObject, AbstractTransformerObject()
+object OkHttp3ClientTransformer : TransformerObject, AbstractTransformerObject()
