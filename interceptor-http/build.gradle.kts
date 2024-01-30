@@ -22,6 +22,7 @@ version = Properties().run {
     getProperty("version.$name") ?: Project.DEFAULT_VERSION
 }
 
+val logbackVersion: String by parent!!.extra
 val nativeAgentLibName: String by parent!!.extra
 
 repositories {
@@ -58,8 +59,10 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-junit"))
                 implementation(project(":common"))
+                implementation("org.apache.tomcat.embed:tomcat-embed-core:10.0.27")
                 implementation("org.eclipse.jetty:jetty-server:9.4.26.v20200117")
                 implementation("io.undertow:undertow-core:2.0.29.Final")
+                implementation("ch.qos.logback:logback-classic:$logbackVersion")
             }
         }
         val configureNativeMainDependencies: KotlinSourceSet.() -> Unit = {
