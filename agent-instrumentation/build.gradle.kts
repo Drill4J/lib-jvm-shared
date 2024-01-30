@@ -2,14 +2,19 @@ import java.net.URI
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
+import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.presetName
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import com.hierynomus.gradle.license.tasks.LicenseCheck
 import com.hierynomus.gradle.license.tasks.LicenseFormat
 
 plugins {
     kotlin("multiplatform")
+    id("com.github.johnrengelman.shadow")
     id("com.github.hierynomus.license")
 }
 
@@ -21,6 +26,7 @@ version = Properties().run {
 
 val javassistVersion: String by parent!!.extra
 val transmittableThreadLocalVersion: String by parent!!.extra
+val nativeAgentLibName: String by parent!!.extra
 
 repositories {
     mavenLocal()
@@ -28,11 +34,21 @@ repositories {
 }
 
 kotlin {
+    val configureIntTestTarget: KotlinTarget.() -> Unit = {
+        compilations.create("intTest").associateWith(compilations["main"])
+        (this as? KotlinNativeTarget)?.binaries?.sharedLib(nativeAgentLibName, setOf(DEBUG)) {
+            compilation = compilations["intTest"]
+        }
+    }
     targets {
-        jvm()
-        mingwX64()
-        linuxX64()
-        macosX64()
+        jvm(configure = configureIntTestTarget)
+        linuxX64(configure = configureIntTestTarget)
+        macosX64(configure = configureIntTestTarget)
+        mingwX64(configure = configureIntTestTarget).apply {
+            binaries.all {
+                linkerOpts("-lpsapi", "-lwsock32", "-lws2_32", "-lmswsock")
+            }
+        }
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
@@ -52,14 +68,27 @@ kotlin {
                 implementation("com.alibaba:transmittable-thread-local:$transmittableThreadLocalVersion")
             }
         }
-        val configureNativeDependencies: KotlinSourceSet.() -> Unit = {
+        val jvmIntTest by getting {
+            dependencies {
+                implementation(kotlin("test-junit"))
+            }
+        }
+        val configureNativeMainDependencies: KotlinSourceSet.() -> Unit = {
             dependencies {
                 implementation(project(":jvmapi"))
             }
         }
-        val mingwX64Main by getting(configuration = configureNativeDependencies)
-        val linuxX64Main by getting(configuration = configureNativeDependencies)
-        val macosX64Main by getting(configuration = configureNativeDependencies)
+        val configureNativeTestIntDependencies: KotlinSourceSet.() -> Unit = {
+            dependencies {
+                implementation(project(":knasm"))
+            }
+        }
+        val mingwX64Main by getting(configuration = configureNativeMainDependencies)
+        val linuxX64Main by getting(configuration = configureNativeMainDependencies)
+        val macosX64Main by getting(configuration = configureNativeMainDependencies)
+        val mingwX64IntTest by getting(configuration = configureNativeTestIntDependencies)
+        val linuxX64IntTest by getting(configuration = configureNativeTestIntDependencies)
+        val macosX64IntTest by getting(configuration = configureNativeTestIntDependencies)
     }
     tasks {
         val filterOutCurrentPlatform: (KotlinNativeTarget) -> Boolean = {
@@ -86,6 +115,31 @@ kotlin {
             .flatMap(KotlinNativeTarget::compilations)
             .onEach(copyNativeClassesTask)
             .onEach(cleanNativeClassesTask)
+        val jvmMainCompilation = targets.withType<KotlinJvmTarget>()["jvm"].compilations["main"]
+        val jvmIntTestCompilation = targets.withType<KotlinJvmTarget>()["jvm"].compilations["intTest"]
+        val runtimeJar by registering(ShadowJar::class) {
+            mergeServiceFiles()
+            isZip64 = true
+            archiveFileName.set("drillRuntime.jar")
+            from(jvmMainCompilation.runtimeDependencyFiles, jvmMainCompilation.output, jvmIntTestCompilation.output)
+            dependencies {
+                exclude("/META-INF/services/javax.servlet.ServletContainerInitializer")
+                exclude("/ch/qos/logback/classic/servlet/*")
+                exclude("com/epam/drill/agent/instrument/**/*Test.class")
+                exclude("com/epam/drill/agent/instrument/**/*Test$*.class")
+            }
+        }
+        register("integrationTest", Test::class) {
+            val intTestAgentLib = targets.withType<KotlinNativeTarget>()[HostManager.host.presetName]
+                .binaries.getSharedLib(nativeAgentLibName, NativeBuildType.DEBUG)
+            description = "Runs the integration tests using simple native agent"
+            group = "verification"
+            testClassesDirs = jvmIntTestCompilation.output.classesDirs
+            classpath = jvmIntTestCompilation.runtimeDependencyFiles + jvmIntTestCompilation.output.allOutputs
+            jvmArgs = listOf("-agentpath:${intTestAgentLib.outputFile.path}=${runtimeJar.get().outputs.files.singleFile}")
+            dependsOn(runtimeJar)
+            dependsOn(intTestAgentLib.linkTask)
+        }
     }
 }
 

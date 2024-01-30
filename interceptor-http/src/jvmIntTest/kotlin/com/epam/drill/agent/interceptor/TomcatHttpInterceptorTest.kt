@@ -26,8 +26,9 @@ class TomcatHttpInterceptorTest : AbstractHttpInterceptorTest() {
     override fun withHttpServer(block: (String) -> Unit) = Tomcat().run {
         try {
             LogManager.getLogManager().readConfiguration(ClassLoader.getSystemResourceAsStream("logging.properties"))
-            val context = this.addContext("", null)
+            this.setBaseDir("./build")
             this.setPort(0)
+            val context = this.addContext("", null)
             this.addServlet(context.path, TestRequestServlet::class.simpleName, TestRequestServlet)
             context.addServletMappingDecoded("/", TestRequestServlet::class.simpleName)
             this.start()
