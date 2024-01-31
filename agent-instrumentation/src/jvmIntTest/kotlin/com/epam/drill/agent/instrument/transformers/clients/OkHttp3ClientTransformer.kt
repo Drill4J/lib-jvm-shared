@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.clients
+package com.epam.drill.agent.instrument.transformers.clients
 
-import com.epam.drill.agent.instrument.AbstractTransformerObject
-import com.epam.drill.agent.instrument.TransformerObject
+import com.epam.drill.agent.instrument.DrillRequestHeadersProcessor
+import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.agent.instrument.TestHeadersRetriever
+import com.epam.drill.agent.instrument.TestRequestHolder
+import com.epam.drill.agent.instrument.clients.OkHttp3ClientTransformerObject
 
-object JavaHttpClientTransformer : TransformerObject, AbstractTransformerObject()
+object OkHttp3ClientTransformer :
+    OkHttp3ClientTransformerObject(),
+    HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder)
