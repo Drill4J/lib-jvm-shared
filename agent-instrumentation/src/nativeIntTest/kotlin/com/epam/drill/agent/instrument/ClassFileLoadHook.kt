@@ -45,9 +45,10 @@ object ClassFileLoadHook {
         newDataLen: CPointer<jintVar>?,
         newData: CPointer<CPointerVar<UByteVar>>?,
     ) {
-        if (loader == null || protectionDomain == null) return
         val className = clsName?.toKString()
+        val isJavaHttpClass = className?.matches(Regex("(java|sun)/net/.*Http.*")) ?: false
         if (className == null || classData == null) return
+        if (isBootstrapClassloading(loader, protectionDomain) && !isJavaHttpClass) return
         val classBytes = ByteArray(classDataLen).also {
             Memory.of(classData, classDataLen).loadByteArray(0, it)
         }
@@ -59,6 +60,9 @@ object ClassFileLoadHook {
             }
         }
     }
+
+    private fun isBootstrapClassloading(loader: jobject?, protectionDomain: jobject?,) =
+        loader == null || protectionDomain == null
 
     private fun convertToNativePointers(
         transformedBytes: ByteArray,

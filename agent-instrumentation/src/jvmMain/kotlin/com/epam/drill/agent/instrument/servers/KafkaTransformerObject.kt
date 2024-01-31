@@ -15,8 +15,8 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+import javassist.CtBehavior
 import javassist.CtClass
-import javassist.CtMethod
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
@@ -41,7 +41,7 @@ abstract class KafkaTransformerObject : HeadersProcessor, AbstractTransformerObj
     private fun instrumentProducer(ctClass: CtClass) {
         ctClass.getDeclaredMethods("send").forEach {
             it.insertCatching(
-                CtMethod::insertBefore,
+                CtBehavior::insertBefore,
                 """
                 java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
                 if (drillHeaders != null) {
@@ -62,7 +62,7 @@ abstract class KafkaTransformerObject : HeadersProcessor, AbstractTransformerObj
     private fun instrumentConsumer(ctClass: CtClass) {
         ctClass.getDeclaredMethods("doInvokeRecordListener").forEach {
             it.insertCatching(
-                CtMethod::insertBefore,
+                CtBehavior::insertBefore,
                 """
                 java.util.Iterator headers = $1.headers().iterator();
                 java.util.Map drillHeaders = new java.util.HashMap();

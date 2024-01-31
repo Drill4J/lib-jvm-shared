@@ -13,48 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.interceptor
+package com.epam.drill.agent.instrument.clients
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
 import java.net.HttpURLConnection
 import java.net.URL
 
-@Suppress("FunctionName")
-abstract class AbstractHttpInterceptorTest {
+class JavaHttpClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
 
-    @Test
-    fun `test with empty headers request`() = withHttpServer {
-        val response = callHttpEndpoint(it)
-        val responseHeaders = response.first
-        val responseBody = response.second
-        assertEquals("test-agent", responseHeaders["drill-agent-id"])
-        assertEquals("test-admin:8080", responseHeaders["drill-admin-url"])
-        assertEquals("test-request", responseBody)
-    }
-
-    @Test
-    fun `test with session headers request`() = withHttpServer {
-        val requestHeaders = mapOf(
-            "drill-session-id" to "123",
-            "drill-session-data" to "data-123"
-        )
-        val response = callHttpEndpoint(it, requestHeaders)
-        val responseHeaders = response.first
-        val responseBody = response.second
-        assertEquals("test-agent", responseHeaders["drill-agent-id"])
-        assertEquals("test-admin:8080", responseHeaders["drill-admin-url"])
-        assertEquals("123", responseHeaders["drill-session-id"])
-        assertEquals("data-123", responseHeaders["drill-session-data"])
-        assertEquals("test-request", responseBody)
-    }
-
-    protected abstract fun withHttpServer(block: (String) -> Unit)
-
-    private fun callHttpEndpoint(
+    override fun callHttpEndpoint(
         endpoint: String,
-        headers: Map<String, String> = emptyMap(),
-        request: String = "test-request"
+        headers: Map<String, String>,
+        request: String
     ): Pair<Map<String, String>, String> {
         lateinit var connection: HttpURLConnection
         try {

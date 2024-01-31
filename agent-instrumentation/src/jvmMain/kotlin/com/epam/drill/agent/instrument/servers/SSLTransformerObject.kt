@@ -16,8 +16,8 @@
 package com.epam.drill.agent.instrument.servers
 
 import java.nio.ByteBuffer
+import javassist.CtBehavior
 import javassist.CtClass
-import javassist.CtMethod
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
@@ -38,7 +38,7 @@ abstract class SSLTransformerObject : HeadersProcessor, AbstractTransformerObjec
     override fun transform(className: String, ctClass: CtClass) {
         ctClass.getMethod("unwrap","(Ljava/nio/ByteBuffer;[Ljava/nio/ByteBuffer;II)Ljavax/net/ssl/SSLEngineResult;")
             .insertCatching(
-                CtMethod::insertAfter,
+                CtBehavior::insertAfter,
                 """
                    ${this::class.java.name}.INSTANCE.${this::parseHttpRequest.name}($2);
                 """.trimIndent()
@@ -60,7 +60,7 @@ abstract class SSLTransformerObject : HeadersProcessor, AbstractTransformerObjec
             }
             else -> Unit
         }
-    } catch(e: Throwable) {
+    } catch(e: Exception) {
         logger.error(e) { "parseHttpRequest: Error while parse request buffer" }
     }
 

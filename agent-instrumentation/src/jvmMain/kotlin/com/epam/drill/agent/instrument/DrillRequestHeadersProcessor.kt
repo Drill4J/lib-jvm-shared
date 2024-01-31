@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument
 
+import java.util.Objects
 import mu.KLogger
 import mu.KotlinLogging
 import com.epam.drill.common.agent.request.DrillRequest
@@ -32,12 +33,13 @@ open class DrillRequestHeadersProcessor(
 
     override fun storeHeaders(headers: Map<String, String>) = try {
         headers[headersRetriever.sessionHeader()]?.also { sessionId ->
-            headers.filter { it.key.startsWith(HeadersProcessor.DRILL_HEADER_PREFIX) }
+            headers.filterKeys(Objects::nonNull)
+                .filter { it.key.startsWith(HeadersProcessor.DRILL_HEADER_PREFIX) }
                 .also { logger.trace { "storeHeaders: Storing headers, sessionId=$sessionId: $it" } }
                 .also { requestHolder.store(DrillRequest(sessionId, it)) }
         }
         Unit
-    } catch (e: Throwable) {
+    } catch (e: Exception) {
         logger.error(e) { "storeHeaders: Error while storing headers" }
     }
 
@@ -47,7 +49,7 @@ open class DrillRequestHeadersProcessor(
                 .plus(headersRetriever.sessionHeader() to drillRequest.drillSessionId)
                 .also { logger.trace { "retrieveHeaders: Getting headers, sessionId=${drillRequest.drillSessionId}: $it" } }
         }
-    } catch (e: Throwable) {
+    } catch (e: Exception) {
         logger.error(e) { "retrieveHeaders: Error while loading drill headers" }
         null
     }

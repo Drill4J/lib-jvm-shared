@@ -15,38 +15,54 @@
  */
 package com.epam.drill.agent.instrument.clients
 
+import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import java.net.InetSocketAddress
-import org.junit.Test
-import com.sun.net.httpserver.HttpExchange
-import com.sun.net.httpserver.HttpServer
+import java.util.Objects
+import org.simpleframework.http.Request
+import org.simpleframework.http.Response
+import org.simpleframework.http.Status
+import org.simpleframework.http.core.Container
+import org.simpleframework.http.core.ContainerSocketProcessor
+import org.simpleframework.transport.connect.SocketConnection
+import com.epam.drill.agent.instrument.TestRequestHolder
+import com.epam.drill.common.agent.request.DrillRequest
 
 @Suppress("FunctionName")
 abstract class AbstractClientTransformerObjectTest {
 
     @Test
-    fun `test with empty headers request`() = withHttpServer {
+    fun `test request-response with empty thread session and headers data`() = withHttpServer(returnHeaders = true) {
+        TestRequestHolder.remove()
         val response = callHttpEndpoint(it)
         val responseHeaders = response.first
         val responseBody = response.second
-        assertEquals("test-agent", responseHeaders["drill-agent-id"])
-        assertEquals("test-admin:8080", responseHeaders["drill-admin-url"])
+        val drillHeaders = responseHeaders.filterKeys(Objects::nonNull).filterKeys { it.startsWith("drill-") }
+        assertNull(TestRequestHolder.retrieve())
+        assertTrue(drillHeaders.isEmpty())
         assertEquals("test-request", responseBody)
     }
 
     @Test
-    fun `test with session headers request`() = withHttpServer {
-        val requestHeaders = mapOf(
-            "drill-session-id" to "123",
-            "drill-session-data" to "data-123"
-        )
-        val response = callHttpEndpoint(it, requestHeaders)
+    fun `test request with existing thread session data`() = withHttpServer(returnHeaders = true) {
+        TestRequestHolder.store(DrillRequest("session-123", mapOf("drill-header-data" to "test-data")))
+        val response = callHttpEndpoint(it)
         val responseHeaders = response.first
         val responseBody = response.second
-        assertEquals("test-agent", responseHeaders["drill-agent-id"])
-        assertEquals("test-admin:8080", responseHeaders["drill-admin-url"])
-        assertEquals("123", responseHeaders["drill-session-id"])
-        assertEquals("data-123", responseHeaders["drill-session-data"])
+        assertEquals("session-123-returned", responseHeaders["drill-session-id"])
+        assertEquals("test-data-returned", responseHeaders["drill-header-data"])
+        assertEquals("test-request", responseBody)
+    }
+
+    @Test
+    fun `test response with existing headers data`() = withHttpServer(produceHeaders = true) {
+        TestRequestHolder.remove()
+        val response = callHttpEndpoint(it)
+        val responseBody = response.second
+        assertEquals("session-123-produced", TestRequestHolder.retrieve()?.drillSessionId)
+        assertEquals("test-data-produced", TestRequestHolder.retrieve()?.headers?.get("drill-header-data"))
         assertEquals("test-request", responseBody)
     }
 
@@ -56,22 +72,34 @@ abstract class AbstractClientTransformerObjectTest {
         request: String = "test-request"
     ): Pair<Map<String, String>, String>
 
-    private fun withHttpServer(block: (String) -> Unit) = HttpServer.create().run {
-        try {
-            this.bind(InetSocketAddress(0), 0)
-            this.createContext("/", ::testRequestHandler)
-            this.start()
-            block("http://localhost:${this.address.port}")
-        } finally {
-            this.stop(2)
-        }
+    private fun withHttpServer(
+        returnHeaders: Boolean = false,
+        produceHeaders: Boolean = false,
+        block: (String) -> Unit
+    ) = SocketConnection(ContainerSocketProcessor(TestContainer(returnHeaders, produceHeaders))).use {
+        val address = it.connect(InetSocketAddress(0)) as InetSocketAddress
+        block("http://localhost:${address.port}")
     }
 
-    private fun testRequestHandler(exchange: HttpExchange) {
-        val requestBody = exchange.requestBody.readBytes()
-        exchange.sendResponseHeaders(200, requestBody.size.toLong())
-        exchange.responseBody.write(requestBody)
-        exchange.responseBody.close()
+    private class TestContainer(
+        private val returnHeaders: Boolean,
+        private val produceHeaders: Boolean
+    ): Container {
+        override fun handle(request: Request, response: Response) {
+            if (returnHeaders) {
+                request.header.lines().drop(1)
+                    .associate { it.substringBefore(":").trim() to it.substringAfter(":", "").trim() }
+                    .filterKeys { it.startsWith("drill-") }
+                    .forEach { response.setValue(it.key, "${it.value}-returned") }
+            }
+            if (produceHeaders) {
+                response.setValue("drill-session-id", "session-123-produced")
+                response.setValue("drill-header-data", "test-data-produced")
+            }
+            response.status = Status.OK
+            response.outputStream.write(request.inputStream.readBytes())
+            response.outputStream.close()
+        }
     }
 
 }

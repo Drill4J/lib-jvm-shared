@@ -71,6 +71,7 @@ kotlin {
         val jvmIntTest by getting {
             dependencies {
                 implementation(kotlin("test-junit"))
+                implementation("org.simpleframework:simple-http:6.0.1")
             }
         }
         val configureNativeMainDependencies: KotlinSourceSet.() -> Unit = {
@@ -125,17 +126,19 @@ kotlin {
             dependencies {
                 exclude("/META-INF/services/javax.servlet.ServletContainerInitializer")
                 exclude("/ch/qos/logback/classic/servlet/*")
-                exclude("com/epam/drill/agent/instrument/**/*Test.class")
-                exclude("com/epam/drill/agent/instrument/**/*Test$*.class")
+                exclude("/com/epam/drill/agent/instrument/**/*Test.class")
+                exclude("/com/epam/drill/agent/instrument/**/*Test$*.class")
             }
         }
         register("integrationTest", Test::class) {
             val intTestAgentLib = targets.withType<KotlinNativeTarget>()[HostManager.host.presetName]
                 .binaries.getSharedLib(nativeAgentLibName, NativeBuildType.DEBUG)
+            val intTestClasspath = jvmIntTestCompilation.runtimeDependencyFiles + jvmIntTestCompilation.output.allOutputs
+            val mainClasspath = jvmMainCompilation.runtimeDependencyFiles + jvmMainCompilation.output.allOutputs
             description = "Runs the integration tests using simple native agent"
             group = "verification"
             testClassesDirs = jvmIntTestCompilation.output.classesDirs
-            classpath = jvmIntTestCompilation.runtimeDependencyFiles + jvmIntTestCompilation.output.allOutputs
+            classpath = intTestClasspath - mainClasspath // as main classpath already loaded via agent runtime classes
             jvmArgs = listOf("-agentpath:${intTestAgentLib.outputFile.path}=${runtimeJar.get().outputs.files.singleFile}")
             dependsOn(runtimeJar)
             dependsOn(intTestAgentLib.linkTask)

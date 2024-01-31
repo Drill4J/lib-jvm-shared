@@ -15,8 +15,8 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+import javassist.CtBehavior
 import javassist.CtClass
-import javassist.CtMethod
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
@@ -39,7 +39,7 @@ abstract class TomcatTransformerObject(
         logger.info { "transform: Starting TomcatTransformer with admin host $adminUrl..." }
         val method = ctClass.getMethod("doFilter", "(Ljavax/servlet/ServletRequest;Ljavax/servlet/ServletResponse;)V")
         method.insertCatching(
-            CtMethod::insertBefore,
+            CtBehavior::insertBefore,
             """
                 if ($1 instanceof org.apache.catalina.connector.RequestFacade && $2 instanceof org.apache.catalina.connector.ResponseFacade) {
                     org.apache.catalina.connector.ResponseFacade tomcatResponse = (org.apache.catalina.connector.ResponseFacade)$2;
@@ -64,7 +64,7 @@ abstract class TomcatTransformerObject(
             """.trimIndent()
         )
         method.insertCatching(
-            CtMethod::insertAfter,
+            CtBehavior::insertAfter,
             """
                ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             """.trimIndent()

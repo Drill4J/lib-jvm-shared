@@ -15,8 +15,8 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+import javassist.CtBehavior
 import javassist.CtClass
-import javassist.CtMethod
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
@@ -36,7 +36,7 @@ abstract class NettyTransformerObject(
 
     override fun transform(className: String, ctClass: CtClass) {
         ctClass.getMethod("invokeChannelRead", "(Ljava/lang/Object;)V").insertCatching(
-            CtMethod::insertBefore,
+            CtBehavior::insertBefore,
             """
                 if ($1 instanceof $DEFAULT_HTTP_REQUEST) {
                     $DEFAULT_HTTP_REQUEST nettyRequest = ($DEFAULT_HTTP_REQUEST) $1;
@@ -58,7 +58,7 @@ abstract class NettyTransformerObject(
         val agentIdValue = headersRetriever.agentIdHeaderValue()
         val writeMethod = ctClass.getMethod("write", "(Ljava/lang/Object;ZLio/netty/channel/ChannelPromise;)V")
         writeMethod.insertCatching(
-            CtMethod::insertBefore,
+            CtBehavior::insertBefore,
             """
                 if ($1 instanceof $DEFAULT_HTTP_RESPONSE) {
                     $DEFAULT_HTTP_RESPONSE nettyResponse = ($DEFAULT_HTTP_RESPONSE) $1;
@@ -85,7 +85,7 @@ abstract class NettyTransformerObject(
             """.trimIndent()
         )
         writeMethod.insertCatching(
-            CtMethod::insertAfter,
+            CtBehavior::insertAfter,
             """
                 if ($1 instanceof $DEFAULT_HTTP_RESPONSE) {
                     ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();

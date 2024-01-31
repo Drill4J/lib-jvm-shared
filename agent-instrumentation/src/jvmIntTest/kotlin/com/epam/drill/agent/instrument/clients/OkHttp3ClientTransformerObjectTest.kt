@@ -18,7 +18,7 @@ package com.epam.drill.agent.instrument.clients
 import kotlin.test.Ignore
 
 @Ignore
-class ApacheHttpClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
+class OkHttp3ClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
 
     override fun callHttpEndpoint(
         endpoint: String,

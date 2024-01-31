@@ -63,7 +63,7 @@ fun vmInitEvent(env: CPointer<jvmtiEnvVar>?, jniEnv: CPointer<JNIEnvVar>?, threa
     SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, null)
 
     callObjectVoidMethod(LoggingConfiguration::class, LoggingConfiguration::readDefaultConfiguration)
-    callObjectVoidMethodWithString(LoggingConfiguration::class, "setLoggingLevels", "TRACE")
+    callObjectVoidMethodWithString(LoggingConfiguration::class, "setLoggingLevels", "WARN;com.epam.drill=TRACE")
     callObjectVoidMethodWithInt(LoggingConfiguration::class, LoggingConfiguration::setLogMessageLimit, 524288)
 }
 

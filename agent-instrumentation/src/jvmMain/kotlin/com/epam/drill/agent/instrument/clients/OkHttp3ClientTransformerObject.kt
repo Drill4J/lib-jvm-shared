@@ -30,9 +30,9 @@ abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransf
     override fun transform(className:String, ctClass: CtClass) {
         ctClass.getDeclaredMethod("writeRequestHeaders").insertBefore(
             """
-            if (${this::class.qualifiedName}.INSTANCE.${this::hasHeaders.name}()) {
+            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
                 okhttp3.Request.Builder builder = $1.newBuilder();
-                java.util.Map headers = ${this::class.qualifiedName}.INSTANCE.${this::retrieveHeaders.name}();
+                java.util.Map headers = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
                 java.util.Iterator iterator = headers.entrySet().iterator();             
                 while (iterator.hasNext()) {
                     java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
@@ -45,7 +45,7 @@ abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransf
         )
         ctClass.getDeclaredMethod("openResponseBody").insertBefore(
             """
-            if (${this::class.qualifiedName}.INSTANCE.${this::isProcessResponses.name}()) {
+            if (${this::class.java.name}.INSTANCE.${this::isProcessResponses.name}()) {
                 java.util.Map allHeaders = new java.util.HashMap();
                 java.util.Iterator iterator = $1.headers().names().iterator();
                 while (iterator.hasNext()) { 
@@ -53,7 +53,7 @@ abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransf
                     String value = $1.headers().get(key);
                     allHeaders.put(key, value);
                 }
-                ${this::class.qualifiedName}.INSTANCE.${this::storeHeaders.name}(allHeaders);
+                ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
             }
             """.trimIndent()
         )
