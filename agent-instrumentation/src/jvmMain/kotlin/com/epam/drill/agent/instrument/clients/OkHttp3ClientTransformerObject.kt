@@ -15,11 +15,18 @@
  */
 package com.epam.drill.agent.instrument.clients
 
+import javassist.CtBehavior
 import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 
+/**
+ * Transformer for OkHttp3 client
+
+ * Tested with:
+ *     com.squareup.okhttp3:okhttp:3.12.13
+ */
 abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
@@ -27,10 +34,11 @@ abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransf
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         interfaces.any("okhttp3/internal/http/HttpCodec"::equals)
 
-    override fun transform(className:String, ctClass: CtClass) {
-        ctClass.getDeclaredMethod("writeRequestHeaders").insertBefore(
+    override fun transform(className: String, ctClass: CtClass) {
+        ctClass.getDeclaredMethod("writeRequestHeaders").insertCatching(
+            CtBehavior::insertBefore,
             """
-            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+            if (${this::class.java.name}.INSTANCE.${this::isProcessRequests.name}() && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
                 okhttp3.Request.Builder builder = $1.newBuilder();
                 java.util.Map headers = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
                 java.util.Iterator iterator = headers.entrySet().iterator();             
@@ -43,7 +51,8 @@ abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransf
             }
             """.trimIndent()
         )
-        ctClass.getDeclaredMethod("openResponseBody").insertBefore(
+        ctClass.getDeclaredMethod("openResponseBody").insertCatching(
+            CtBehavior::insertBefore,
             """
             if (${this::class.java.name}.INSTANCE.${this::isProcessResponses.name}()) {
                 java.util.Map allHeaders = new java.util.HashMap();

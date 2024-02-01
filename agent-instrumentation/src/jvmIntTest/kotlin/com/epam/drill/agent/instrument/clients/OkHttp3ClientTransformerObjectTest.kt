@@ -15,9 +15,12 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import kotlin.test.Ignore
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
 
-@Ignore
 class OkHttp3ClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
 
     override fun callHttpEndpoint(
@@ -25,7 +28,20 @@ class OkHttp3ClientTransformerObjectTest : AbstractClientTransformerObjectTest()
         headers: Map<String, String>,
         body: String
     ): Pair<Map<String, String>, String> {
-        TODO("Not yet implemented")
+        lateinit var response: Response
+        try {
+            val requestBuilder = Request.Builder().url(endpoint)
+            headers.entries.forEach {
+                requestBuilder.addHeader(it.key, it.value)
+            }
+            requestBuilder.post(RequestBody.create(MediaType.get("text/text"), body))
+            response = OkHttpClient().newCall(requestBuilder.build()).execute()
+            val responseHeaders = response.headers().toMultimap().mapValues { it.value.joinToString(",") }
+            val responseBody = response.body()!!.string()
+            return responseHeaders to responseBody
+        } finally {
+            response.close()
+        }
     }
 
 }

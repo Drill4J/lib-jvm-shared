@@ -73,6 +73,7 @@ kotlin {
                 implementation(kotlin("test-junit"))
                 implementation("org.simpleframework:simple-http:6.0.1")
                 implementation("org.apache.httpcomponents:httpclient:4.5.14")
+                implementation("com.squareup.okhttp3:okhttp:3.12.13")
             }
         }
         val configureNativeMainDependencies: KotlinSourceSet.() -> Unit = {
