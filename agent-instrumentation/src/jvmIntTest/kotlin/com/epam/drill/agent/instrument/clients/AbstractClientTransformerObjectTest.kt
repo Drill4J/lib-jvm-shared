@@ -61,9 +61,9 @@ abstract class AbstractClientTransformerObjectTest {
         TestRequestHolder.remove()
         val response = callHttpEndpoint(it)
         val responseBody = response.second
-        val drillRequest = TestRequestHolder.retrieve()!!
-        assertEquals("session-123-produced", drillRequest.drillSessionId)
-        assertEquals("test-data-produced", drillRequest.headers.get("drill-header-data"))
+        val drillRequest = TestRequestHolder.retrieve()
+        assertEquals("session-123-produced", drillRequest?.drillSessionId)
+        assertEquals("test-data-produced", drillRequest?.headers?.get("drill-header-data"))
         assertEquals("test-request", responseBody)
     }
 
