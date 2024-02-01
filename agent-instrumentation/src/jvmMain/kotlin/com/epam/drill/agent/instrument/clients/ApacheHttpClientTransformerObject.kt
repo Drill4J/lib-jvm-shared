@@ -15,11 +15,21 @@
  */
 package com.epam.drill.agent.instrument.clients
 
+import javassist.CtBehavior
 import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 
+/**
+ * Transformer for Apache HTTP client
+
+ * Tested with:
+ *     org.apache.httpcomponents:httpclient:4.2.6
+ *     org.apache.httpcomponents:httpclient:4.3.6
+ *     org.apache.httpcomponents:httpclient:4.4.1
+ *     org.apache.httpcomponents:httpclient:4.5.14
+ */
 abstract class ApacheHttpClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
@@ -27,23 +37,24 @@ abstract class ApacheHttpClientTransformerObject : HeadersProcessor, AbstractTra
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         interfaces.any("org/apache/http/HttpClientConnection"::equals)
 
-    override fun transform(className:String, ctClass: CtClass) {
-        ctClass.getDeclaredMethod("sendRequestHeader").insertBefore(
+    override fun transform(className: String, ctClass: CtClass) {
+        if (ctClass.isInterface) return
+        ctClass.getDeclaredMethod("sendRequestHeader").insertCatching(
+            CtBehavior::insertBefore,
             """
-            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) { 
-                try {
-                    java.util.Map headers = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
-                    java.util.Iterator iterator = headers.entrySet().iterator();             
-                    while (iterator.hasNext()) {
-                        java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
-                        $1.setHeader((String) entry.getKey(), (String) entry.getValue());
-                    }
-                    ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(headers);
-                } catch (Exception e) {};
+            if (${this::class.java.name}.INSTANCE.${this::isProcessRequests.name}() && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) { 
+                java.util.Map headers = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
+                java.util.Iterator iterator = headers.entrySet().iterator();             
+                while (iterator.hasNext()) {
+                    java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
+                    $1.setHeader((String) entry.getKey(), (String) entry.getValue());
+                }
+                ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(headers);
             }
             """.trimIndent()
         )
-        ctClass.getDeclaredMethod("receiveResponseEntity").insertBefore(
+        ctClass.getDeclaredMethod("receiveResponseEntity").insertCatching(
+            CtBehavior::insertBefore,
             """
             if (${this::class.java.name}.INSTANCE.${this::isProcessResponses.name}()) {
                 java.util.Map allHeaders = new java.util.HashMap();

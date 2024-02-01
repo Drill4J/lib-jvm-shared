@@ -23,7 +23,7 @@ class OkHttp3ClientTransformerObjectTest : AbstractClientTransformerObjectTest()
     override fun callHttpEndpoint(
         endpoint: String,
         headers: Map<String, String>,
-        request: String
+        body: String
     ): Pair<Map<String, String>, String> {
         TODO("Not yet implemented")
     }

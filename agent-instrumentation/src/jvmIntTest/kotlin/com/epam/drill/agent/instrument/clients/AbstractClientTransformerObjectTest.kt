@@ -70,7 +70,7 @@ abstract class AbstractClientTransformerObjectTest {
     protected abstract fun callHttpEndpoint(
         endpoint: String,
         headers: Map<String, String> = emptyMap(),
-        request: String = "test-request"
+        body: String = "test-request"
     ): Pair<Map<String, String>, String>
 
     private fun withHttpServer(

@@ -23,7 +23,7 @@ class JavaHttpClientTransformerObjectTest : AbstractClientTransformerObjectTest(
     override fun callHttpEndpoint(
         endpoint: String,
         headers: Map<String, String>,
-        request: String
+        body: String
     ): Pair<Map<String, String>, String> {
         lateinit var connection: HttpURLConnection
         try {
@@ -33,7 +33,7 @@ class JavaHttpClientTransformerObjectTest : AbstractClientTransformerObjectTest(
                 connection.setRequestProperty(it.key, it.value)
             }
             connection.doOutput = true
-            connection.outputStream.write(request.encodeToByteArray())
+            connection.outputStream.write(body.encodeToByteArray())
             connection.outputStream.close()
             val responseHeaders = connection.headerFields.mapValues { it.value.joinToString(",") }
             val responseBody = connection.inputStream.readBytes().decodeToString()

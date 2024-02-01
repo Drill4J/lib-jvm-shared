@@ -21,6 +21,12 @@ import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 
+/**
+ * Transformer for Java HttpURLConnection client
+
+ * Tested with:
+ *     jdk 1.8.0_241
+ */
 abstract class JavaHttpClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}

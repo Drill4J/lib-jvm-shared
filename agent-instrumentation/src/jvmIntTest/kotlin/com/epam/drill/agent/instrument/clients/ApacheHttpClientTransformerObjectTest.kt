@@ -15,17 +15,26 @@
  */
 package com.epam.drill.agent.instrument.clients
 
-import kotlin.test.Ignore
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.entity.StringEntity
+import org.apache.http.impl.client.DefaultHttpClient
 
-@Ignore
 class ApacheHttpClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
 
     override fun callHttpEndpoint(
         endpoint: String,
         headers: Map<String, String>,
-        request: String
-    ): Pair<Map<String, String>, String> {
-        TODO("Not yet implemented")
+        body: String
+    ): Pair<Map<String, String>, String> = DefaultHttpClient().run {
+        val request = HttpPost(endpoint)
+        headers.entries.forEach {
+            request.addHeader(it.key, it.value)
+        }
+        request.entity = StringEntity(body)
+        val response = this.execute(request)
+        val responseHeaders = response.allHeaders.associate { it.name to it.value }
+        val responseBody = response.entity.content.readBytes().decodeToString()
+        responseHeaders to responseBody
     }
 
 }
