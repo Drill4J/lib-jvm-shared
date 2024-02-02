@@ -20,8 +20,11 @@ import org.apache.catalina.startup.Tomcat
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import mu.KotlinLogging
 
 class TomcatTransformerObjectTest : AbstractServerTransformerObjectTest() {
+
+    override val logger = KotlinLogging.logger {}
 
     override fun withHttpServer(block: (String) -> Unit) = Tomcat().run {
         try {

@@ -74,6 +74,7 @@ kotlin {
                 implementation("org.apache.httpcomponents:httpclient:4.5.14")
                 implementation("org.apache.tomcat.embed:tomcat-embed-core:10.0.27")
                 implementation("org.simpleframework:simple-http:6.0.1")
+                implementation("io.netty:netty-codec-http:4.1.106.Final")
                 implementation("com.squareup.okhttp3:okhttp:3.12.13")
             }
         }

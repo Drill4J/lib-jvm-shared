@@ -66,6 +66,18 @@ abstract class NettyTransformerObject(
                     nettyResponse.headers().add("$adminHeader", "$adminUrl");
                     nettyResponse.headers().add("$agentIdHeader", "$agentIdValue");
                 }
+                java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
+                if (drillHeaders != null) {
+                    java.util.Iterator iterator = drillHeaders.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                         java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
+                         String headerName = (String) entry.getKey();
+                         String headerValue = (String) entry.getValue();
+                         if (!nettyResponse.headers().contains(headerName)) {
+                             nettyResponse.headers().add(headerName, headerValue);
+                         }
+                    }
+                }
             }
             if ($1 instanceof $DEFAULT_HTTP_REQUEST) {
                 $DEFAULT_HTTP_REQUEST nettyRequest = ($DEFAULT_HTTP_REQUEST) $1;

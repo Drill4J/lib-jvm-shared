@@ -20,10 +20,13 @@ import kotlin.test.assertEquals
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Objects
+import mu.KLogger
 import com.epam.drill.agent.instrument.TestRequestHolder
 
 @Suppress("FunctionName")
 abstract class AbstractServerTransformerObjectTest {
+
+    protected abstract val logger: KLogger
 
     @Test
     fun `test with empty headers request`() = withHttpServer {
@@ -64,6 +67,7 @@ abstract class AbstractServerTransformerObjectTest {
     ): Pair<Map<String, String>, String> {
         lateinit var connection: HttpURLConnection
         try {
+            logger.trace { "callHttpEndpoint: Requesting $endpoint: headers=$headers, body=$body" }
             connection = URL(endpoint).openConnection() as HttpURLConnection
             connection.requestMethod = "POST"
             headers.entries.forEach {
@@ -75,6 +79,7 @@ abstract class AbstractServerTransformerObjectTest {
             val responseHeaders = connection.headerFields.mapValues { it.value.joinToString(",") }
             val responseBody = connection.inputStream.readBytes().decodeToString()
             connection.inputStream.close()
+            logger.trace { "callHttpEndpoint: Response from $endpoint: headers=$responseHeaders, body=$responseBody" }
             return responseHeaders to responseBody
         } finally {
             connection.disconnect()
