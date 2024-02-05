@@ -18,7 +18,7 @@ package com.epam.drill.agent.instrument.clients
 import java.net.HttpURLConnection
 import java.net.URL
 
-class JavaHttpClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
+open class JavaHttpClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
 
     override fun callHttpEndpoint(
         endpoint: String,

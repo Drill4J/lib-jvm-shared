@@ -32,7 +32,7 @@ class TomcatTransformerObjectTest : AbstractServerTransformerObjectTest() {
             this.setBaseDir("./build")
             this.setPort(0)
             val context = this.addContext("", null)
-            this.addServlet(context.path, TestRequestServlet::class.simpleName, TestRequestServlet)
+            this.addServlet(context.path, TestRequestServlet::class.simpleName, TestRequestServlet())
             context.addServletMappingDecoded("/", TestRequestServlet::class.simpleName)
             this.start()
             block("http://localhost:${connector.localPort}")
@@ -41,7 +41,7 @@ class TomcatTransformerObjectTest : AbstractServerTransformerObjectTest() {
         }
     }
 
-    private object TestRequestServlet : HttpServlet() {
+    private class TestRequestServlet : HttpServlet() {
         override fun doPost(request: HttpServletRequest, response: HttpServletResponse) {
             val requestBody = request.inputStream.readBytes()
             response.status = 200

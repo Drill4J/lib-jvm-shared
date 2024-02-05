@@ -73,7 +73,7 @@ abstract class AbstractClientTransformerObjectTest {
         body: String = "test-request"
     ): Pair<Map<String, String>, String>
 
-    private fun withHttpServer(
+    protected open fun withHttpServer(
         returnHeaders: Boolean = false,
         produceHeaders: Boolean = false,
         block: (String) -> Unit
@@ -82,7 +82,7 @@ abstract class AbstractClientTransformerObjectTest {
         block("http://localhost:${address.port}")
     }
 
-    private class TestRequestContainer(
+    protected open class TestRequestContainer(
         private val returnHeaders: Boolean,
         private val produceHeaders: Boolean
     ): Container {
