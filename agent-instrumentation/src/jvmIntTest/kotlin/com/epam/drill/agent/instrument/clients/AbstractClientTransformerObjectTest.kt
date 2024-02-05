@@ -77,12 +77,12 @@ abstract class AbstractClientTransformerObjectTest {
         returnHeaders: Boolean = false,
         produceHeaders: Boolean = false,
         block: (String) -> Unit
-    ) = SocketConnection(ContainerSocketProcessor(TestContainer(returnHeaders, produceHeaders))).use {
+    ) = SocketConnection(ContainerSocketProcessor(TestRequestContainer(returnHeaders, produceHeaders))).use {
         val address = it.connect(InetSocketAddress(0)) as InetSocketAddress
         block("http://localhost:${address.port}")
     }
 
-    private class TestContainer(
+    private class TestRequestContainer(
         private val returnHeaders: Boolean,
         private val produceHeaders: Boolean
     ): Container {

@@ -51,21 +51,39 @@ abstract class JavaHttpClientTransformerObject : HeadersProcessor, AbstractTrans
                 """.trimIndent()
             )
         }
-        ctClass.getMethod("getInputStream", "()Ljava/io/InputStream;").insertCatching(
-            CtBehavior::insertAfter,
-            """
-            if (${this::class.java.name}.INSTANCE.${this::isProcessResponses.name}() && this.filteredHeaders == null) {
-                java.util.Map allHeaders = new java.util.HashMap();
-                java.util.Iterator iterator = this.getFilteredHeaderFields().keySet().iterator();
-                while (iterator.hasNext()) {
-                    String key = (String) iterator.next();
-                    String value = this.getHeaderField(key);
-                    allHeaders.put(key, value);
+        if(className == "sun/net/www/protocol/http/HttpURLConnection") {
+            ctClass.getMethod("getInputStream", "()Ljava/io/InputStream;").insertCatching(
+                CtBehavior::insertAfter,
+                """
+                if (${this::class.java.name}.INSTANCE.${this::isProcessResponses.name}() && this.filteredHeaders == null) {
+                    java.util.Map allHeaders = new java.util.HashMap();
+                    java.util.Iterator iterator = this.getFilteredHeaderFields().keySet().iterator();
+                    while (iterator.hasNext()) {
+                        String key = (String) iterator.next();
+                        String value = this.getHeaderField(key);
+                        allHeaders.put(key, value);
+                    }
+                    ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
                 }
-                ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
-            }
-            """.trimIndent()
-        )
+                """.trimIndent()
+            )
+        } else {
+            ctClass.getMethod("getContent", "()Ljava/lang/Object;").insertCatching(
+                CtBehavior::insertAfter,
+                """
+                if (${this::class.java.name}.INSTANCE.${this::isProcessResponses.name}()) {
+                    java.util.Map allHeaders = new java.util.HashMap();
+                    java.util.Iterator iterator = this.getHeaderFields().keySet().iterator();
+                    while (iterator.hasNext()) {
+                        String key = (String) iterator.next();
+                        String value = this.getHeaderField(key);
+                        allHeaders.put(key, value);
+                    }
+                    ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
+                }
+                """.trimIndent()
+            )
+        }
     }
 
 }
