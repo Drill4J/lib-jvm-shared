@@ -28,7 +28,7 @@ private const val HTTP_HEADERS_SEPARATOR = "\r\n"
 private const val HTTP_HEADERS_END_MARK = HTTP_HEADERS_SEPARATOR + HTTP_HEADERS_SEPARATOR
 private const val HTTP_RESPONSE_MARK = "HTTP"
 
-abstract class SSLTransformerObject(
+abstract class SSLEngineTransformerObject(
     headersRetriever: HeadersRetriever
 ) : HeadersProcessor, AbstractTransformerObject() {
 

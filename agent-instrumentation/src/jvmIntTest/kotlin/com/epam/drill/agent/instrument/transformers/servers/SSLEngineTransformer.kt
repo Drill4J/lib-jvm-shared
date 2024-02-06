@@ -19,8 +19,8 @@ import com.epam.drill.agent.instrument.DrillRequestHeadersProcessor
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.instrument.TestHeadersRetriever
 import com.epam.drill.agent.instrument.TestRequestHolder
-import com.epam.drill.agent.instrument.servers.TomcatTransformerObject
+import com.epam.drill.agent.instrument.servers.SSLEngineTransformerObject
 
-object TomcatTransformer :
-    TomcatTransformerObject(TestHeadersRetriever),
+object SSLEngineTransformer :
+    SSLEngineTransformerObject(TestHeadersRetriever),
     HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder)
