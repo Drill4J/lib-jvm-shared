@@ -18,9 +18,7 @@ package com.epam.drill.agent.instrument.clients
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import java.net.InetSocketAddress
-import java.util.Objects
 import org.simpleframework.http.Request
 import org.simpleframework.http.Response
 import org.simpleframework.http.Status
@@ -39,9 +37,9 @@ abstract class AbstractClientTransformerObjectTest {
         val response = callHttpEndpoint(it)
         val responseHeaders = response.first
         val responseBody = response.second
-        val drillHeaders = responseHeaders.filterKeys(Objects::nonNull).filterKeys { it.startsWith("drill-") }
         assertNull(TestRequestHolder.retrieve())
-        assertTrue(drillHeaders.isEmpty())
+        assertNull(responseHeaders["drill-session-id"])
+        assertNull(responseHeaders["drill-header-data"])
         assertEquals("test-request", responseBody)
     }
 

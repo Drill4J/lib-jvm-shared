@@ -126,7 +126,7 @@ kotlin {
             mergeServiceFiles()
             isZip64 = true
             archiveFileName.set("drillRuntime.jar")
-            from(jvmMainCompilation.runtimeDependencyFiles, jvmMainCompilation.output, jvmIntTestCompilation.output)
+            from(jvmMainCompilation.runtimeDependencyFiles, jvmMainCompilation.output, jvmIntTestCompilation.output.classesDirs)
             dependencies {
                 exclude("/META-INF/services/javax.servlet.ServletContainerInitializer")
                 exclude("/ch/qos/logback/classic/servlet/*")

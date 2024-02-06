@@ -24,6 +24,7 @@ import com.epam.drill.agent.instrument.transformers.clients.ApacheHttpClientTran
 import com.epam.drill.agent.instrument.transformers.clients.JavaHttpClientTransformer
 import com.epam.drill.agent.instrument.transformers.clients.OkHttp3ClientTransformer
 import com.epam.drill.agent.instrument.transformers.servers.NettyTransformer
+import com.epam.drill.agent.instrument.transformers.servers.SSLTransformer
 import com.epam.drill.agent.instrument.transformers.servers.TomcatTransformer
 import com.epam.drill.jvmapi.gen.Allocate
 import com.epam.drill.jvmapi.gen.jint
@@ -37,7 +38,8 @@ object ClassFileLoadHook {
         ApacheHttpClientTransformer,
         OkHttp3ClientTransformer,
         TomcatTransformer,
-        NettyTransformer
+        NettyTransformer,
+        SSLTransformer
     )
 
     operator fun invoke(
@@ -51,8 +53,9 @@ object ClassFileLoadHook {
     ) {
         val className = clsName?.toKString()
         val isJavaHttpClass = className?.matches(Regex("(java|sun)/net/.*Http.*")) ?: false
+        val isJavaSslClass = className?.matches(Regex("(java|sun)/.*/ssl/.*")) ?: false
         if (className == null || classData == null) return
-        if (isBootstrapClassloading(loader, protectionDomain) && !isJavaHttpClass) return
+        if (isBootstrapClassloading(loader, protectionDomain) && !isJavaHttpClass && !isJavaSslClass) return
         val classBytes = ByteArray(classDataLen).also {
             Memory.of(classData, classDataLen).loadByteArray(0, it)
         }
