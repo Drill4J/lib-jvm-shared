@@ -15,28 +15,30 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+import javassist.CtBehavior
 import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
-import com.epam.drill.agent.instrument.CADENCE_CONSUMER
-import com.epam.drill.agent.instrument.CADENCE_PRODUCER
 import com.epam.drill.agent.instrument.HeadersProcessor
+
+private const val CADENCE_PRODUCER =  "com/uber/cadence/internal/sync/WorkflowStubImpl"
+private const val CADENCE_CONSUMER = "com/uber/cadence/internal/sync/WorkflowRunnable"
 
 abstract class CadenceTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
-    private val instrumentedMethods = listOf(
+    private val producerInstrumentedMethods = listOf(
         "signalAsync",
         "signalAsyncWithTimeout",
+        "signalWithStart",
         "start",
         "startAsync",
-        "startAsyncWithTimeout",
-        "signalWithStart",
+        "startAsyncWithTimeout"
     )
 
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
-        throw NotImplementedError()
+        CADENCE_PRODUCER == className || CADENCE_CONSUMER == className
 
     override fun transform(className: String, ctClass: CtClass) {
         when (className) {
@@ -54,7 +56,8 @@ abstract class CadenceTransformerObject : HeadersProcessor, AbstractTransformerO
                     ?.let { constructor to it + 1 }  // 0 - index of "this" object
             }
             .forEach { (constructor, paramIndex) ->
-                constructor.insertBefore(
+                constructor.insertCatching(
+                    CtBehavior::insertBefore,
                     """
                     if ($$paramIndex.getMemo() == null) {
                         $$paramIndex = new com.uber.cadence.client.WorkflowOptions.Builder($$paramIndex).setMemo(new java.util.HashMap()).build();
@@ -62,8 +65,7 @@ abstract class CadenceTransformerObject : HeadersProcessor, AbstractTransformerO
                     """.trimIndent()
                 )
             }
-
-        instrumentedMethods
+        producerInstrumentedMethods
             .mapNotNull { method ->
                 ctClass
                     .runCatching { this.getDeclaredMethod(method) }
@@ -71,7 +73,8 @@ abstract class CadenceTransformerObject : HeadersProcessor, AbstractTransformerO
                     .getOrNull()
             }
             .forEach { method ->
-                method.insertBefore(
+                method.insertCatching(
+                    CtBehavior::insertBefore,
                     """
                     java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
                     if (drillHeaders != null) {
@@ -95,7 +98,8 @@ abstract class CadenceTransformerObject : HeadersProcessor, AbstractTransformerO
     }
 
     private fun instrumentConsumer(ctClass: CtClass) {
-        ctClass.getDeclaredMethod("run").insertBefore(
+        ctClass.getDeclaredMethod("run").insertCatching(
+            CtBehavior::insertBefore,
             """
             java.util.Map drillHeaders = new java.util.HashMap();
             com.uber.cadence.Memo memo = attributes.getMemo();

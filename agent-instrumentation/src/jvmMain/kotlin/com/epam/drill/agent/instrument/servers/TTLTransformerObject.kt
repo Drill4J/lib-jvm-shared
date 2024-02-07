@@ -28,6 +28,15 @@ import com.epam.drill.agent.instrument.AbstractTransformerObject
 
 abstract class TTLTransformerObject : AbstractTransformerObject() {
 
+    private val directTtlClasses = listOf(
+        "java/util/concurrent/ScheduledThreadPoolExecutor",
+        "java/util/concurrent/ThreadPoolExecutor",
+        "java/util/concurrent/ForkJoinTask",
+        "java/util/concurrent/ForkJoinPool"
+    )
+    private val threadPoolExecutorClass = "java/util/concurrent/ThreadPoolExecutor"
+    private val timerTaskClass = "java/util/TimerTask"
+
     private val transformletList: MutableList<JavassistTransformlet> = ArrayList()
 
     override val logger = KotlinLogging.logger {}
@@ -39,25 +48,26 @@ abstract class TTLTransformerObject : AbstractTransformerObject() {
         if (TtlAgent.isEnableTimerTask()) transformletList.add(TtlTimerTaskTransformlet())
     }
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
-        throw NotImplementedError()
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean {
+        if (className == null) return false
+        if (directTtlClasses.contains(className)) return true
+        return (threadPoolExecutorClass == superName || interfaces.contains("java/lang/Runnable"))
+                && className != timerTaskClass && !className.startsWith("jdk/internal")
+    }
 
     override fun transform(
         className: String,
         classFileBuffer: ByteArray,
         loader: Any?,
         protectionDomain: Any?
-    ): ByteArray {
-        try {
-            val classInfo = ClassInfo(className.replace('/', '.'), classFileBuffer, (loader as? ClassLoader))
-            for (transformlet in transformletList) {
-                transformlet.doTransform(classInfo)
-                if (classInfo.isModified) return classInfo.ctClass.toBytecode()
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "transform: Failed to transform class $className" }
-        }
-        return classFileBuffer
+    ) = try {
+        val classInfo = ClassInfo(className.replace('/', '.'), classFileBuffer, (loader as? ClassLoader))
+        transformletList.firstOrNull { classInfo.also(it::doTransform).isModified }
+            ?.let { classInfo.ctClass.toBytecode() }
+            ?: classFileBuffer
+    } catch (e: Exception) {
+        logger.error(e) { "transform: Failed to transform class $className" }
+        classFileBuffer
     }
 
     override fun transform(className: String, ctClass: CtClass): Unit = throw NotImplementedError()
