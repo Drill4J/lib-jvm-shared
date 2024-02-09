@@ -20,20 +20,22 @@ import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
-import com.epam.drill.agent.instrument.KAFKA_CONSUMER_SPRING
-import com.epam.drill.agent.instrument.KAFKA_PRODUCER_INTERFACE
+
+private const val KAFKA_PRODUCER_INTERFACE = "org/apache/kafka/clients/producer/Producer"
+private const val KAFKA_CONSUMER_SPRING = "org/springframework/kafka/listener/KafkaMessageListenerContainer\$ListenerConsumer"
 
 abstract class KafkaTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
-        throw NotImplementedError()
+        KAFKA_CONSUMER_SPRING == className || interfaces.contains(KAFKA_PRODUCER_INTERFACE)
 
     override fun transform(className: String, ctClass: CtClass) {
-        when (className) {
-            KAFKA_PRODUCER_INTERFACE -> instrumentProducer(ctClass)
-            KAFKA_CONSUMER_SPRING -> instrumentConsumer(ctClass)
+        val interfaces = ctClass.interfaces.map(CtClass::getName)
+        when {
+            interfaces.contains(KAFKA_PRODUCER_INTERFACE.replace("/", ".")) -> instrumentProducer(ctClass)
+            className == KAFKA_CONSUMER_SPRING -> instrumentConsumer(ctClass)
             //TODO add Consumer for Kafka EPMDJ-8488
         }
     }
