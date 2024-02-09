@@ -18,4 +18,4 @@ package com.epam.drill.agent.instrument.transformers.servers
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.TransformerObject
 
-object KafkaTransformer : TransformerObject, AbstractTransformerObject()
+actual object KafkaTransformer : TransformerObject, AbstractTransformerObject()

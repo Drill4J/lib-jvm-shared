@@ -62,6 +62,7 @@ kotlin {
                 implementation(project(":common"))
             }
         }
+        val commonIntTest by creating
         val jvmMain by getting {
             dependencies {
                 implementation("org.javassist:javassist:$javassistVersion")
@@ -69,6 +70,7 @@ kotlin {
             }
         }
         val jvmIntTest by getting {
+            dependsOn(commonIntTest)
             dependencies {
                 implementation(kotlin("test-junit"))
                 implementation("org.apache.httpcomponents:httpclient:4.5.14")
@@ -85,7 +87,8 @@ kotlin {
                 implementation(project(":jvmapi"))
             }
         }
-        val configureNativeTestIntDependencies: KotlinSourceSet.() -> Unit = {
+        val configureNativeIntTestDependencies: KotlinSourceSet.() -> Unit = {
+            dependsOn(commonIntTest)
             dependencies {
                 implementation(project(":knasm"))
             }
@@ -93,9 +96,9 @@ kotlin {
         val mingwX64Main by getting(configuration = configureNativeMainDependencies)
         val linuxX64Main by getting(configuration = configureNativeMainDependencies)
         val macosX64Main by getting(configuration = configureNativeMainDependencies)
-        val mingwX64IntTest by getting(configuration = configureNativeTestIntDependencies)
-        val linuxX64IntTest by getting(configuration = configureNativeTestIntDependencies)
-        val macosX64IntTest by getting(configuration = configureNativeTestIntDependencies)
+        val mingwX64IntTest by getting(configuration = configureNativeIntTestDependencies)
+        val linuxX64IntTest by getting(configuration = configureNativeIntTestDependencies)
+        val macosX64IntTest by getting(configuration = configureNativeIntTestDependencies)
     }
     tasks {
         val filterOutCurrentPlatform: (KotlinNativeTarget) -> Boolean = {
