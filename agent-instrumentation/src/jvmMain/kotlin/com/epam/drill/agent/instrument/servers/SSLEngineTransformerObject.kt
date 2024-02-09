@@ -28,6 +28,12 @@ private const val HTTP_HEADERS_SEPARATOR = "\r\n"
 private const val HTTP_HEADERS_END_MARK = HTTP_HEADERS_SEPARATOR + HTTP_HEADERS_SEPARATOR
 private const val HTTP_RESPONSE_MARK = "HTTP"
 
+/**
+ * Transformer for SSLEngine based web servers with java-side HTTPS termination
+ *
+ * Tested with:
+ *     jdk 1.8.0_241
+ */
 abstract class SSLEngineTransformerObject(
     headersRetriever: HeadersRetriever
 ) : HeadersProcessor, AbstractTransformerObject() {

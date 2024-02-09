@@ -23,6 +23,12 @@ import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.common.agent.request.HeadersRetriever
 
+/**
+ * Transformer for Tomcat web server
+ *
+ * Tested with:
+ *     org.apache.tomcat.embed:tomcat-embed-core:10.0.27
+ */
 abstract class TomcatTransformerObject(
     protected val headersRetriever: HeadersRetriever
 ) : HeadersProcessor, AbstractTransformerObject() {

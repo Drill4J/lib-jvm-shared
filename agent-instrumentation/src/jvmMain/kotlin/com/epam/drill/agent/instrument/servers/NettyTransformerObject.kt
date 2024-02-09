@@ -25,6 +25,12 @@ import com.epam.drill.common.agent.request.HeadersRetriever
 private const val DEFAULT_HTTP_REQUEST = "io.netty.handler.codec.http.DefaultHttpRequest"
 private const val DEFAULT_HTTP_RESPONSE = "io.netty.handler.codec.http.DefaultHttpResponse"
 
+/**
+ * Transformer for simple Netty-based web servers
+ *
+ * Tested with:
+ *     io.netty:netty-codec-http:4.1.106.Final
+ */
 abstract class NettyTransformerObject(
     protected val headersRetriever: HeadersRetriever
 ) : HeadersProcessor, AbstractTransformerObject() {

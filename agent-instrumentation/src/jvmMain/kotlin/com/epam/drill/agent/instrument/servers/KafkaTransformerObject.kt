@@ -24,6 +24,13 @@ import com.epam.drill.agent.instrument.HeadersProcessor
 private const val KAFKA_PRODUCER_INTERFACE = "org/apache/kafka/clients/producer/Producer"
 private const val KAFKA_CONSUMER_SPRING = "org/springframework/kafka/listener/KafkaMessageListenerContainer\$ListenerConsumer"
 
+/**
+ * Transformer for Kafka producer and Spring Kafka listener
+ *
+ * Tested with:
+ *     org.apache.kafka:kafka-clients:3.2.3
+ *     org.springframework.kafka:spring-kafka:2.9.13
+ */
 abstract class KafkaTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
