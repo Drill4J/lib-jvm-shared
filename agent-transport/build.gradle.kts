@@ -16,6 +16,7 @@ version = Properties().run {
 }
 
 val kotlinxSerializationVersion: String by parent!!.extra
+val apacheHttpClientVersion: String by parent!!.extra
 
 repositories {
     mavenLocal()
@@ -25,23 +26,24 @@ repositories {
 kotlin {
     targets {
         jvm()
-        linuxX64()
-        mingwX64()
-        macosX64()
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
         all {
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
-        val commonMain by getting {
+        val jvmMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
+                implementation("org.apache.httpcomponents.client5:httpclient5:$apacheHttpClientVersion")
+                implementation(project(":logging"))
+                implementation(project(":common"))
             }
         }
-        val commonTest by getting {
+        val jvmTest by getting {
             dependencies {
-                implementation(kotlin("test"))
+                implementation(kotlin("test-junit"))
+                implementation("io.mockk:mockk:1.9.3")
             }
         }
     }

@@ -15,12 +15,14 @@
  */
 package com.epam.drill.common.agent
 
+import com.epam.drill.common.agent.configuration.AgentConfiguration
 import com.epam.drill.common.agent.transport.AgentMessageSender
 
 abstract class AgentModule<A>(
     val id: String,
     val context: AgentContext,
     protected val sender: AgentMessageSender,
+    protected val configuration: AgentConfiguration
 ) {
     abstract fun load()
     open fun onConnect() = Unit

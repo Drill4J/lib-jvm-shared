@@ -1,7 +1,4 @@
-import java.net.URI
 import java.util.Properties
-import com.hierynomus.gradle.license.tasks.LicenseCheck
-import com.hierynomus.gradle.license.tasks.LicenseFormat
 
 plugins {
     kotlin("multiplatform")
@@ -27,11 +24,6 @@ kotlin {
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                kotlin("stdlib")
-            }
-        }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))

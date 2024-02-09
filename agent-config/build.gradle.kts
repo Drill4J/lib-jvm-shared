@@ -15,7 +15,7 @@ version = Properties().run {
     getProperty("version.$name") ?: Project.DEFAULT_VERSION
 }
 
-val kotlinxSerializationVersion: String by parent!!.extra
+val ktorVersion: String by parent!!.extra
 
 repositories {
     mavenLocal()
@@ -32,17 +32,44 @@ kotlin {
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
         all {
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
+            languageSettings.optIn("io.ktor.utils.io.core.ExperimentalIoApi")
         }
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
+                implementation(project(":common"))
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
             }
+        }
+        val nativeMain by creating {
+            dependsOn(commonMain)
+            dependencies {
+                implementation("io.ktor:ktor-utils:$ktorVersion")
+            }
+        }
+        val nativeTest by creating {
+            dependsOn(commonTest)
+        }
+        val mingwX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val mingwX64Test by getting {
+            dependsOn(nativeTest)
+        }
+        val linuxX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val linuxX64Test by getting {
+            dependsOn(nativeTest)
+        }
+        val macosX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val macosX64Test by getting {
+            dependsOn(nativeTest)
         }
     }
 }
