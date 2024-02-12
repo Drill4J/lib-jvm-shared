@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.classloading
+package com.epam.drill.common.agent.request
 
-/**
- * Service for scanning classes of the application under test
- */
-interface ClassScanner {
-    /**
-     * Scan target classes of the application under test
-     * @param consumer the function for processing chunks of scanned classes
-     */
-    fun scanClasses(consumer: (Set<EntitySource>) -> Unit)
+interface RequestHolder {
+    fun store(drillRequest: DrillRequest)
+    fun retrieve(): DrillRequest?
+    fun remove()
 }

@@ -8,7 +8,7 @@ plugins {
     id("com.github.hierynomus.license")
 }
 
-group = "com.epam.drill.logging"
+group = "com.epam.drill"
 version = Properties().run {
     projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
     getProperty("version.$name") ?: Project.DEFAULT_VERSION

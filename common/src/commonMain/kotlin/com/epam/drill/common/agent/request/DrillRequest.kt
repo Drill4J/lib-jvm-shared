@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.interceptor
+package com.epam.drill.common.agent.request
 
-internal fun ByteArray.indexOf(arr: ByteArray) = run {
-    for (index in indices) {
-        if (index + arr.size <= this.size) {
-            val regionMatches = arr.foldIndexed(true) { i, acc, byte ->
-                acc && this[index + i] == byte
-            }
-            if (regionMatches) return@run index
-        } else break
-    }
-    -1
-}
+import kotlinx.serialization.Serializable
+
+@Serializable
+class DrillRequest(
+    val drillSessionId: String,
+    val headers: Map<String, String> = emptyMap()
+)

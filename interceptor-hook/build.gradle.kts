@@ -32,7 +32,6 @@ kotlin {
     targets {
         linuxX64(configure = configureCInterop)
         mingwX64(configure = configureCInterop)
-        macosX64(configure = configureCInterop)
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
@@ -55,9 +54,6 @@ kotlin {
             dependsOn(nativeMain)
         }
         val linuxX64Main by getting {
-            dependsOn(posixMain)
-        }
-        val macosX64Main by getting {
             dependsOn(posixMain)
         }
     }

@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.interceptor
+package com.epam.drill.common.agent.request
 
-expect fun configureHttpInterceptor()
+interface RequestProcessor {
+    fun processServerRequest()
+    fun processServerResponse()
+}
