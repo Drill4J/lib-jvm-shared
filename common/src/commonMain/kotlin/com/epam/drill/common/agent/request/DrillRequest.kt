@@ -18,7 +18,7 @@ package com.epam.drill.common.agent.request
 import kotlinx.serialization.Serializable
 
 @Serializable
-class DrillRequest(
+data class DrillRequest(
     val drillSessionId: String,
     val headers: Map<String, String> = emptyMap()
 )
