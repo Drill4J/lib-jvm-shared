@@ -15,25 +15,34 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+import javassist.CtBehavior
 import javassist.CtClass
-import javassist.CtMethod
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
-import com.epam.drill.agent.instrument.KAFKA_CONSUMER_SPRING
-import com.epam.drill.agent.instrument.KAFKA_PRODUCER_INTERFACE
 
+private const val KAFKA_PRODUCER_INTERFACE = "org/apache/kafka/clients/producer/Producer"
+private const val KAFKA_CONSUMER_SPRING = "org/springframework/kafka/listener/KafkaMessageListenerContainer\$ListenerConsumer"
+
+/**
+ * Transformer for Kafka producer and Spring Kafka listener
+ *
+ * Tested with:
+ *     org.apache.kafka:kafka-clients:3.2.3
+ *     org.springframework.kafka:spring-kafka:2.9.13
+ */
 abstract class KafkaTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
-        throw NotImplementedError()
+        KAFKA_CONSUMER_SPRING == className || interfaces.contains(KAFKA_PRODUCER_INTERFACE)
 
     override fun transform(className: String, ctClass: CtClass) {
-        when (className) {
-            KAFKA_PRODUCER_INTERFACE -> instrumentProducer(ctClass)
-            KAFKA_CONSUMER_SPRING -> instrumentConsumer(ctClass)
+        val interfaces = ctClass.interfaces.map(CtClass::getName)
+        when {
+            interfaces.contains(KAFKA_PRODUCER_INTERFACE.replace("/", ".")) -> instrumentProducer(ctClass)
+            className == KAFKA_CONSUMER_SPRING -> instrumentConsumer(ctClass)
             //TODO add Consumer for Kafka EPMDJ-8488
         }
     }
@@ -41,7 +50,7 @@ abstract class KafkaTransformerObject : HeadersProcessor, AbstractTransformerObj
     private fun instrumentProducer(ctClass: CtClass) {
         ctClass.getDeclaredMethods("send").forEach {
             it.insertCatching(
-                CtMethod::insertBefore,
+                CtBehavior::insertBefore,
                 """
                 java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
                 if (drillHeaders != null) {
@@ -62,7 +71,7 @@ abstract class KafkaTransformerObject : HeadersProcessor, AbstractTransformerObj
     private fun instrumentConsumer(ctClass: CtClass) {
         ctClass.getDeclaredMethods("doInvokeRecordListener").forEach {
             it.insertCatching(
-                CtMethod::insertBefore,
+                CtBehavior::insertBefore,
                 """
                 java.util.Iterator headers = $1.headers().iterator();
                 java.util.Map drillHeaders = new java.util.HashMap();

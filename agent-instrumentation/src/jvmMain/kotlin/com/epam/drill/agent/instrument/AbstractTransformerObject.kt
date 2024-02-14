@@ -17,8 +17,8 @@ package com.epam.drill.agent.instrument
 
 import java.io.ByteArrayInputStream
 import javassist.ClassPool
+import javassist.CtBehavior
 import javassist.CtClass
-import javassist.CtMethod
 import javassist.LoaderClassPath
 import mu.KLogger
 
@@ -55,20 +55,20 @@ abstract class AbstractTransformerObject : TransformerObject {
     open fun logInjectingHeaders(headers: Map<String, String>) =
         logger.trace { "logInjectingHeaders: Adding headers: $headers" }
 
-    open fun logError(exception: Throwable, message: String) =
+    open fun logError(exception: Exception, message: String) =
         logger.error(exception) { "logError: $message" }
 
-    protected open fun CtMethod.insertCatching(insert: CtMethod.(String) -> Unit, code: String) = try {
+    protected open fun CtBehavior.insertCatching(insert: CtBehavior.(String) -> Unit, code: String) = try {
         insert(
             """
                 try {
                     $code
-                } catch (Throwable e) {
+                } catch (Exception e) {
                     ${this@AbstractTransformerObject::class.java.name}.INSTANCE.${this@AbstractTransformerObject::logError.name}(e, "Error in the injected code, method name: $name.");
                 }
             """.trimIndent()
         )
-    } catch (e: Throwable) {
+    } catch (e: Exception) {
         logger.error(e) { "insertCatching: Can't insert code, method name: $name" }
     }
 

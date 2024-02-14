@@ -15,7 +15,6 @@ version = Properties().run {
 }
 
 val ktorVersion: String by parent!!.extra
-val slf4jVersion: String by parent!!.extra
 val logbackVersion: String by parent!!.extra
 val microutilsLoggingVersion: String by parent!!.extra
 

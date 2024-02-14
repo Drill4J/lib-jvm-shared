@@ -21,13 +21,11 @@ import kotlin.collections.set
 import kotlinx.cinterop.ByteVarOf
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.MemScope
-import kotlinx.cinterop.convert
 import kotlinx.cinterop.readBytes
 import kotlinx.cinterop.toCValues
 import mu.KotlinLogging
 import com.epam.drill.hook.gen.DRILL_SOCKET
 import com.epam.drill.hook.io.CR_LF
-import com.epam.drill.hook.io.CR_LF_BYTES
 import com.epam.drill.hook.io.HEADERS_DELIMITER
 import com.epam.drill.hook.io.Interceptor
 import com.epam.drill.hook.io.TcpFinalData
@@ -41,7 +39,10 @@ private const val HTTP_RESPONSE_MARKER = "HTTP"
 private const val HTTP_HEADER_DRILL_INTERNAL = "drill-internal: true"
 
 @ThreadLocal
-private val localRequestBytes = mutableMapOf<DRILL_SOCKET, ByteArray?>()
+private val localRequests = mutableMapOf<DRILL_SOCKET, ByteArray>()
+
+@ThreadLocal
+private val localResponses = mutableMapOf<DRILL_SOCKET, ByteArray>()
 
 class HttpInterceptor : Interceptor {
 
@@ -53,16 +54,22 @@ class HttpInterceptor : Interceptor {
 
     override fun MemScope.interceptRead(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>, size: Int) = try {
         val prefix = bytes.readBytes(HTTP_DETECTOR_BYTES_COUNT).decodeToString()
-        val readBytes by lazy { bytes.readBytes(size.convert()) }
+        val readBytes by lazy { bytes.readBytes(size) }
         when {
-            httpVerbs.any(prefix::startsWith) && !containsDrillInternalHeader(readBytes) -> {
-                if (containsFullHeadersPart(readBytes)) readHeaders(fd, readBytes)
-                else localRequestBytes[fd] = readBytes
+            httpVerbs.any(prefix::startsWith) -> {
+                when {
+                    containsDrillInternalHeader(readBytes) -> Unit
+                    containsFullHeadersPart(readBytes) -> readHeaders(fd, readBytes)
+                    else -> localRequests[fd] = readBytes
+                }
             }
-            localRequestBytes[fd] != null -> {
-                val total = localRequestBytes[fd]!! + readBytes
-                if (containsFullHeadersPart(readBytes)) readHeaders(fd, total).also { localRequestBytes.remove(fd) }
-                else localRequestBytes[fd] = total
+            localRequests[fd] != null -> {
+                val total = localRequests[fd]!! + readBytes
+                when {
+                    containsDrillInternalHeader(total) -> Unit.also { localRequests.remove(fd) }
+                    containsFullHeadersPart(readBytes) -> readHeaders(fd, total).also { localRequests.remove(fd) }
+                    else -> localRequests[fd] = total
+                }
             }
             else -> Unit
         }
@@ -72,23 +79,36 @@ class HttpInterceptor : Interceptor {
 
     override fun MemScope.interceptWrite(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>, size: Int) = try {
         val prefix = bytes.readBytes(HTTP_DETECTOR_BYTES_COUNT).decodeToString()
-        val readBytes by lazy { bytes.readBytes(size.convert()) }
-        val headersSeparator by lazy { readBytes.indexOf(CR_LF_BYTES) }
+        val readBytes by lazy { bytes.readBytes(size) }
+        val headersDelimiterIndex by lazy { readBytes.indexOf(HEADERS_DELIMITER) }
         val writeHeaders by lazy { injectedHeaders.value() }
+        val toTcpFinalData: (ByteArray) -> TcpFinalData = {
+            TcpFinalData(it.toCValues().getPointer(this), it.size, it.size - size)
+        }
         when {
             prefix.startsWith("PRI") -> {
                 TcpFinalData(bytes, size)
             }
-            headersSeparator > 0 && containsDrillInternalHeader(readBytes) -> {
-                TcpFinalData(bytes, size)
+            httpVerbs.any(prefix::startsWith) -> {
+                when {
+                    containsDrillInternalHeader(readBytes) -> TcpFinalData(bytes, size)
+                    containsHeaders(readBytes, writeHeaders) -> TcpFinalData(bytes, size)
+                    headersDelimiterIndex >= 0 -> writeHeaders(fd, readBytes, headersDelimiterIndex, writeHeaders)
+                        .let(toTcpFinalData)
+                    else -> TcpFinalData(bytes, size).also { localResponses[fd] = readBytes }
+                }
             }
-            headersSeparator > 0 && !containsHeaders(readBytes, writeHeaders) -> {
-                val modified = writeHeaders(fd, readBytes, headersSeparator, writeHeaders)
-                TcpFinalData(modified.toCValues().getPointer(this), modified.size, modified.size - size)
+            localResponses[fd] != null -> {
+                val total = localResponses[fd]!! + readBytes
+                when {
+                    containsDrillInternalHeader(total) -> TcpFinalData(bytes, size).also { localResponses.remove(fd) }
+                    containsHeaders(total, writeHeaders) -> TcpFinalData(bytes, size).also { localResponses.remove(fd) }
+                    headersDelimiterIndex >= 0 -> writeHeaders(fd, readBytes, headersDelimiterIndex, writeHeaders)
+                        .let(toTcpFinalData).also { localResponses.remove(fd) }
+                    else -> TcpFinalData(bytes, size).also { localResponses[fd] = total }
+                }
             }
-            else -> {
-                TcpFinalData(bytes, size)
-            }
+            else -> TcpFinalData(bytes, size)
         }
     } catch (e: Exception) {
         logger.error(e) { "interceptWrite: $e" }
@@ -96,11 +116,14 @@ class HttpInterceptor : Interceptor {
     }
 
     override fun close(fd: DRILL_SOCKET) {
-        localRequestBytes.remove(fd)
+        localRequests.remove(fd)
+        localResponses.remove(fd)
     }
 
     override fun isSuitableByteStream(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>) =
         bytes.readBytes(HTTP_DETECTOR_BYTES_COUNT).decodeToString().let { httpVerbs.any(it::startsWith) }
+                || localRequests.containsKey(fd)
+                || localResponses.containsKey(fd)
 
     private fun readHeaders(fd: DRILL_SOCKET, bytes: ByteArray) {
         val decoded = bytes.decodeToString()
@@ -122,11 +145,7 @@ class HttpInterceptor : Interceptor {
         val injectedHeaders = headersToBytes(headers)
         val responseTail = bytes.copyOfRange(index, bytes.size)
         val modified = responseHead + injectedHeaders + responseTail
-        logger.trace {
-            val headersRange = modified.indexOf(HEADERS_DELIMITER).takeUnless((-1)::equals) ?: bytes.size
-            val headersPart = modified.copyOfRange(0, headersRange).decodeToString()
-            "writeHeaders: Written HTTP headers to fd=$fd: \n${headersPart.prependIndent("\t")}"
-        }
+        logger.trace { "writeHeaders: Written HTTP headers to fd=$fd:\n${modified.decodeToString().prependIndent("\t")}" }
         writeCallback.value(modified)
         return modified
     }
