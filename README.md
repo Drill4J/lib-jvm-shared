@@ -38,9 +38,6 @@ The JVM-based shared libraries for Drill4J, used in java-agent, test2code-plugin
 - **knasm**: Port of Java ASM library to Kotlin native
 - **kni-plugin**: Gradle plugin for KNI classes (stub classes to simplify JVMTI calls) generation
 - **kni-runtime**: Annotation and interface classes to use with KNI plugin
-- **kt2dts**: Kotlin API -> TypeScript interfaces converter implementation
-- **kt2dts-api-sample**: **kt2dts** samples for tests
-- **kt2dts-cli**: Module for **kt2dts** executable JAR generation
 - **ktor-swagger**: Library for ktor with swagger integration
 - **ktor-swagger-sample**: Sample implementation for **ktor-swagger**
 - **logging**: Pre-configuration tier for microutils kotlin-logging library (useful for multiplatform modules)

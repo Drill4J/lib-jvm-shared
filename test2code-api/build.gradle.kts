@@ -48,31 +48,6 @@ kotlin {
     }
 }
 
-tasks {
-    withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
-    }
-    val jvmMain = kotlin.jvm().compilations["main"]
-    val generateTsd by registering(JavaExec::class) {
-        val argumentProvider = CommandLineArgumentProvider {
-            val generatePaths = jvmMain.output.classesDirs + jvmMain.runtimeDependencyFiles.files + jvmMain.compileDependencyFiles.files
-            val tsdDir = buildDir.resolve("ts").apply { mkdirs() }
-            val tsdFile = tsdDir.resolve("test2code.d.ts")
-            mutableListOf(
-                "--module=@drill4j/test2code-types",
-                "--output=${tsdFile.path}",
-                "--cp=${generatePaths.joinToString(",")}"
-            )
-        }
-        group = "kt2dts"
-        classpath = project(":kt2dts-cli").tasks["fatJar"].outputs.files
-        argumentProviders += argumentProvider
-    }
-    generateTsd.get().dependsOn(jvmMain.compileAllTaskName)
-    generateTsd.get().dependsOn(project(":kt2dts-cli").tasks["fatJar"])
-    compileKotlinMetadata.get().dependsOn(generateTsd)
-}
-
 noArg {
     annotation("kotlinx.serialization.Serializable")
 }

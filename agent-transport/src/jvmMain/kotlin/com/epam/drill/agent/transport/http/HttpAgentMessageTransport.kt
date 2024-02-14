@@ -36,8 +36,11 @@ import com.epam.drill.common.agent.transport.AgentMessageDestination
 
 private const val HEADER_DRILL_INTERNAL = "drill-internal"
 
+private const val API_KEY_HEADER = "X-Api-Key"
+
 class HttpAgentMessageTransport(
     adminAddress: String,
+    private val apiKey: String,
     sslTruststore: String = "",
     sslTruststorePass: String = ""
 ) : AgentMessageTransport<ByteArray> {
@@ -83,6 +86,7 @@ class HttpAgentMessageTransport(
         val mimeType = contentType.takeIf(String::isNotEmpty) ?: ContentType.WILDCARD.mimeType
         request.setHeader(HEADER_DRILL_INTERNAL, true)
         request.setHeader(HttpHeaders.CONTENT_TYPE, mimeType)
+        request.setHeader(API_KEY_HEADER, apiKey)
         request.entity = GzipCompressingEntity(ByteArrayEntity(message, getContentType(mimeType)))
         logger.trace { "execute: Request to ${request.uri}, method: ${request.method}, message=$message" }
         HttpResponseStatus(it.execute(request, ::statusResponseHandler)!!)

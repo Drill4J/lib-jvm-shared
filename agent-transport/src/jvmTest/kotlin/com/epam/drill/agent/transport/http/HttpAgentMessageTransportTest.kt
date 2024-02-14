@@ -54,7 +54,7 @@ class HttpAgentMessageTransportTest {
 
     @Test
     fun `successful GET`() = withHttpClientBuilder {
-        val transport = HttpAgentMessageTransport("http://someadmin")
+        val transport = HttpAgentMessageTransport("http://someadmin", "")
         val destination = AgentMessageDestination("GET", "somepath")
         val status = transport.send(destination, ByteArray(2), "mime/type").statusObject
 
@@ -64,7 +64,7 @@ class HttpAgentMessageTransportTest {
 
     @Test
     fun `successful POST`() = withHttpClientBuilder {
-        val transport = HttpAgentMessageTransport("http://someadmin")
+        val transport = HttpAgentMessageTransport("http://someadmin", "")
         val destination = AgentMessageDestination("POST", "somepath")
         val status = transport.send(destination, ByteArray(2), "mime/type").statusObject
 
@@ -74,7 +74,7 @@ class HttpAgentMessageTransportTest {
 
     @Test
     fun `successful PUT`() = withHttpClientBuilder {
-        val transport = HttpAgentMessageTransport("http://someadmin")
+        val transport = HttpAgentMessageTransport("http://someadmin", "")
         val destination = AgentMessageDestination("PUT", "somepath")
         val status = transport.send(destination, ByteArray(2), "mime/type").statusObject
 
@@ -84,14 +84,14 @@ class HttpAgentMessageTransportTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun `unknown HTTP method`() = withHttpClientBuilder {
-        val transport = HttpAgentMessageTransport("http://someadmin")
+        val transport = HttpAgentMessageTransport("http://someadmin", "")
         val destination = AgentMessageDestination("SOME", "somepath")
         transport.send(destination, ByteArray(2))
     }
 
     @Test
     fun `default content type`() = withHttpClientBuilder {
-        val transport = HttpAgentMessageTransport("http://someadmin")
+        val transport = HttpAgentMessageTransport("http://someadmin", "")
         val destination = AgentMessageDestination("POST", "somepath")
         val status = transport.send(destination, ByteArray(2)).statusObject
 
