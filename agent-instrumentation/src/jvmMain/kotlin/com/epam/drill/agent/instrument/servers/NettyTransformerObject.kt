@@ -23,7 +23,7 @@ import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.common.agent.request.HeadersRetriever
 
 private const val HTTP_REQUEST = "io.netty.handler.codec.http.HttpRequest"
-private const val DEFAULT_HTTP_RESPONSE = "io.netty.handler.codec.http.HttpResponse"
+private const val HTTP_RESPONSE = "io.netty.handler.codec.http.HttpResponse"
 private const val DRILL_CONTEXT_KEY = "DrillRequest"
 
 /**
@@ -67,7 +67,7 @@ abstract class NettyTransformerObject(
         invokeChannelReadMethod.insertCatching(
             CtBehavior::insertAfter,
             """
-            if ($1 instanceof $DEFAULT_HTTP_RESPONSE) {
+            if ($1 instanceof $HTTP_RESPONSE) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
             """.trimIndent()
@@ -81,8 +81,8 @@ abstract class NettyTransformerObject(
         writeMethod.insertCatching(
             CtBehavior::insertBefore,
             """
-            if ($1 instanceof $DEFAULT_HTTP_RESPONSE) {
-                $DEFAULT_HTTP_RESPONSE nettyResponse = ($DEFAULT_HTTP_RESPONSE) $1;
+            if ($1 instanceof $HTTP_RESPONSE) {
+                $HTTP_RESPONSE nettyResponse = ($HTTP_RESPONSE) $1;
                 if (!"$adminUrl".equals(nettyResponse.headers().get("$adminHeader"))) {
                     nettyResponse.headers().add("$adminHeader", "$adminUrl");
                     nettyResponse.headers().add("$agentIdHeader", "$agentIdValue");
@@ -129,7 +129,7 @@ abstract class NettyTransformerObject(
         writeMethod.insertCatching(
             CtBehavior::insertAfter,
             """
-            if ($1 instanceof $DEFAULT_HTTP_RESPONSE) {
+            if ($1 instanceof $HTTP_RESPONSE) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
             """.trimIndent()
