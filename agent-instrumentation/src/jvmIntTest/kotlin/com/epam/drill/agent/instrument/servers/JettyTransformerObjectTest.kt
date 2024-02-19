@@ -16,11 +16,10 @@
 package com.epam.drill.agent.instrument.servers
 
 import mu.KotlinLogging
-import java.util.logging.LogManager
+import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.servlet.ServletContextHandler
-import org.eclipse.jetty.servlet.ServletHolder
-import javax.servlet.http.HttpServlet
+import org.eclipse.jetty.server.ServerConnector
+import org.eclipse.jetty.server.handler.AbstractHandler
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -28,25 +27,27 @@ class JettyTransformerObjectTest : AbstractServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun withHttpServer(block: (String) -> Unit) = Server(0).run {
+    override fun withHttpServer(block: (String) -> Unit) = Server().run {
         try {
-            LogManager.getLogManager().readConfiguration(ClassLoader.getSystemResourceAsStream("logging.properties"))
-            val context = ServletContextHandler().apply {
-                contextPath = "/"
-                val context = ServletContextHandler(null, "/", ServletContextHandler.SESSIONS)
-                context.addServlet(ServletHolder(TestRequestServlet()), "/*")
-            }
-            handler = context
-            start()
-            block("http://localhost:${this.uri.port}")
+            val connector = ServerConnector(this)
+            this.connectors = arrayOf(connector)
+            this.handler = TestRequestHandler
+            this.start()
+            block("http://localhost:${connector.localPort}")
         } finally {
-            stop()
+            this.stop()
         }
     }
 
-    private class TestRequestServlet : HttpServlet() {
-        override fun doPost(request: HttpServletRequest?, response: HttpServletResponse) {
-            val requestBody: ByteArray = request!!.inputStream.readBytes()
+    @Suppress("VulnerableCodeUsages")
+    private object TestRequestHandler : AbstractHandler() {
+        override fun handle(
+            target: String,
+            baseRequest: Request,
+            request: HttpServletRequest,
+            response: HttpServletResponse
+        ) {
+            val requestBody = request.inputStream.readBytes()
             response.status = 200
             response.setContentLength(requestBody.size)
             response.outputStream.write(requestBody)
