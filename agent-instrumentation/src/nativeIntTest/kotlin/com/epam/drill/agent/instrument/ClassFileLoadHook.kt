@@ -27,6 +27,7 @@ import com.epam.drill.agent.instrument.transformers.servers.KafkaTransformer
 import com.epam.drill.agent.instrument.transformers.servers.NettyTransformer
 import com.epam.drill.agent.instrument.transformers.servers.SSLEngineTransformer
 import com.epam.drill.agent.instrument.transformers.servers.TomcatTransformer
+import com.epam.drill.agent.instrument.transformers.servers.UndertowTransformer
 import com.epam.drill.jvmapi.gen.Allocate
 import com.epam.drill.jvmapi.gen.jint
 import com.epam.drill.jvmapi.gen.jintVar
@@ -40,6 +41,7 @@ object ClassFileLoadHook {
         OkHttp3ClientTransformer,
         TomcatTransformer,
         NettyTransformer,
+        UndertowTransformer,
         SSLEngineTransformer,
         KafkaTransformer
     )
