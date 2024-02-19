@@ -27,6 +27,7 @@ import com.epam.drill.agent.instrument.transformers.servers.KafkaTransformer
 import com.epam.drill.agent.instrument.transformers.servers.NettyTransformer
 import com.epam.drill.agent.instrument.transformers.servers.SSLEngineTransformer
 import com.epam.drill.agent.instrument.transformers.servers.TomcatTransformer
+import com.epam.drill.agent.instrument.transformers.servers.JettyTransformer
 import com.epam.drill.agent.instrument.transformers.servers.UndertowTransformer
 import com.epam.drill.jvmapi.gen.Allocate
 import com.epam.drill.jvmapi.gen.jint
@@ -43,7 +44,8 @@ object ClassFileLoadHook {
         NettyTransformer,
         UndertowTransformer,
         SSLEngineTransformer,
-        KafkaTransformer
+        KafkaTransformer,
+        JettyTransformer
     )
 
     operator fun invoke(
