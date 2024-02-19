@@ -61,12 +61,15 @@ abstract class UndertowTransformerObject(
                 java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
                 while (headerNames.hasNext()){
                     java.lang.String headerName = (java.lang.String) headerNames.next().toString();
+                    try {
+                        java.lang.String header = requestHeaders.get(io.undertow.util.HttpString.tryFromString(headerName)).element();
+                        allHeaders.put(headerName, header);
         
-                    java.lang.String header = requestHeaders.get(io.undertow.util.HttpString.tryFromString(headerName)).toString();
-                    allHeaders.put(headerName, header);
-        
-                    if (headerName.startsWith("${HeadersProcessor.DRILL_HEADER_PREFIX}") && responseHeaders.get(io.undertow.util.HttpString.tryFromString(headerName)) == null) {
-                        responseHeaders.add(io.undertow.util.HttpString.tryFromString(headerName), header);
+                        if (headerName.startsWith("${HeadersProcessor.DRILL_HEADER_PREFIX}") && responseHeaders.get(io.undertow.util.HttpString.tryFromString(headerName)) == null) {
+                            responseHeaders.add(io.undertow.util.HttpString.tryFromString(headerName), header);
+                        }
+                    } catch (java.util.NoSuchElementException ex) {
+                        //NOOP   
                     }
                 }
                 ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
