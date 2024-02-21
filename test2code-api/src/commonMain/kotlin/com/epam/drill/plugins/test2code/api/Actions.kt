@@ -16,9 +16,10 @@
 package com.epam.drill.plugins.test2code.api
 
 import kotlinx.serialization.*
+import com.epam.drill.common.agent.transport.AgentMessage
 
 @Serializable
-sealed class Action
+sealed class Action : AgentMessage()
 
 @SerialName("START")
 @Serializable

@@ -51,11 +51,10 @@ open class QueuedAgentMessageSender<T>(
     private val transport: AgentMessageTransport<T>,
     private val messageSerializer: AgentMessageSerializer<T>,
     private val destinationMapper: AgentMessageDestinationMapper,
-    agentMetadataSender: AgentMetadataSender<T>,
     transportStateNotifier: TransportStateNotifier,
     private val transportStateListener: TransportStateListener?,
     private val messageQueue: AgentMessageQueue<T>
-) : AgentMessageSender, AgentMetadataSender<T> by agentMetadataSender, TransportStateListener {
+) : AgentMessageSender, TransportStateListener {
 
     private val logger = KotlinLogging.logger {}
 
@@ -63,12 +62,11 @@ open class QueuedAgentMessageSender<T>(
     internal var sendingThread: Thread? = null
 
     init {
-        agentMetadataSender.addStateListener(this)
         transportStateNotifier.addStateListener(this)
     }
 
     override val available
-        get() = metadataSent && alive
+        get() = alive
 
     override fun send(destination: AgentMessageDestination, message: AgentMessage): ResponseStatus {
         val mappedDestination = destinationMapper.map(destination)

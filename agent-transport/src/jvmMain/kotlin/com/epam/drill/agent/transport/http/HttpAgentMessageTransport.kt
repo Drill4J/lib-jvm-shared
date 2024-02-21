@@ -29,18 +29,18 @@ import org.apache.hc.core5.http.ClassicHttpResponse
 import org.apache.hc.core5.http.ContentType
 import org.apache.hc.core5.http.HttpHeaders
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity
+import org.apache.hc.core5.http.message.BasicHeader
 import org.apache.hc.core5.ssl.SSLContextBuilder
 import mu.KotlinLogging
 import com.epam.drill.agent.transport.AgentMessageTransport
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 
 private const val HEADER_DRILL_INTERNAL = "drill-internal"
-
-private const val API_KEY_HEADER = "X-Api-Key"
+private const val HEADER_API_KEY = "X-Api-Key"
 
 class HttpAgentMessageTransport(
     adminAddress: String,
-    private val apiKey: String,
+    apiKey: String,
     sslTruststore: String = "",
     sslTruststorePass: String = ""
 ) : AgentMessageTransport<ByteArray> {
@@ -48,6 +48,8 @@ class HttpAgentMessageTransport(
     private val logger = KotlinLogging.logger {}
     private val clientBuilder = HttpClientBuilder.create()
     private val adminUri = URI(adminAddress)
+    private val drillInternalHeader = BasicHeader(HEADER_DRILL_INTERNAL, true)
+    private val apiKeyHeader = BasicHeader(HEADER_API_KEY, apiKey)
     private val contentTypes = mutableMapOf<String, ContentType>()
 
     init {
@@ -84,9 +86,9 @@ class HttpAgentMessageTransport(
             else -> throw IllegalArgumentException("Unknown destination type: ${destination.type}")
         }
         val mimeType = contentType.takeIf(String::isNotEmpty) ?: ContentType.WILDCARD.mimeType
-        request.setHeader(HEADER_DRILL_INTERNAL, true)
         request.setHeader(HttpHeaders.CONTENT_TYPE, mimeType)
-        request.setHeader(API_KEY_HEADER, apiKey)
+        request.setHeader(drillInternalHeader)
+        request.setHeader(apiKeyHeader)
         request.entity = GzipCompressingEntity(ByteArrayEntity(message, getContentType(mimeType)))
         logger.trace { "execute: Request to ${request.uri}, method: ${request.method}, message=$message" }
         HttpResponseStatus(it.execute(request, ::statusResponseHandler)!!)
