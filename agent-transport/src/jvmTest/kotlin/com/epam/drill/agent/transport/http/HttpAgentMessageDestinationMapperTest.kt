@@ -21,7 +21,7 @@ import com.epam.drill.common.agent.transport.AgentMessageDestination
 
 class HttpAgentMessageDestinationMapperTest {
 
-    private val mapper = HttpAgentMessageDestinationMapper("someAgentId", "someBuildVer")
+    private val mapper = HttpAgentMessageDestinationMapper("someAgentId", "someGroupId", "someBuildVer")
 
     @Test
     fun `map AgentMetadata`() {
