@@ -58,19 +58,21 @@ abstract class UndertowTransformerObject(
         
                 io.undertow.util.HeaderMap requestHeaders = (io.undertow.util.HeaderMap) $2.getRequestHeaders();
                 java.util.Iterator/*io.undertow.util.HttpString>*/ headerNames = requestHeaders.getHeaderNames().iterator();
-                java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
+                java.util.Map/*<java.lang.String, java.lang.String>*/ drillHeaders = new java.util.HashMap();
                 while (headerNames.hasNext()) {
                     java.lang.String headerName = (java.lang.String) headerNames.next().toString();
                     java.util.Iterator/*<java.lang.String>*/ requestHeaderIterator = requestHeaders.get(io.undertow.util.HttpString.tryFromString(headerName)).iterator();
                     while (requestHeaderIterator.hasNext()) {
                         java.lang.String header = (java.lang.String) requestHeaderIterator.next();
-                        if (headerName.startsWith("${HeadersProcessor.DRILL_HEADER_PREFIX}") && responseHeaders.get(io.undertow.util.HttpString.tryFromString(headerName)) == null) {
-                            allHeaders.put(headerName, header);
-                            responseHeaders.add(io.undertow.util.HttpString.tryFromString(headerName), header);
+                        if (headerName.startsWith("${HeadersProcessor.DRILL_HEADER_PREFIX}")) {
+                            drillHeaders.put(headerName, header);
+                            if (responseHeaders.get(io.undertow.util.HttpString.tryFromString(headerName)) == null) {
+                                responseHeaders.add(io.undertow.util.HttpString.tryFromString(headerName), header);
+                            }
                         }
                     }
                 }
-                ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
+                ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
             }
             """.trimIndent()
         )
