@@ -59,17 +59,15 @@ abstract class UndertowTransformerObject(
                 io.undertow.util.HeaderMap requestHeaders = (io.undertow.util.HeaderMap) $2.getRequestHeaders();
                 java.util.Iterator/*io.undertow.util.HttpString>*/ headerNames = requestHeaders.getHeaderNames().iterator();
                 java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
-                while (headerNames.hasNext()){
+                while (headerNames.hasNext()) {
                     java.lang.String headerName = (java.lang.String) headerNames.next().toString();
-                    try {
-                        java.lang.String header = requestHeaders.get(io.undertow.util.HttpString.tryFromString(headerName)).element();
-                        allHeaders.put(headerName, header);
-        
+                    java.util.Iterator/*<java.lang.String>*/ requestHeaderIterator = requestHeaders.get(io.undertow.util.HttpString.tryFromString(headerName)).iterator();
+                    while (requestHeaderIterator.hasNext()) {
+                        java.lang.String header = (java.lang.String) requestHeaderIterator.next();
                         if (headerName.startsWith("${HeadersProcessor.DRILL_HEADER_PREFIX}") && responseHeaders.get(io.undertow.util.HttpString.tryFromString(headerName)) == null) {
+                            allHeaders.put(headerName, header);
                             responseHeaders.add(io.undertow.util.HttpString.tryFromString(headerName), header);
                         }
-                    } catch (java.util.NoSuchElementException ex) {
-                        //NOOP   
                     }
                 }
                 ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
