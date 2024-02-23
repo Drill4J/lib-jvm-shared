@@ -66,12 +66,13 @@ abstract class NettyTransformerObject(
             }
             """.trimIndent()
         )
-        invokeChannelReadMethod.insertAfter(
+        invokeChannelReadMethod.insertCatching(
+            { insertAfter(it, true) },
             """
             if ($1 instanceof $HTTP_REQUEST) {                
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
-            """.trimIndent(), true
+            """.trimIndent()
         )
 
         val adminHeader = headersRetriever.adminAddressHeader()
@@ -108,12 +109,13 @@ abstract class NettyTransformerObject(
             }
             """.trimIndent()
         )
-        writeMethod.insertAfter(
+        writeMethod.insertCatching(
+            { insertAfter(it, true) },
             """
             if ($1 instanceof $HTTP_RESPONSE) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
-            """.trimIndent(), true
+            """.trimIndent()
         )
     }
 
