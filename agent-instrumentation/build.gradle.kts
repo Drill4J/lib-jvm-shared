@@ -130,7 +130,7 @@ kotlin {
         val runtimeJar by registering(ShadowJar::class) {
             mergeServiceFiles()
             isZip64 = true
-            archiveFileName.set("drillRuntime.jar")
+            archiveFileName.set("drill-runtime.jar")
             from(jvmMainCompilation.runtimeDependencyFiles, jvmMainCompilation.output, jvmIntTestCompilation.output.classesDirs)
             dependencies {
                 exclude("/META-INF/services/javax.servlet.ServletContainerInitializer")
