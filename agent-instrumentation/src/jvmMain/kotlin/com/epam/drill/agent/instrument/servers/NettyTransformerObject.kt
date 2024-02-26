@@ -59,15 +59,17 @@ abstract class NettyTransformerObject(
                 ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
                 
                 java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
-                io.netty.util.AttributeKey drillContext = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");
-                this.channel().attr(drillContext).set(drillHeaders);                                                                       
+                if (drillHeaders != null) {
+                    io.netty.util.AttributeKey drillContext = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");
+                    this.channel().attr(drillContext).set(drillHeaders);
+                }                                                                                       
             }
             """.trimIndent()
         )
         invokeChannelReadMethod.insertCatching(
-            CtBehavior::insertAfter,
+            { insertAfter(it, true) },
             """
-            if ($1 instanceof $HTTP_RESPONSE) {
+            if ($1 instanceof $HTTP_REQUEST) {                
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
             """.trimIndent()
@@ -82,12 +84,16 @@ abstract class NettyTransformerObject(
             CtBehavior::insertBefore,
             """
             if ($1 instanceof $HTTP_RESPONSE) {
+                io.netty.util.AttributeKey drillContext = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");                                            
+                io.netty.util.Attribute drillAttr = this.channel().attr(drillContext);
+                java.util.Map drillHeaders = (java.util.Map) drillAttr.get();                                                
+                drillAttr.compareAndSet(drillHeaders, null);
+                
                 $HTTP_RESPONSE nettyResponse = ($HTTP_RESPONSE) $1;
                 if (!"$adminUrl".equals(nettyResponse.headers().get("$adminHeader"))) {
                     nettyResponse.headers().add("$adminHeader", "$adminUrl");
                     nettyResponse.headers().add("$agentIdHeader", "$agentIdValue");
-                }
-                java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
+                }                
                 if (drillHeaders != null) {
                     java.util.Iterator iterator = drillHeaders.entrySet().iterator();
                     while (iterator.hasNext()) {
@@ -97,37 +103,14 @@ abstract class NettyTransformerObject(
                          if (!nettyResponse.headers().contains(headerName)) {
                              nettyResponse.headers().add(headerName, headerValue);
                          }
-                    }
-                }
-            }
-            if ($1 instanceof $HTTP_REQUEST) {
-                $HTTP_REQUEST nettyRequest = ($HTTP_REQUEST) $1;
-                java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
-                if (drillHeaders != null) {
-                    java.util.Iterator iterator = drillHeaders.entrySet().iterator();
-                    while (iterator.hasNext()) {
-                         java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
-                         String headerName = (String) entry.getKey();
-                         String headerValue = (String) entry.getValue();
-                         if (!nettyRequest.headers().contains(headerName)) {
-                             nettyRequest.headers().add(headerName, headerValue);
-                         }
-                    }
-                }
-            }
-            if ($1 instanceof $HTTP_REQUEST) {                            
-                io.netty.util.AttributeKey drillContext = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");                            
-                io.netty.util.Attribute drillAttr = this.channel().attr(drillContext);
-                java.util.Map drillHeaders = (java.util.Map) drillAttr.get();
-                drillAttr.compareAndSet(drillHeaders, null);
-                if (drillHeaders != null) {                    
+                    }                    
                     ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
                 }                            
             }
             """.trimIndent()
         )
         writeMethod.insertCatching(
-            CtBehavior::insertAfter,
+            { insertAfter(it, true) },
             """
             if ($1 instanceof $HTTP_RESPONSE) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();

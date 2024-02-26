@@ -74,7 +74,7 @@ abstract class TomcatTransformerObject(
             """.trimIndent()
         )
         method.insertCatching(
-            CtBehavior::insertAfter,
+            { insertAfter(it, true) },
             """
             ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             """.trimIndent()
