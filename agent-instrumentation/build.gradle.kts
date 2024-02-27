@@ -82,6 +82,8 @@ kotlin {
                 implementation(kotlin("test-junit"))
                 implementation("org.apache.httpcomponents:httpclient:4.5.14")
                 implementation("org.apache.tomcat.embed:tomcat-embed-core:10.0.27")
+                implementation("org.eclipse.jetty:jetty-server:9.4.26.v20200117")
+                implementation("io.undertow:undertow-core:2.0.29.Final")
                 implementation("org.simpleframework:simple-http:6.0.1")
                 implementation("org.springframework.kafka:spring-kafka:2.9.13")
                 implementation("org.springframework.kafka:spring-kafka-test:2.9.13")
@@ -137,7 +139,7 @@ kotlin {
         val runtimeJar by registering(ShadowJar::class) {
             mergeServiceFiles()
             isZip64 = true
-            archiveFileName.set("drillRuntime.jar")
+            archiveFileName.set("drill-runtime.jar")
             from(jvmMainCompilation.runtimeDependencyFiles, jvmMainCompilation.output, jvmIntTestCompilation.output.classesDirs)
             dependencies {
                 exclude("/META-INF/services/javax.servlet.ServletContainerInitializer")

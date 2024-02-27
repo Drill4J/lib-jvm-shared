@@ -15,8 +15,10 @@
  */
 package com.epam.drill.agent.instrument.transformers.clients
 
+import com.epam.drill.agent.instrument.ClassPathProvider
 import com.epam.drill.agent.instrument.DrillRequestHeadersProcessor
 import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.agent.instrument.TestClassPathProvider
 import com.epam.drill.agent.instrument.TestHeadersRetriever
 import com.epam.drill.agent.instrument.TestRequestHolder
 import com.epam.drill.agent.instrument.TransformerObject
@@ -25,4 +27,5 @@ import com.epam.drill.agent.instrument.clients.OkHttp3ClientTransformerObject
 actual object OkHttp3ClientTransformer :
     TransformerObject,
     OkHttp3ClientTransformerObject(),
-    HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder)
+    HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder),
+    ClassPathProvider by TestClassPathProvider

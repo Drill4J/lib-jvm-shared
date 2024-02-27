@@ -22,7 +22,7 @@ import javassist.CtClass
 import javassist.LoaderClassPath
 import mu.KLogger
 
-abstract class AbstractTransformerObject : TransformerObject {
+abstract class AbstractTransformerObject : TransformerObject, ClassPathProvider {
 
     protected abstract val logger: KLogger
 
@@ -37,6 +37,9 @@ abstract class AbstractTransformerObject : TransformerObject {
     ): ByteArray = ClassPool(true).run {
         val classLoader = loader ?: ClassLoader.getSystemClassLoader()
         this.appendClassPath(LoaderClassPath(classLoader as? ClassLoader))
+        if (this.getOrNull(this::class.java.name) == null) {
+            this.appendClassPath(getClassPath())
+        }
         this.makeClass(ByteArrayInputStream(classFileBuffer), false).let {
             val logError: (Throwable) -> Unit = { e ->
                 logger.error(e) { "transform: Error during instrumenting, class=${it.name}" }
@@ -61,11 +64,11 @@ abstract class AbstractTransformerObject : TransformerObject {
     protected open fun CtBehavior.insertCatching(insert: CtBehavior.(String) -> Unit, code: String) = try {
         insert(
             """
-                try {
-                    $code
-                } catch (Exception e) {
-                    ${this@AbstractTransformerObject::class.java.name}.INSTANCE.${this@AbstractTransformerObject::logError.name}(e, "Error in the injected code, method name: $name.");
-                }
+            try {
+                $code
+            } catch (Exception e) {
+                ${this@AbstractTransformerObject::class.java.name}.INSTANCE.${this@AbstractTransformerObject::logError.name}(e, "Error in the injected code, method name: $name.");
+            }
             """.trimIndent()
         )
     } catch (e: Exception) {
