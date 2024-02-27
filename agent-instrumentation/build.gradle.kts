@@ -27,6 +27,7 @@ version = Properties().run {
 val javassistVersion: String by parent!!.extra
 val transmittableThreadLocalVersion: String by parent!!.extra
 val nativeAgentLibName: String by parent!!.extra
+val macosLd64: String by parent!!.extra
 
 repositories {
     mavenLocal()
@@ -43,7 +44,13 @@ kotlin {
     targets {
         jvm(configure = configureIntTestTarget)
         linuxX64(configure = configureIntTestTarget)
-        macosX64(configure = configureIntTestTarget)
+        macosX64(configure = configureIntTestTarget).apply {
+            if (macosLd64.toBoolean()) {
+                binaries.all {
+                    linkerOpts("-ld64")
+                }
+            }
+        }
         mingwX64(configure = configureIntTestTarget).apply {
             binaries.all {
                 linkerOpts("-lpsapi", "-lwsock32", "-lws2_32", "-lmswsock")
