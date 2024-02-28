@@ -15,15 +15,7 @@
  */
 package com.epam.drill.agent.transport.http
 
-import org.apache.hc.core5.http.HttpStatus
-import com.epam.drill.common.agent.transport.ResponseStatus
-
-open class HttpResponseStatus(private val status: Int) : ResponseStatus {
-
-    override val success
-        get() = status == HttpStatus.SC_SUCCESS
-
-    override val statusObject
-        get() = status
-
-}
+class HttpResponseContent<T>(
+    status: Int,
+    val content: T
+) : HttpResponseStatus(status)

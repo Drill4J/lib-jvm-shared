@@ -17,9 +17,12 @@ package com.epam.drill.agent.transport.http
 
 import java.io.File
 import java.net.URI
+import org.apache.hc.client5.http.classic.methods.HttpDelete
 import org.apache.hc.client5.http.classic.methods.HttpGet
 import org.apache.hc.client5.http.classic.methods.HttpPost
 import org.apache.hc.client5.http.classic.methods.HttpPut
+import org.apache.hc.client5.http.config.ConnectionConfig
+import org.apache.hc.client5.http.config.RequestConfig
 import org.apache.hc.client5.http.entity.GzipCompressingEntity
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder
@@ -28,7 +31,9 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder
 import org.apache.hc.core5.http.ClassicHttpResponse
 import org.apache.hc.core5.http.ContentType
 import org.apache.hc.core5.http.HttpHeaders
+import org.apache.hc.core5.http.io.HttpClientResponseHandler
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity
+import org.apache.hc.core5.http.io.entity.EntityUtils
 import org.apache.hc.core5.http.message.BasicHeader
 import org.apache.hc.core5.ssl.SSLContextBuilder
 import mu.KotlinLogging
@@ -39,22 +44,25 @@ private const val HEADER_DRILL_INTERNAL = "drill-internal"
 private const val HEADER_API_KEY = "X-Api-Key"
 
 class HttpAgentMessageTransport(
-    adminAddress: String,
-    apiKey: String,
+    serverAddress: String,
+    apiKey: String = "",
     sslTruststore: String = "",
-    sslTruststorePass: String = ""
+    sslTruststorePass: String = "",
+    drillInternal: Boolean = true,
+    private val gzipCompression: Boolean = true,
+    private val receiveContent: Boolean = false
 ) : AgentMessageTransport<ByteArray> {
 
     private val logger = KotlinLogging.logger {}
     private val clientBuilder = HttpClientBuilder.create()
-    private val adminUri = URI(adminAddress)
-    private val drillInternalHeader = BasicHeader(HEADER_DRILL_INTERNAL, true)
-    private val apiKeyHeader = BasicHeader(HEADER_API_KEY, apiKey)
+    private val serverUri = URI(serverAddress)
+    private val drillInternalHeader = drillInternal.takeIf(true::equals)?.let { BasicHeader(HEADER_DRILL_INTERNAL, it) }
+    private val apiKeyHeader = apiKey.takeIf(String::isNotBlank)?.let { BasicHeader(HEADER_API_KEY, it) }
     private val contentTypes = mutableMapOf<String, ContentType>()
 
     init {
-        logger.debug { "configure: Using adminAddress: $adminUri" }
-        if (adminUri.scheme == "https") {
+        logger.debug { "configure: Using serverAddress: $serverUri" }
+        if (serverUri.scheme == "https") {
             val configureTrustStore: (SSLContextBuilder) -> Unit = {
                 if (sslTruststore.isEmpty()) it.loadTrustMaterial { _, _ -> true }
                 else it.loadTrustMaterial(File(sslTruststore), sslTruststorePass.toCharArray())
@@ -78,23 +86,32 @@ class HttpAgentMessageTransport(
         destination: AgentMessageDestination,
         message: ByteArray,
         contentType: String
-    ) = clientBuilder.build().use {
+    ) = clientBuilder.build().use { client ->
         val request = when (destination.type) {
-            "GET" -> HttpGet(adminUri.resolve(destination.target))
-            "POST" -> HttpPost(adminUri.resolve(destination.target))
-            "PUT" -> HttpPut(adminUri.resolve(destination.target))
+            "GET" -> HttpGet(serverUri.resolve(destination.target))
+            "POST" -> HttpPost(serverUri.resolve(destination.target))
+            "PUT" -> HttpPut(serverUri.resolve(destination.target))
+            "DELETE" -> HttpDelete(serverUri.resolve(destination.target))
             else -> throw IllegalArgumentException("Unknown destination type: ${destination.type}")
         }
         val mimeType = contentType.takeIf(String::isNotEmpty) ?: ContentType.WILDCARD.mimeType
+        drillInternalHeader?.also(request::setHeader)
+        apiKeyHeader?.also(request::setHeader)
         request.setHeader(HttpHeaders.CONTENT_TYPE, mimeType)
-        request.setHeader(drillInternalHeader)
-        request.setHeader(apiKeyHeader)
-        request.entity = GzipCompressingEntity(ByteArrayEntity(message, getContentType(mimeType)))
+        request.entity = ByteArrayEntity(message, getContentType(mimeType)).let {
+            if(gzipCompression) GzipCompressingEntity(it) else it
+        }
         logger.trace { "execute: Request to ${request.uri}, method: ${request.method}, message=$message" }
-        HttpResponseStatus(it.execute(request, ::statusResponseHandler)!!)
+        if (receiveContent)
+            client.execute(request, ::contentResponseHandler)!!
+        else
+            client.execute(request, ::statusResponseHandler)!!
     }
 
-    private fun statusResponseHandler(response: ClassicHttpResponse) = response.code
+    private fun contentResponseHandler(response: ClassicHttpResponse) =
+        HttpResponseContent<ByteArray>(response.code, EntityUtils.toByteArray(response.entity))
+
+    private fun statusResponseHandler(response: ClassicHttpResponse) = HttpResponseStatus(response.code)
 
     private fun getContentType(mimeType: String) = contentTypes.getOrPut(mimeType) { ContentType.create(mimeType) }
 

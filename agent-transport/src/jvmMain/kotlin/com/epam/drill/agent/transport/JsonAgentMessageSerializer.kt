@@ -24,11 +24,16 @@ import com.epam.drill.common.agent.transport.AgentMessageDestination
 
 class JsonAgentMessageSerializer : AgentMessageSerializer<ByteArray> {
 
+    private val json = Json {
+        encodeDefaults = true
+        ignoreUnknownKeys = true
+    }
+
     override fun contentType(): String = "application/json"
 
     @Suppress("HasPlatformType")
     override fun serialize(message: AgentMessage) = ByteArrayOutputStream().use {
-        Json.encodeToStream(serializer(message.javaClass), message, it)
+        json.encodeToStream(serializer(message.javaClass), message, it)
         it.toByteArray()
     }
 
