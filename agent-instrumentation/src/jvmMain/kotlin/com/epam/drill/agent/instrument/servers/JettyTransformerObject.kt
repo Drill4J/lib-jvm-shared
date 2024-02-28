@@ -15,58 +15,52 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+
 import javassist.CtBehavior
 import javassist.CtClass
-import javassist.NotFoundException
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.common.agent.request.HeadersRetriever
 
-/**
- * Transformer for Tomcat web server
- *
- * Tested with:
- *     org.apache.tomcat.embed:tomcat-embed-core:10.0.27
- */
-abstract class TomcatTransformerObject(
+abstract class JettyTransformerObject(
     protected val headersRetriever: HeadersRetriever
 ) : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
-        "org/apache/catalina/core/ApplicationFilterChain" == className
+        "org/eclipse/jetty/server/handler/HandlerWrapper" == className
 
     override fun transform(className: String, ctClass: CtClass) {
         val adminHeader = headersRetriever.adminAddressHeader()
         val adminUrl = headersRetriever.adminAddressValue()
         val agentIdHeader = headersRetriever.agentIdHeader()
         val agentIdValue = headersRetriever.agentIdHeaderValue()
-        logger.info { "transform: Starting TomcatTransformer with admin host $adminUrl..." }
-        val method = try {
-            ctClass.getMethod("doFilter", "(Ljavax/servlet/ServletRequest;Ljavax/servlet/ServletResponse;)V")
-        } catch (e: NotFoundException) {
-            ctClass.getMethod("doFilter", "(Ljakarta/servlet/ServletRequest;Ljakarta/servlet/ServletResponse;)V")
-        }
+        logger.info { "transform: Starting JettyTransformer with admin host $adminUrl..." }
+        val method =
+            ctClass.getMethod(
+                "handle",
+                "(Ljava/lang/String;Lorg/eclipse/jetty/server/Request;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V"
+            )
         method.insertCatching(
             CtBehavior::insertBefore,
             """
-            if ($1 instanceof org.apache.catalina.connector.RequestFacade && $2 instanceof org.apache.catalina.connector.ResponseFacade) {
-                org.apache.catalina.connector.ResponseFacade tomcatResponse = (org.apache.catalina.connector.ResponseFacade)$2;
-                if (!"$adminUrl".equals(tomcatResponse.getHeader("$adminHeader"))) {
-                    tomcatResponse.addHeader("$adminHeader", "$adminUrl");
-                    tomcatResponse.addHeader("$agentIdHeader", "$agentIdValue");
+            if ($2 instanceof org.eclipse.jetty.server.Request && $3 instanceof org.eclipse.jetty.server.Request && $4 instanceof org.eclipse.jetty.server.Response) {
+                org.eclipse.jetty.server.Response jettyResponse = (org.eclipse.jetty.server.Response)$4;
+                if (!"$adminUrl".equals(jettyResponse.getHeader("$adminHeader"))) {
+                    jettyResponse.addHeader("$adminHeader", "$adminUrl");
+                    jettyResponse.addHeader("$agentIdHeader", "$agentIdValue");
                 }
-                org.apache.catalina.connector.RequestFacade tomcatRequest = (org.apache.catalina.connector.RequestFacade)${'$'}1;
+                org.eclipse.jetty.server.Request jettyRequest = (org.eclipse.jetty.server.Request)$3;
                 java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
-                java.util.Enumeration/*<String>*/ headerNames = tomcatRequest.getHeaderNames();
+                java.util.Enumeration/*<String>*/ headerNames = jettyRequest.getHeaderNames();
                 while (headerNames.hasMoreElements()) {
                     java.lang.String headerName = (java.lang.String) headerNames.nextElement();
-                    java.lang.String header = tomcatRequest.getHeader(headerName);
+                    java.lang.String header = jettyRequest.getHeader(headerName);
                     allHeaders.put(headerName, header);
-                    if (headerName.startsWith("${HeadersProcessor.DRILL_HEADER_PREFIX}") && tomcatResponse.getHeader(headerName) == null) {
-                        tomcatResponse.addHeader(headerName, header);
+                    if (headerName.startsWith("${HeadersProcessor.DRILL_HEADER_PREFIX}") && jettyResponse.getHeader(headerName) == null) {
+                        jettyResponse.addHeader(headerName, header);
                     }
                 }
                 ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
@@ -80,5 +74,4 @@ abstract class TomcatTransformerObject(
             """.trimIndent()
         )
     }
-
 }

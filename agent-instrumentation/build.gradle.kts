@@ -27,6 +27,7 @@ version = Properties().run {
 val javassistVersion: String by parent!!.extra
 val transmittableThreadLocalVersion: String by parent!!.extra
 val nativeAgentLibName: String by parent!!.extra
+val macosLd64: String by parent!!.extra
 
 repositories {
     mavenLocal()
@@ -43,7 +44,13 @@ kotlin {
     targets {
         jvm(configure = configureIntTestTarget)
         linuxX64(configure = configureIntTestTarget)
-        macosX64(configure = configureIntTestTarget)
+        macosX64(configure = configureIntTestTarget).apply {
+            if (macosLd64.toBoolean()) {
+                binaries.all {
+                    linkerOpts("-ld64")
+                }
+            }
+        }
         mingwX64(configure = configureIntTestTarget).apply {
             binaries.all {
                 linkerOpts("-lpsapi", "-lwsock32", "-lws2_32", "-lmswsock")
@@ -75,6 +82,8 @@ kotlin {
                 implementation(kotlin("test-junit"))
                 implementation("org.apache.httpcomponents:httpclient:4.5.14")
                 implementation("org.apache.tomcat.embed:tomcat-embed-core:10.0.27")
+                implementation("org.eclipse.jetty:jetty-server:9.4.26.v20200117")
+                implementation("io.undertow:undertow-core:2.0.29.Final")
                 implementation("org.simpleframework:simple-http:6.0.1")
                 implementation("org.springframework.kafka:spring-kafka:2.9.13")
                 implementation("org.springframework.kafka:spring-kafka-test:2.9.13")

@@ -17,8 +17,10 @@
 
 package com.epam.drill.agent.instrument
 
+import kotlin.native.concurrent.AtomicReference
 import kotlin.native.concurrent.freeze
 import kotlinx.cinterop.*
+import com.epam.drill.jvmapi.callNativeStringMethod
 import com.epam.drill.jvmapi.callObjectVoidMethod
 import com.epam.drill.jvmapi.callObjectVoidMethodWithInt
 import com.epam.drill.jvmapi.callObjectVoidMethodWithString
@@ -28,6 +30,9 @@ import com.epam.drill.jvmapi.gen.*
 import com.epam.drill.jvmapi.jvmti
 import com.epam.drill.jvmapi.vmGlobal
 import com.epam.drill.logging.LoggingConfiguration
+
+@SharedImmutable
+val runtimeJarPath = AtomicReference("")
 
 @Suppress("unused_parameter")
 @CName("Agent_OnLoad")
@@ -53,7 +58,8 @@ fun agentOnLoad(vmPointer: CPointer<JavaVMVar>, options: String, reservedPtr: Lo
     SetEventCallbacks(alloc.ptr, sizeOf<jvmtiEventCallbacks>().toInt())
     SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_VM_INIT, null)
 
-    AddToBootstrapClassLoaderSearch(options)
+    runtimeJarPath.value = options.freeze()
+    AddToBootstrapClassLoaderSearch(runtimeJarPath.value)
 
     JNI_OK
 }
@@ -88,6 +94,9 @@ fun classFileLoadHook(
     newDataLen,
     newData,
 )
+
+@CName("Java_com_epam_drill_agent_instrument_TestClassPathProvider_getClassPath")
+fun getClassPath(env: JNIEnv, thiz: jobject) = callNativeStringMethod(env, thiz, TestClassPathProvider::getClassPath)
 
 @CName("checkEx")
 fun checkEx(errCode: jvmtiError, funName: String) = checkEx(errCode, funName)
