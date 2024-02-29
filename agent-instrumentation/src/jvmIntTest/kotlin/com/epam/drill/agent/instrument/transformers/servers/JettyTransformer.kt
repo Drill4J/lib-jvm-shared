@@ -21,4 +21,5 @@ import com.epam.drill.agent.instrument.servers.JettyTransformerObject
 actual object JettyTransformer :
     TransformerObject,
     JettyTransformerObject(TestHeadersRetriever),
-    HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder)
+    HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder),
+    ClassPathProvider by TestClassPathProvider
