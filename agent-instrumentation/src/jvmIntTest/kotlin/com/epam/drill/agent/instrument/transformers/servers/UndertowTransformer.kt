@@ -21,4 +21,5 @@ import com.epam.drill.agent.instrument.servers.UndertowTransformerObject
 actual object UndertowTransformer :
     TransformerObject,
     UndertowTransformerObject(TestHeadersRetriever),
-    HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder)
+    HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder),
+    ClassPathProvider by TestClassPathProvider
