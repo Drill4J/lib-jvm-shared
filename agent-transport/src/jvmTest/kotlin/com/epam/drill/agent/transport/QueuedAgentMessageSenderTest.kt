@@ -43,7 +43,7 @@ class QueuedAgentMessageSenderTest {
     @MockK
     private lateinit var responseStatus: ResponseStatus
     @MockK
-    private lateinit var messageSerializer: AgentMessageSerializer<String>
+    private lateinit var messageSerializer: AgentMessageSerializer<AgentMessage, String>
     @MockK
     private lateinit var destinationMapper: AgentMessageDestinationMapper
     @MockK
@@ -53,7 +53,7 @@ class QueuedAgentMessageSenderTest {
     @MockK
     private lateinit var messageQueue: InMemoryAgentMessageQueue<String>
 
-    private lateinit var sender: QueuedAgentMessageSender<String>
+    private lateinit var sender: QueuedAgentMessageSender<AgentMessage, String>
 
     private val incomingMessage = mutableListOf<TestAgentMessage>()
     private val incomingDestinations = mutableListOf<AgentMessageDestination>()

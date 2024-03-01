@@ -15,16 +15,18 @@
  */
 package com.epam.drill.agent.transport
 
-class QueuedAgentMessageMetadataSender<T>(
+import com.epam.drill.common.agent.transport.AgentMessage
+
+class QueuedAgentMessageMetadataSender<M : AgentMessage, T>(
     transport: AgentMessageTransport<T>,
-    messageSerializer: AgentMessageSerializer<T>,
+    messageSerializer: AgentMessageSerializer<M, T>,
     destinationMapper: AgentMessageDestinationMapper,
     agentMetadataSender: AgentMetadataSender<T>,
     transportStateNotifier: TransportStateNotifier,
     transportStateListener: TransportStateListener?,
     messageQueue: AgentMessageQueue<T>
 ) :
-    QueuedAgentMessageSender<T>(
+    QueuedAgentMessageSender<M, T>(
         transport,
         messageSerializer,
         destinationMapper,

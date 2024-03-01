@@ -20,7 +20,7 @@ import mu.KotlinLogging
 
 class RetryingTransportStateNotifier<T>(
     private val transport: AgentMessageTransport<T>,
-    private val messageSerializer: AgentMessageSerializer<T>,
+    private val messageSerializer: AgentMessageSerializer<*, *>,
     private val messageQueue: AgentMessageQueue<T>
 ) : TransportStateNotifier, TransportStateListener {
 

@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 
 class InMemoryAgentMessageQueue<T>(
-    private val messageSerializer: AgentMessageSerializer<T>,
+    private val messageSerializer: AgentMessageSerializer<*, T>,
     private val capacity: Long
 ) : AgentMessageQueue<T> {
 

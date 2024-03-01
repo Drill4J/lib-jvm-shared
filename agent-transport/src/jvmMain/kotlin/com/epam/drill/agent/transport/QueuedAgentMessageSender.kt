@@ -47,14 +47,14 @@ private const val TRANSPORT_ERR = "Transport is in unavailable state"
  * @see TransportStateNotifier
  * @see TransportStateListener
  */
-open class QueuedAgentMessageSender<T>(
+open class QueuedAgentMessageSender<M : AgentMessage, T>(
     private val transport: AgentMessageTransport<T>,
-    private val messageSerializer: AgentMessageSerializer<T>,
+    private val messageSerializer: AgentMessageSerializer<M, T>,
     private val destinationMapper: AgentMessageDestinationMapper,
     transportStateNotifier: TransportStateNotifier,
     private val transportStateListener: TransportStateListener?,
     private val messageQueue: AgentMessageQueue<T>
-) : AgentMessageSender, TransportStateListener {
+) : AgentMessageSender<M>, TransportStateListener {
 
     private val logger = KotlinLogging.logger {}
 
@@ -68,11 +68,14 @@ open class QueuedAgentMessageSender<T>(
     override val available
         get() = alive
 
-    override fun send(destination: AgentMessageDestination, message: AgentMessage): ResponseStatus {
+    override fun send(destination: AgentMessageDestination, message: M): ResponseStatus {
         val mappedDestination = destinationMapper.map(destination)
         val serializedMessage = messageSerializer.serialize(message)
         val store: (Throwable) -> Unit = {
-            logger.trace { "send: Storing for ${mappedDestination}, message=${serializedMessage}" }
+            logger.trace {
+                val serializedAsString = messageSerializer.stringValue(serializedMessage)
+                "send: Storing for ${mappedDestination}:\n$serializedAsString"
+            }
             messageQueue.offer(Pair(mappedDestination, serializedMessage))
         }
         synchronized(messageQueue) {
@@ -94,7 +97,10 @@ open class QueuedAgentMessageSender<T>(
 
     private fun send(message: Pair<AgentMessageDestination, T>): ResponseStatus {
         val contentType = messageSerializer.contentType()
-        logger.trace { "send: Sending to ${message.first}, message=${message.second}, contentType=$contentType" }
+        logger.trace {
+            val serializedAsString = messageSerializer.stringValue(message.second)
+            "send: Sending to ${message.first}, contentType=$contentType:\n$serializedAsString"
+        }
         return transport.send(message.first, message.second, contentType)
     }
 

@@ -23,6 +23,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import java.io.IOException
+import com.epam.drill.common.agent.transport.AgentMessage
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 import com.epam.drill.common.agent.transport.ResponseStatus
 import io.mockk.ConstantAnswer
@@ -40,7 +41,7 @@ class RetryingTransportStateNotifierTest {
     @MockK
     private lateinit var responseStatus: ResponseStatus
     @MockK
-    private lateinit var messageSerializer: AgentMessageSerializer<String>
+    private lateinit var messageSerializer: AgentMessageSerializer<AgentMessage, String>
     @MockK
     private lateinit var messageQueue: AgentMessageQueue<String>
     @MockK

@@ -21,8 +21,6 @@ import org.apache.hc.client5.http.classic.methods.HttpDelete
 import org.apache.hc.client5.http.classic.methods.HttpGet
 import org.apache.hc.client5.http.classic.methods.HttpPost
 import org.apache.hc.client5.http.classic.methods.HttpPut
-import org.apache.hc.client5.http.config.ConnectionConfig
-import org.apache.hc.client5.http.config.RequestConfig
 import org.apache.hc.client5.http.entity.GzipCompressingEntity
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder
@@ -31,7 +29,6 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder
 import org.apache.hc.core5.http.ClassicHttpResponse
 import org.apache.hc.core5.http.ContentType
 import org.apache.hc.core5.http.HttpHeaders
-import org.apache.hc.core5.http.io.HttpClientResponseHandler
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity
 import org.apache.hc.core5.http.io.entity.EntityUtils
 import org.apache.hc.core5.http.message.BasicHeader
@@ -101,7 +98,7 @@ class HttpAgentMessageTransport(
         request.entity = ByteArrayEntity(message, getContentType(mimeType)).let {
             if(gzipCompression) GzipCompressingEntity(it) else it
         }
-        logger.trace { "execute: Request to ${request.uri}, method: ${request.method}, message=$message" }
+        logger.trace { "execute: Request to ${request.uri}, method: ${request.method}:\n${message.decodeToString()}" }
         if (receiveContent)
             client.execute(request, ::contentResponseHandler)!!
         else
