@@ -16,11 +16,14 @@
 package com.epam.drill.agent.instrument.servers
 
 import com.epam.drill.agent.instrument.TestRequestHolder
+import mu.KLogger
+import mu.KotlinLogging
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory
 import org.springframework.boot.web.embedded.netty.NettyRouteProvider
 import org.springframework.context.annotation.Bean
@@ -31,6 +34,8 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.util.comparator.Comparators
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -43,9 +48,12 @@ import kotlin.test.Test
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = [ReactorTransformerObjectTest.SimpleController::class]
 )
-class ReactorTransformerObjectTest {
+class ReactorTransformerObjectTest: AbstractServerTransformerObjectTest() {
+    override val logger = KotlinLogging.logger {}
     @Autowired
     lateinit var webTestClient: WebTestClient
+    @LocalServerPort
+    var serverPort: Int = 0
 
     @Test
     fun `given Mono class, MonoTransformerObject must propagate drill context`() {
@@ -125,6 +133,13 @@ class ReactorTransformerObjectTest {
                 .map { "$it-${TestRequestHolder.retrieve()?.drillSessionId}" }
         }
 
+        @PostMapping("/")
+        fun echo(@RequestBody body: String): Mono<String> {
+            return Mono.just(body)
+                .subscribeOn(Schedulers.single())
+                .map { it }
+        }
+
         @Bean
         open fun nettyReactiveWebServerFactory(
             resourceFactory: ReactorResourceFactory?,
@@ -140,6 +155,10 @@ class ReactorTransformerObjectTest {
 
             return serverFactory
         }
+    }
+
+    override fun withHttpServer(block: (String) -> Unit) {
+        block("http://localhost:${serverPort}/")
     }
 
 }
