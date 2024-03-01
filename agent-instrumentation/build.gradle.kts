@@ -26,6 +26,7 @@ version = Properties().run {
 
 val javassistVersion: String by parent!!.extra
 val transmittableThreadLocalVersion: String by parent!!.extra
+val bytebuddyVersion: String by parent!!.extra
 val nativeAgentLibName: String by parent!!.extra
 val macosLd64: String by parent!!.extra
 
@@ -74,6 +75,7 @@ kotlin {
             dependencies {
                 implementation("org.javassist:javassist:$javassistVersion")
                 implementation("com.alibaba:transmittable-thread-local:$transmittableThreadLocalVersion")
+                implementation("net.bytebuddy:byte-buddy:$bytebuddyVersion")
             }
         }
         val jvmIntTest by getting {
@@ -89,6 +91,9 @@ kotlin {
                 implementation("org.springframework.kafka:spring-kafka-test:2.9.13")
                 implementation("io.netty:netty-codec-http:4.1.106.Final")
                 implementation("com.squareup.okhttp3:okhttp:3.12.13")
+
+                implementation("org.springframework.boot:spring-boot-starter-webflux:2.7.18")
+                implementation("org.springframework.boot:spring-boot-starter-test:2.7.18")
             }
         }
         val configureNativeMainDependencies: KotlinSourceSet.() -> Unit = {
