@@ -24,7 +24,7 @@ import net.bytebuddy.description.modifier.Visibility
 private val logger = KotlinLogging.logger {}
 
 /**
- * Object for creation proxy delegates instances of publisher classes.
+ * The object responsible for creating proxy delegates instances of publisher classes.
  */
 object PublisherAssembler {
     /**

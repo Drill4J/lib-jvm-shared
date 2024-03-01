@@ -40,8 +40,8 @@ const val SUBSCRIBER_CLASS = "reactor.core.CoreSubscriber"
 val proxyClassCache = TypeCache<Class<*>>()
 
 /**
- * Creates a proxy class and an instance of this class to intercept calls with this interceptor.
- * Every public method of the class will be intercepted by the interceptor.
+ * Constructs a proxy class and an associated instance for intercepting method calls using the specified interceptor.
+ * Each public method of the class will be intercepted by the provided interceptor.
  * @param delegate the original instance of the class.
  * @param clazz the class that will be delegated. Must be a superclass of the class of the delegate.
  * @param interceptor the Byte buddy method interceptor.
@@ -77,7 +77,7 @@ inline fun <T> createProxyDelegate(
 }
 
 /**
- * Propagates the drill request to the given body via the ThreadLocal context.
+ * Propagates the drill request to the given "body" lambda expression via the ThreadLocal context.
  * If the request was already propagated, the previous request will be restored after the body invocation.
  * @param ctx the drill request
  * @param body the body function in which the drill request will be propagated

@@ -78,7 +78,7 @@ class PublisherInterceptor(
             ?: drillRequest
             ?: return pipe.apply(target)
 
-        //If the test context is not in the subscriber context, then it's necessary to put it there
+        //If the test context isn't already in the subscriber context, it needs to be added there.
         val newContext = if (drillRequest != drillRequestFromContext) {
             context.put(DRILL_CONTEXT_KEY, parentDrillRequest)
         } else context

@@ -35,9 +35,9 @@ class SubscriptionInterceptor(
 
 
     /**
-     * Intercepts all public methods of {@link org.reactivestreams.Subscription} class and propagates the Drill Request.
-     * In the `request()` and `cancel()` methods it propagates the Drill Request.
-     * In other methods it calls the corresponding delegate method.
+     * Intercepts all public methods of the {@link org.reactivestreams.Subscription} class, facilitating the propagation of the Drill context.
+     * Within the `request()` and `cancel()` methods, it ensures the seamless propagation of the Drill context.
+     * In other methods, it invokes the corresponding delegate method.
      * @param target the delegate of the {@link org.reactivestreams.Subscription} class.
      * @param drillRequest the value of the Drill Request which is located in field `DRILL_REQUEST_FIELD` in the {@link org.reactivestreams.Subscription} proxy class.
      * @param superMethod the name of the intercepted method.
