@@ -25,5 +25,5 @@ class ProtoBufAgentMessageSerializer<M : AgentMessage> : AgentMessageSerializer<
     override fun serialize(message: M) = ProtoBuf.encodeToByteArray(serializer(message.javaClass), message)
     override fun sizeOf(destination: AgentMessageDestination) = destination.type.length + destination.target.length
     override fun sizeOf(serialized: ByteArray) = serialized.size
-    override fun stringValue(serialized: ByteArray) = serialized.decodeToString()
+    override fun stringValue(serialized: ByteArray) = "[protobuf-bytes: size=${serialized.size}]"
 }

@@ -44,6 +44,6 @@ class JsonAgentMessageSerializer<M : AgentMessage>(
 
     override fun sizeOf(serialized: ByteArray) = serialized.size
 
-    override fun stringValue(serialized: ByteArray) = serialized.decodeToString()
+    override fun stringValue(serialized: ByteArray) = "\n${serialized.decodeToString().prependIndent("\t")}"
 
 }

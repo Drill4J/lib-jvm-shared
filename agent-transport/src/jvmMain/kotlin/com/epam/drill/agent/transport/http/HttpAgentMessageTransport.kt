@@ -98,7 +98,10 @@ class HttpAgentMessageTransport(
         request.entity = ByteArrayEntity(message, getContentType(mimeType)).let {
             if(gzipCompression) GzipCompressingEntity(it) else it
         }
-        logger.trace { "execute: Request to ${request.uri}, method: ${request.method}:\n${message.decodeToString()}" }
+        logger.trace {
+            val messageAsString = "\n${message.decodeToString().prependIndent("\t")}"
+            "execute: Request to ${request.uri}, method: ${request.method}: $messageAsString"
+        }
         if (receiveContent)
             client.execute(request, ::contentResponseHandler)!!
         else

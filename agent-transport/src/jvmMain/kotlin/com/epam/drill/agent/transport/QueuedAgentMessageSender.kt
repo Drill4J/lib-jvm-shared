@@ -74,7 +74,7 @@ open class QueuedAgentMessageSender<M : AgentMessage, T>(
         val store: (Throwable) -> Unit = {
             logger.trace {
                 val serializedAsString = messageSerializer.stringValue(serializedMessage)
-                "send: Storing for ${mappedDestination}:\n$serializedAsString"
+                "send: Storing for ${mappedDestination}: $serializedAsString"
             }
             messageQueue.offer(Pair(mappedDestination, serializedMessage))
         }
@@ -99,7 +99,7 @@ open class QueuedAgentMessageSender<M : AgentMessage, T>(
         val contentType = messageSerializer.contentType()
         logger.trace {
             val serializedAsString = messageSerializer.stringValue(message.second)
-            "send: Sending to ${message.first}, contentType=$contentType:\n$serializedAsString"
+            "send: Sending to ${message.first}, contentType=$contentType: $serializedAsString"
         }
         return transport.send(message.first, message.second, contentType)
     }
