@@ -19,16 +19,16 @@ import com.epam.drill.common.agent.transport.AgentMessage
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 import com.epam.drill.common.agent.transport.AgentMessageSender
 
-open class SimpleAgentMessageSender<T>(
+open class SimpleAgentMessageSender<M : AgentMessage, T>(
     private val transport: AgentMessageTransport<T>,
-    private val messageSerializer: AgentMessageSerializer<T>,
+    private val messageSerializer: AgentMessageSerializer<M, T>,
     private val destinationMapper: AgentMessageDestinationMapper,
     agentMetadataSender: AgentMetadataSender<T>
-) : AgentMessageSender, AgentMetadataSender<T> by agentMetadataSender {
+) : AgentMessageSender<M>, AgentMetadataSender<T> by agentMetadataSender {
 
     override val available: Boolean by agentMetadataSender::metadataSent
 
-    override fun send(destination: AgentMessageDestination, message: AgentMessage) = transport.send(
+    override fun send(destination: AgentMessageDestination, message: M) = transport.send(
         destinationMapper.map(destination),
         messageSerializer.serialize(message),
         messageSerializer.contentType()

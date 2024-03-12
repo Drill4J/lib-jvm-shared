@@ -48,8 +48,10 @@ class HttpAgentMessageTransportTest {
     @BeforeTest
     fun setup() = MockKAnnotations.init(this).also {
         every { clientBuilder.build() } returns closeableHttpClient
-        every { closeableHttpClient.execute(capture(request), any<HttpClientResponseHandler<Int>>()) } returns 200
         every { closeableHttpClient.close() } returns Unit
+        every {
+            closeableHttpClient.execute(capture(request), any<HttpClientResponseHandler<HttpResponseStatus>>())
+        } returns HttpResponseStatus(200)
     }
 
     @Test
@@ -105,8 +107,12 @@ class HttpAgentMessageTransportTest {
     }
 
     private inline fun <reified T : ClassicHttpRequest> verifyClassicHttpRequest(uri: String, contentType: String) {
-        verify(exactly = 1) { closeableHttpClient.execute(any(), any<HttpClientResponseHandler<Int>>()) }
-        verify(exactly = 1) { closeableHttpClient.execute(request.captured, any<HttpClientResponseHandler<Int>>()) }
+        verify(exactly = 1) {
+            closeableHttpClient.execute(any(), any<HttpClientResponseHandler<HttpResponseStatus>>())
+        }
+        verify(exactly = 1) {
+            closeableHttpClient.execute(request.captured, any<HttpClientResponseHandler<HttpResponseStatus>>())
+        }
         assertIs<T>(request.captured)
         assertIs<GzipCompressingEntity>(request.captured.entity)
         assertEquals(uri, request.captured.uri.toString())

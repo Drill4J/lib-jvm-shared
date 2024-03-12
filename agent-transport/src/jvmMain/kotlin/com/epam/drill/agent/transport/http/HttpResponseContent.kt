@@ -13,18 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.transport
+package com.epam.drill.agent.transport.http
 
-/**
- * An interface to send [AgentMessage] objects to [AgentMessageDestination].
- * It has [available] property to indicate transport state.
- *
- * It should be provided to all agent message producers.
- *
- * @see [AgentMessage]
- * @see [AgentMessageDestination]
- */
-interface AgentMessageSender<M : AgentMessage> {
-    val available: Boolean
-    fun send(destination: AgentMessageDestination, message: M): ResponseStatus
-}
+class HttpResponseContent<T>(
+    status: Int,
+    val content: T
+) : HttpResponseStatus(status)

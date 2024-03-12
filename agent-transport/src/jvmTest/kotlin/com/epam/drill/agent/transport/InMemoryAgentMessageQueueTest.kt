@@ -22,12 +22,13 @@ import kotlin.test.assertNull
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import com.epam.drill.common.agent.transport.AgentMessage
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 
 class InMemoryAgentMessageQueueTest {
 
     @MockK
-    private lateinit var messageSerializer: AgentMessageSerializer<String>
+    private lateinit var messageSerializer: AgentMessageSerializer<AgentMessage, String>
     @MockK
     private lateinit var messageDestination: AgentMessageDestination
 

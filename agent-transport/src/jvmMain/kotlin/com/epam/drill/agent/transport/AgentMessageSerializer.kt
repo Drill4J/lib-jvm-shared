@@ -29,9 +29,10 @@ import com.epam.drill.common.agent.transport.AgentMessageDestination
  * @see AgentMessageQueue
  * @see AgentMessageTransport
  */
-interface AgentMessageSerializer<T> {
+interface AgentMessageSerializer<M : AgentMessage, T> {
     fun contentType(): String
-    fun serialize(message: AgentMessage): T
+    fun serialize(message: M): T
     fun sizeOf(destination: AgentMessageDestination): Int
     fun sizeOf(serialized: T): Int
+    fun stringValue(serialized: T): String
 }
