@@ -78,6 +78,13 @@ kotlin {
                 implementation("net.bytebuddy:byte-buddy:$bytebuddyVersion")
             }
         }
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test-junit"))
+                implementation("io.projectreactor:reactor-core:3.4.16")
+                implementation("io.projectreactor:reactor-test:3.4.16")
+            }
+        }
         val jvmIntTest by getting {
             dependsOn(commonIntTest)
             dependencies {
