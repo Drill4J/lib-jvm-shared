@@ -26,7 +26,9 @@ version = Properties().run {
 
 val javassistVersion: String by parent!!.extra
 val transmittableThreadLocalVersion: String by parent!!.extra
+val bytebuddyVersion: String by parent!!.extra
 val nativeAgentLibName: String by parent!!.extra
+val macosLd64: String by parent!!.extra
 
 repositories {
     mavenLocal()
@@ -43,7 +45,13 @@ kotlin {
     targets {
         jvm(configure = configureIntTestTarget)
         linuxX64(configure = configureIntTestTarget)
-        macosX64(configure = configureIntTestTarget)
+        macosX64(configure = configureIntTestTarget).apply {
+            if (macosLd64.toBoolean()) {
+                binaries.all {
+                    linkerOpts("-ld64")
+                }
+            }
+        }
         mingwX64(configure = configureIntTestTarget).apply {
             binaries.all {
                 linkerOpts("-lpsapi", "-lwsock32", "-lws2_32", "-lmswsock")
@@ -67,6 +75,7 @@ kotlin {
             dependencies {
                 implementation("org.javassist:javassist:$javassistVersion")
                 implementation("com.alibaba:transmittable-thread-local:$transmittableThreadLocalVersion")
+                implementation("net.bytebuddy:byte-buddy:$bytebuddyVersion")
             }
         }
         val jvmIntTest by getting {
@@ -75,11 +84,16 @@ kotlin {
                 implementation(kotlin("test-junit"))
                 implementation("org.apache.httpcomponents:httpclient:4.5.14")
                 implementation("org.apache.tomcat.embed:tomcat-embed-core:10.0.27")
+                implementation("org.eclipse.jetty:jetty-server:9.4.26.v20200117")
+                implementation("io.undertow:undertow-core:2.0.29.Final")
                 implementation("org.simpleframework:simple-http:6.0.1")
                 implementation("org.springframework.kafka:spring-kafka:2.9.13")
                 implementation("org.springframework.kafka:spring-kafka-test:2.9.13")
                 implementation("io.netty:netty-codec-http:4.1.106.Final")
                 implementation("com.squareup.okhttp3:okhttp:3.12.13")
+
+                implementation("org.springframework.boot:spring-boot-starter-webflux:2.7.18")
+                implementation("org.springframework.boot:spring-boot-starter-test:2.7.18")
             }
         }
         val configureNativeMainDependencies: KotlinSourceSet.() -> Unit = {
@@ -130,7 +144,7 @@ kotlin {
         val runtimeJar by registering(ShadowJar::class) {
             mergeServiceFiles()
             isZip64 = true
-            archiveFileName.set("drillRuntime.jar")
+            archiveFileName.set("drill-runtime.jar")
             from(jvmMainCompilation.runtimeDependencyFiles, jvmMainCompilation.output, jvmIntTestCompilation.output.classesDirs)
             dependencies {
                 exclude("/META-INF/services/javax.servlet.ServletContainerInitializer")

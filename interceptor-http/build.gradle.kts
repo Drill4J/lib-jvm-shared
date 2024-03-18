@@ -51,7 +51,7 @@ kotlin {
         all {
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
-        targets.withType<KotlinNativeTarget>()[HostManager.host.presetName].compilations.forEach {
+        targets.withType<KotlinNativeTarget>().findByName(HostManager.host.presetName)?.compilations?.forEach {
             it.defaultSourceSet.kotlin.srcDir("src/native${it.name.capitalize()}/kotlin")
             it.defaultSourceSet.resources.srcDir("src/native${it.name.capitalize()}/resources")
         }

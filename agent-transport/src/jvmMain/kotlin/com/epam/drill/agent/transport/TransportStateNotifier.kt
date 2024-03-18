@@ -33,3 +33,4 @@ package com.epam.drill.agent.transport
 interface TransportStateNotifier {
     fun addStateListener(listener: TransportStateListener)
 }
+

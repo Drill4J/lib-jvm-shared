@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.transport.http
 
+import java.lang.UnsupportedOperationException
 import com.epam.drill.agent.transport.AgentMessageDestinationMapper
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 
@@ -29,5 +30,23 @@ class HttpAgentMessageDestinationMapper(
 
     override fun map(destination: AgentMessageDestination): AgentMessageDestination =
         destination.copy(target =
-            if (destination.target.isNullOrEmpty()) apiPath else "${apiPath}/${destination.target}")
+        if (destination.target.isNullOrEmpty()) apiPath else "${apiPath}/${destination.target}")
+}
+
+class HttpAutotestAgentMessageDestinationMapper(
+    private val groupId: String,
+    private val jsAgentId: String,
+    private val jsAgentBuildVersion: String,
+) : AgentMessageDestinationMapper {
+
+    override fun map(destination: AgentMessageDestination): AgentMessageDestination {
+        val target = when(destination.target) {
+            // TODO configurations w/o JavaScript agent
+            "raw-javascript-coverage" -> "/api/groups/${groupId}/agents/$jsAgentId/builds/$jsAgentBuildVersion/raw-javascript-coverage"
+            "tests-metadata" -> "/api/groups/${groupId}/tests-metadata"
+            else -> throw UnsupportedOperationException(
+                "HttpAutotestAgentMessageDestinationMapper does not support target ${destination.target}")
+        }
+        return destination.copy(target = target)
+    }
 }

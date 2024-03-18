@@ -16,14 +16,14 @@
 package com.epam.drill.agent.transport
 
 import kotlin.concurrent.thread
+import mu.KotlinLogging
 import com.epam.drill.common.agent.configuration.AgentMetadata
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 import com.epam.drill.common.agent.transport.ResponseStatus
-import mu.KotlinLogging
 
 class RetryingAgentMetadataSender<T>(
     private val transport: AgentMessageTransport<T>,
-    private val messageSerializer: AgentMessageSerializer<T>,
+    private val messageSerializer: AgentMessageSerializer<in AgentMetadata, T>,
     private val destinationMapper: AgentMessageDestinationMapper
 ) : AgentMetadataSender<T> {
 

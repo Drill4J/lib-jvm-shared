@@ -41,7 +41,7 @@ class RetryingAgentMetadataSenderTest {
     @MockK
     private lateinit var responseStatus: ResponseStatus
     @MockK
-    private lateinit var messageSerializer: AgentMessageSerializer<String>
+    private lateinit var messageSerializer: AgentMessageSerializer<AgentMetadata, String>
     @MockK
     private lateinit var destinationMapper: AgentMessageDestinationMapper
     @MockK

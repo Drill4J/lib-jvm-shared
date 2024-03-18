@@ -43,11 +43,9 @@ class QueuedAgentMessageSenderTest {
     @MockK
     private lateinit var responseStatus: ResponseStatus
     @MockK
-    private lateinit var messageSerializer: AgentMessageSerializer<String>
+    private lateinit var messageSerializer: AgentMessageSerializer<AgentMessage, String>
     @MockK
     private lateinit var destinationMapper: AgentMessageDestinationMapper
-    @MockK
-    private lateinit var configSender: AgentMetadataSender<String>
     @MockK
     private lateinit var stateNotifier: TransportStateNotifier
     @MockK
@@ -55,7 +53,7 @@ class QueuedAgentMessageSenderTest {
     @MockK
     private lateinit var messageQueue: InMemoryAgentMessageQueue<String>
 
-    private lateinit var sender: QueuedAgentMessageSender<String>
+    private lateinit var sender: QueuedAgentMessageSender<AgentMessage, String>
 
     private val incomingMessage = mutableListOf<TestAgentMessage>()
     private val incomingDestinations = mutableListOf<AgentMessageDestination>()
@@ -77,12 +75,11 @@ class QueuedAgentMessageSenderTest {
         every { messageSerializer.contentType() } returns "test/test"
         every { destinationMapper.map(capture(incomingDestinations)) } answers
                 FunctionAnswer { mapDestination(it.invocation.args[0] as AgentMessageDestination) }
-        every { configSender.addStateListener(any()) } returns Unit
         every { stateNotifier.addStateListener(any()) } returns Unit
         every { stateListener.onStateFailed() } returns Unit
         every { messageQueue.offer(capture(queuedPairs)) } returns true
 
-        sender = QueuedAgentMessageSender(messageTransport, messageSerializer, destinationMapper, configSender,
+        sender = QueuedAgentMessageSender(messageTransport, messageSerializer, destinationMapper,
             stateNotifier, stateListener, messageQueue)
 
         incomingMessage.clear()
@@ -94,19 +91,7 @@ class QueuedAgentMessageSenderTest {
     }
 
     @Test
-    fun `available only after config sent`() {
-        every { configSender.metadataSent } returns false
-        assertFalse(sender.available)
-
-        every { configSender.metadataSent } returns true
-        assertTrue(sender.available)
-
-        verifyInitialization()
-    }
-
-    @Test
-    fun `sending successful after config sent`() {
-        every { configSender.metadataSent } returns true
+    fun `sending successful for ok response`() {
         every { responseStatus.success } returns true
         every {messageTransport.send(
             capture(toSendDestinations),
@@ -137,35 +122,7 @@ class QueuedAgentMessageSenderTest {
     }
 
     @Test
-    fun `sending queued before config sent`() {
-        every { configSender.metadataSent } returns false
-        every { responseStatus.success } returns true
-        every { messageTransport.send(any(), any(), any()) } returns responseStatus
-
-        val responses = mutableListOf<ResponseStatus>()
-        for (i in 0..9) sender.send(AgentMessageDestination("TYPE", "target-$i"), TestAgentMessage("message-$i"))
-            .also(responses::add)
-
-        assertFalse(sender.available)
-        for (i in 0..9) {
-            assertFalse(responses[i].success)
-
-            assertEquals("TYPE", incomingDestinations[i].type)
-            assertEquals("target-$i", incomingDestinations[i].target)
-            assertEquals("message-$i", incomingMessage[i].msg)
-
-            assertEquals("MAP", queuedPairs[i].first.type)
-            assertEquals("mapped-target-$i", queuedPairs[i].first.target)
-            assertEquals("serialized-message-$i", queuedPairs[i].second)
-        }
-
-        verifyInitialization()
-        verifyMethodCalls(receive = 10, send = 0, queue = 10, dequeue = 0, failed = 0)
-    }
-
-    @Test
     fun `sending successful for error response`() {
-        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns false
         every { messageTransport.send(
             capture(toSendDestinations),
@@ -197,7 +154,6 @@ class QueuedAgentMessageSenderTest {
 
     @Test
     fun `sending queued for exception response`() {
-        every { configSender.metadataSent } returns true
         every {messageTransport.send(
             capture(toSendDestinations),
             capture(toSendMessages),
@@ -232,7 +188,6 @@ class QueuedAgentMessageSenderTest {
 
     @Test
     fun `queue sent successful after state-alive`() {
-        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns true
         every { messageTransport.send(
             capture(toSendDestinations),
@@ -258,7 +213,6 @@ class QueuedAgentMessageSenderTest {
 
     @Test
     fun `queue send failed after state-alive`() {
-        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns true
         every { messageTransport.send(
             capture(toSendDestinations),
@@ -282,7 +236,6 @@ class QueuedAgentMessageSenderTest {
 
     @Test
     fun `queue send partially after state-alive`() {
-        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns true
         every { messageTransport.send(
             capture(toSendDestinations),
@@ -312,8 +265,6 @@ class QueuedAgentMessageSenderTest {
     }
 
     private fun verifyInitialization() {
-        verify(exactly = 1) { configSender.addStateListener(any()) }
-        verify(exactly = 1) { configSender.addStateListener(sender) }
         verify(exactly = 1) { stateNotifier.addStateListener(any()) }
         verify(exactly = 1) { stateNotifier.addStateListener(sender) }
     }

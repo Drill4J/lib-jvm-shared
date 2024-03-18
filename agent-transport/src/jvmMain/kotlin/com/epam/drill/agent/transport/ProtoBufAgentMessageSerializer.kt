@@ -20,9 +20,10 @@ import kotlinx.serialization.serializer
 import com.epam.drill.common.agent.transport.AgentMessage
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 
-class ProtoBufAgentMessageSerializer : AgentMessageSerializer<ByteArray> {
+class ProtoBufAgentMessageSerializer<M : AgentMessage> : AgentMessageSerializer<M, ByteArray> {
     override fun contentType(): String = "application/protobuf"
-    override fun serialize(message: AgentMessage) = ProtoBuf.encodeToByteArray(serializer(message.javaClass), message)
+    override fun serialize(message: M) = ProtoBuf.encodeToByteArray(serializer(message.javaClass), message)
     override fun sizeOf(destination: AgentMessageDestination) = destination.type.length + destination.target.length
     override fun sizeOf(serialized: ByteArray) = serialized.size
+    override fun stringValue(serialized: ByteArray) = "[protobuf-bytes: size=${serialized.size}]"
 }

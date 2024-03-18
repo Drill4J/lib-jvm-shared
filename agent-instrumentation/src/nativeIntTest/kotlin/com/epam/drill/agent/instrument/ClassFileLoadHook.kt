@@ -23,10 +23,7 @@ import io.ktor.utils.io.bits.of
 import com.epam.drill.agent.instrument.transformers.clients.ApacheHttpClientTransformer
 import com.epam.drill.agent.instrument.transformers.clients.JavaHttpClientTransformer
 import com.epam.drill.agent.instrument.transformers.clients.OkHttp3ClientTransformer
-import com.epam.drill.agent.instrument.transformers.servers.KafkaTransformer
-import com.epam.drill.agent.instrument.transformers.servers.NettyTransformer
-import com.epam.drill.agent.instrument.transformers.servers.SSLEngineTransformer
-import com.epam.drill.agent.instrument.transformers.servers.TomcatTransformer
+import com.epam.drill.agent.instrument.transformers.servers.*
 import com.epam.drill.jvmapi.gen.Allocate
 import com.epam.drill.jvmapi.gen.jint
 import com.epam.drill.jvmapi.gen.jintVar
@@ -40,8 +37,11 @@ object ClassFileLoadHook {
         OkHttp3ClientTransformer,
         TomcatTransformer,
         NettyTransformer,
+        UndertowTransformer,
         SSLEngineTransformer,
-        KafkaTransformer
+        KafkaTransformer,
+        JettyTransformer,
+        ReactorTransformer
     )
 
     operator fun invoke(
