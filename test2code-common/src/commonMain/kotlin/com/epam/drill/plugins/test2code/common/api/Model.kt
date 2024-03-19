@@ -15,7 +15,6 @@
  */
 package com.epam.drill.plugins.test2code.common.api
 
-import com.epam.dsm.*
 import kotlinx.serialization.*
 
 const val GLOBAL_SESSION_ID = "GLOBAL"
@@ -96,10 +95,9 @@ data class AgentSessionTestsPayload(val sessionId: String, val tests: List<Strin
  */
 @Serializable
 data class ExecClassData(
-    @Id val id: Long? = null,
+    val id: Long? = null,
     val className: String,
     @Serializable(with = BitSetSerializer::class)
-    @Column("probes", PostgresType.BIT_VARYING)
     var probes: Probes,
     val sessionId: String? = null,
     /**

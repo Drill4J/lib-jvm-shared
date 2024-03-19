@@ -35,7 +35,6 @@ kotlin {
             dependencies {
                 compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
                 api(project(":common"))
-                api(project(":dsm-annotations")) { isTransitive = false }
             }
         }
     }
