@@ -19,20 +19,6 @@ import java.lang.UnsupportedOperationException
 import com.epam.drill.agent.transport.AgentMessageDestinationMapper
 import com.epam.drill.common.agent.transport.AgentMessageDestination
 
-class HttpAgentMessageDestinationMapper(
-    groupId: String,
-    agentId: String,
-    buildVersion: String,
-    instanceId: String
-) : AgentMessageDestinationMapper {
-
-    private val apiPath = "/api/groups/${groupId}/agents/$agentId/builds/$buildVersion/instances/${instanceId}"
-
-    override fun map(destination: AgentMessageDestination): AgentMessageDestination =
-        destination.copy(target =
-        if (destination.target.isNullOrEmpty()) apiPath else "${apiPath}/${destination.target}")
-}
-
 class HttpAutotestAgentMessageDestinationMapper(
     private val groupId: String,
     private val jsAgentId: String,
