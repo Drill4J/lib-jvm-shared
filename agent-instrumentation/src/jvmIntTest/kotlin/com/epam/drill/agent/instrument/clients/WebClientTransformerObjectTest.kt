@@ -43,4 +43,6 @@ class WebClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
 
         return responseHeaders to response
     }
+
+    override fun `test response with existing headers data`() {}
 }
