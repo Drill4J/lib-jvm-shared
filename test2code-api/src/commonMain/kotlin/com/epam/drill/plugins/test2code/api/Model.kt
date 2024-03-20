@@ -94,7 +94,7 @@ data class StopSessionPayload(
 data class AddTestsPayload(
     val sessionId: String,
     val tests: List<TestInfo> = emptyList(),
-)
+): Action()
 
 
 @Serializable
