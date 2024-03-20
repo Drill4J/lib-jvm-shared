@@ -39,19 +39,7 @@ abstract class JettyTransformerObject(
         val agentIdHeader = headersRetriever.agentIdHeader()
         val agentIdValue = headersRetriever.agentIdHeaderValue()
         logger.info { "transform: Starting JettyTransformer with admin host $adminUrl..." }
-        val method = try {
-            ctClass.getMethod(
-                "handle",
-                "(Ljava/lang/String;Lorg/eclipse/jetty/server/Request;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V"
-            )
-        } catch (e: NotFoundException) {
-            // In Jakarta EE 9 and later versions, the HttpServletRequest interface has been relocated from the javax.servlet.http
-            //  package to the jakarta.servlet.http package, aligning with the transition of Jakarta EE APIs to the jakarta namespace.
-            ctClass.getMethod(
-                "handle",
-                "(Ljava/lang/String;Lorg/eclipse/jetty/server/Request;Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;)V"
-            )
-        }
+        val method = ctClass.getDeclaredMethod("handle")
         method.insertCatching(
             CtBehavior::insertBefore,
             """
