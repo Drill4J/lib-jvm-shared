@@ -22,6 +22,7 @@ import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.common.agent.request.HeadersRetriever
+import javassist.NotFoundException
 
 abstract class JettyTransformerObject(
     protected val headersRetriever: HeadersRetriever
@@ -38,11 +39,17 @@ abstract class JettyTransformerObject(
         val agentIdHeader = headersRetriever.agentIdHeader()
         val agentIdValue = headersRetriever.agentIdHeaderValue()
         logger.info { "transform: Starting JettyTransformer with admin host $adminUrl..." }
-        val method =
+        val method = try {
             ctClass.getMethod(
                 "handle",
                 "(Ljava/lang/String;Lorg/eclipse/jetty/server/Request;Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;)V"
             )
+        } catch (e: NotFoundException) {
+            ctClass.getMethod(
+                "handle",
+                "(Ljava/lang/String;Lorg/eclipse/jetty/server/Request;Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;)V"
+            )
+        }
         method.insertCatching(
             CtBehavior::insertBefore,
             """
