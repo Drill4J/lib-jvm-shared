@@ -38,4 +38,7 @@ kotlin {
             useJUnitPlatform()
         }
     }
+    tasks.withType<JavaCompile> {
+        options.compilerArgs = (options.compilerArgs + "-Xlint:none").toMutableList()
+    }
 }
