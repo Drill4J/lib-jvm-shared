@@ -32,7 +32,7 @@ import com.epam.drill.common.agent.request.DrillRequest
 abstract class AbstractClientTransformerObjectTest {
 
     @Test
-    fun `test request-response with empty thread session and headers data`() = withHttpServer(returnHeaders = true) {
+    open fun `test request-response with empty thread session and headers data`() = withHttpServer(returnHeaders = true) {
         TestRequestHolder.remove()
         val response = callHttpEndpoint(it)
         val responseHeaders = response.first
@@ -44,7 +44,7 @@ abstract class AbstractClientTransformerObjectTest {
     }
 
     @Test
-    fun `test request with existing thread session data`() = withHttpServer(returnHeaders = true) {
+    open fun `test request with existing thread session data`() = withHttpServer(returnHeaders = true) {
         TestRequestHolder.store(DrillRequest("session-123", mapOf("drill-header-data" to "test-data")))
         val response = callHttpEndpoint(it)
         val responseHeaders = response.first
@@ -55,7 +55,7 @@ abstract class AbstractClientTransformerObjectTest {
     }
 
     @Test
-    fun `test response with existing headers data`() = withHttpServer(produceHeaders = true) {
+    open fun `test response with existing headers data`() = withHttpServer(produceHeaders = true) {
         TestRequestHolder.remove()
         val response = callHttpEndpoint(it)
         val responseBody = response.second
