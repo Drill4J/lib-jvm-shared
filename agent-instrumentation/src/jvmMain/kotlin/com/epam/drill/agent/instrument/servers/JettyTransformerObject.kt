@@ -22,7 +22,6 @@ import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.common.agent.request.HeadersRetriever
-import javassist.NotFoundException
 
 abstract class JettyTransformerObject(
     protected val headersRetriever: HeadersRetriever
