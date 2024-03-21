@@ -15,10 +15,12 @@
  */
 package com.epam.drill.plugins.test2code.common.api
 
-import kotlinx.serialization.*
-import kotlinx.serialization.builtins.*
-import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.BooleanArraySerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 expect class Probes(size: Int) {
     fun length(): Int
@@ -42,11 +44,36 @@ object BitSetSerializer : KSerializer<Probes> {
 }
 
 /**
- * for all BitSet it adds the true into last index.
- * So it needs to remove the last element before converting
+ * "Probes" is a java.util.BitSet alias
+ * it also extended with _custom_ creator functions
+ * see "why" bellow:
+ *
+ * Problem:
+ *    converting boolean array to BitSet presents the issue - we loose array length property
+ *
+ * Illustration:
+ *          Given boolean array [false, true, false, false]
+ *          Expect converted    0100                               // intuitively expected result
+ *          But actually get    0100000000000000000000000000000... // zero-padded until end of Long (64 bits)
+ *
+ * Explanation:
+ *          - BitSet is backed by Long-s, allocated "as needed", each new long adding 64 bits
+ *          - Array.length() returns _actual_ number of elements in array
+ *          - BitSet.length() returns index of last set (set to 1) bit
+ *          - BitSet.size     returns size of backing Long fields in bits
+ *          - even if the actual number of probes is 65, BitSet.size() will return 128
+ *
+ * Our workaround:
+ *          When converting boolean array to BitSet
+ *          get originalArray.length()
+ *          set the bit on corresponding index to 1
+ *          result - BitSet.length() will return that bit index
+ *
+ * TL;DR Do not use ordinary BitSet methods to convert Probes; Use only ones implemented bellow
+ *
  */
 fun Probes.toBooleanArray(): BooleanArray {
-    return BooleanArray(length() - 1) {// bitset magic
+    return BooleanArray(length() - 1) {// -1 drops end-of-original-array-indicator bit
         get(it)
     }
 }
@@ -61,7 +88,7 @@ fun BooleanArray.toBitSet(): Probes {
         forEachIndexed { index, b ->
             set(index, b)
         }
-        set(size, true) // bitset magic
+        set(size, true) // set end-of-original-array-indicator bit (see explanation above)
     }
 }
 
@@ -71,11 +98,10 @@ fun List<Boolean>.toBitSet(): Probes {
         forEachIndexed { index, b ->
             set(index, b)
         }
-        set(size, true) // bitset magic
+        set(size, true) // set end-of-original-array-indicator bit (see explanation above)
     }
 }
 
 fun probesOf(vararg elements: Boolean): Probes {
     return elements.toBitSet()
 }
-

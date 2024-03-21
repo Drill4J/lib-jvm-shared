@@ -15,16 +15,17 @@
  */
 package com.epam.drill.plugins.test2code.api
 
-import kotlinx.serialization.*
 import com.epam.drill.common.agent.transport.AgentMessage
+import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class Action : AgentMessage()
 
-@SerialName("ADD_SESSION_DATA")
 @Serializable
-data class AddSessionData(val payload: SessionDataPayload) : Action()
+data class AddSessionData(val sessionId: String, val data: String) : Action()
 
-@SerialName("ADD_TESTS")
 @Serializable
-data class AddTests(val payload: AddTestsPayload) : Action()
+data class AddTestsPayload(
+    val sessionId: String,
+    val tests: List<TestInfo> = emptyList(),
+): Action()
