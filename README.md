@@ -18,16 +18,11 @@ The JVM-based shared libraries for Drill4J, used in java-agent, test2code-plugin
 
 ## Modules
 
-- **admin-analytics**: Google Analytics, see more in [here](admin-analytics/README.md)
 - **agent**: Contains the abstract agent core used to create platform specific JVMTI agents (Java, .NET), , see more in [here](agent/README.md)
 - **agent-runner-common**: Common part of plugins for build tools (gradle and maven) to easily run [autotest agents](https://github.com/Drill4J/autotest-agent)
 - **agent-runner-gradle**: Gradle part of plugins for build tools to easily run [autotest agents](https://github.com/Drill4J/autotest-agent)
 - **common**: Common back-end related Drill4J project parts (common part)
 - **drill-hook**: Library for intercepting system functions.
-- **dsm**: Serialization-based ORM for Postgres database
-- **dsm-annotations**: Annotations classes for DSM
-- **dsm-benchmarks**: Benchmark tests for DSM
-- **dsm-test-framework**: Framework for DSM tests (database container)
 - **http-clients-instrumentation**: Common instrumentation for http clients
 - **interceptor-http**: Library for intercepting http protocols calls
 - **interceptor-http-test**: Tests for **interceptor-http**
