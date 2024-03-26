@@ -29,7 +29,7 @@ class HttpAutotestAgentMessageDestinationMapper(
         val target = when(destination.target) {
             // TODO configurations w/o JavaScript agent
             "raw-javascript-coverage" -> "/api/groups/${groupId}/agents/$jsAgentId/builds/$jsAgentBuildVersion/raw-javascript-coverage"
-            "tests-metadata" -> "/api/groups/${groupId}/tests-metadata"
+            "tests-metadata" -> "/api/tests-metadata"
             else -> throw UnsupportedOperationException(
                 "HttpAutotestAgentMessageDestinationMapper does not support target ${destination.target}")
         }
