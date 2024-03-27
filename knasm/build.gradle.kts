@@ -22,7 +22,6 @@ kotlin {
         mingwX64()
         linuxX64()
         macosX64()
-        macosArm64()
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
@@ -38,5 +37,8 @@ kotlin {
         val jvmTest by getting(KotlinJvmTest::class) {
             useJUnitPlatform()
         }
+    }
+    tasks.withType<JavaCompile> {
+        options.compilerArgs = (options.compilerArgs + "-Xlint:none").toMutableList()
     }
 }

@@ -10,7 +10,7 @@ plugins {
     id("com.github.hierynomus.license")
 }
 
-group = "com.epam.drill.test2code"
+group = "com.epam.drill"
 version = rootProject.version
 
 val kotlinxSerializationVersion: String by parent!!.extra
@@ -34,7 +34,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
-                api(project(":dsm-annotations")) { isTransitive = false }
+                api(project(":common"))
             }
         }
     }

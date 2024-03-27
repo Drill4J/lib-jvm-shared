@@ -8,14 +8,13 @@ plugins {
     id("com.github.hierynomus.license")
 }
 
-group = "com.epam.drill.logging"
+group = "com.epam.drill"
 version = Properties().run {
     projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
     getProperty("version.$name") ?: Project.DEFAULT_VERSION
 }
 
 val ktorVersion: String by parent!!.extra
-val slf4jVersion: String by parent!!.extra
 val logbackVersion: String by parent!!.extra
 val microutilsLoggingVersion: String by parent!!.extra
 

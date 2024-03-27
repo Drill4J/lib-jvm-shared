@@ -15,7 +15,7 @@
  */
 package com.epam.drill.common.classloading
 
-const val SUBCLASS_OF = "!subclassOf:"
+private const val SUBCLASS_OF = "!subclassOf:"
 
 data class ClassSource(
     private val entityName: String,

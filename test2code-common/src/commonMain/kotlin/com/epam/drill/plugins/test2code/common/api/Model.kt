@@ -15,11 +15,7 @@
  */
 package com.epam.drill.plugins.test2code.common.api
 
-import com.epam.dsm.*
 import kotlinx.serialization.*
-
-const val GLOBAL_SESSION_ID = "GLOBAL"
-const val DEFAULT_TEST_ID = "UNSPECIFIED"
 
 /**
  * Ast metadata about the file or the class containing methods
@@ -39,7 +35,6 @@ data class AstEntity(
  * @param name the name of the method
  * @param params the list of parameters of the method
  * @param returnType the method return type
- * @param count todo
  * @param probes the probe indices of the method
  * @param checksum the checksum of the method body
  */
@@ -50,55 +45,19 @@ data class AstMethod(
     val returnType: String,
     val probes: List<Int> = emptyList(),
     val checksum: String = "",
+    val probesStartPos: Int = 0,
 ) {
     val count: Int = probes.size
 }
-
-@Serializable
-data class ActionScopeResult(
-    val id: String,
-    val name: String,
-    val prevId: String,
-)
-
-/**
- * Information about a started test session
- * @param sessionId the started session ID
- * @param testType the type of the test (AUTO, MANUAL)
- * @param testName the name of first running test
- * @param isRealtime a sign that it is necessary to collect test coverage in real time
- * @param isGlobal a sign that the session is global
- * @features Test running
- */
-@Serializable
-data class StartSessionPayload(
-    val sessionId: String,
-    val testType: String,
-    val testName: String?,
-    val isRealtime: Boolean,
-    val isGlobal: Boolean,
-)
-
-@Serializable
-data class AgentSessionPayload(
-    val sessionId: String,
-)
-
-@Serializable
-data class AgentSessionDataPayload(val sessionId: String, val data: String)
-
-@Serializable
-data class AgentSessionTestsPayload(val sessionId: String, val tests: List<String>)
 
 /**
  * Class probes received by a specific test
  */
 @Serializable
 data class ExecClassData(
-    @Id val id: Long? = null,
+    val id: Long? = null,
     val className: String,
     @Serializable(with = BitSetSerializer::class)
-    @Column("probes", PostgresType.BIT_VARYING)
     var probes: Probes,
     val sessionId: String? = null,
     /**

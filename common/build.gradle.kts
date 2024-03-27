@@ -28,13 +28,11 @@ kotlin {
         linuxX64()
         mingwX64()
         macosX64()
-        macosArm64()
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
         all {
-            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
-            languageSettings.optIn("kotlinx.serialization.InternalSerializationApi")
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
         }
         val commonMain by getting {
             dependencies {
@@ -43,14 +41,7 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-test-common")
-                implementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
-            }
-        }
-        val jvmTest by getting {
-            dependencies {
-                implementation(kotlin("test-junit"))
-                implementation("org.junit.jupiter:junit-jupiter:5.5.2")
+                implementation(kotlin("test"))
             }
         }
     }

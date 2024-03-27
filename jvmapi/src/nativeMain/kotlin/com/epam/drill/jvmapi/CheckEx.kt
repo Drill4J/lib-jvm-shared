@@ -15,14 +15,9 @@
  */
 package com.epam.drill.jvmapi
 
-import kotlin.native.SharedImmutable
 import mu.KotlinLogging
 import com.epam.drill.jvmapi.gen.*
 
-@SharedImmutable
-private val logger = KotlinLogging.logger("com.epam.drill.jvmapi.Helper")
-
-@CName("checkEx")
 fun checkEx(errCode: UInt, funName: String): UInt {
     if (errCode == 0.toUInt()) {
         return 0.toUInt()
@@ -34,7 +29,10 @@ fun checkEx(errCode: UInt, funName: String): UInt {
 }
 
 @SharedImmutable
-val errorMapping = mapOf(
+private val logger = KotlinLogging.logger("com.epam.drill.jvmapi.CheckEx")
+
+@SharedImmutable
+private val errorMapping = mapOf(
     JVMTI_ERROR_NULL_POINTER to "Pointer is unexpectedly NULL.",
     JVMTI_ERROR_OUT_OF_MEMORY to "The function attempted to allocate memory and no more memory was available for allocation.",
     JVMTI_ERROR_ACCESS_DENIED to "The desired functionality has not been enabled in this virtual machine.",

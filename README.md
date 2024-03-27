@@ -18,16 +18,11 @@ The JVM-based shared libraries for Drill4J, used in java-agent, test2code-plugin
 
 ## Modules
 
-- **admin-analytics**: Google Analytics, see more in [here](admin-analytics/README.md)
 - **agent**: Contains the abstract agent core used to create platform specific JVMTI agents (Java, .NET), , see more in [here](agent/README.md)
 - **agent-runner-common**: Common part of plugins for build tools (gradle and maven) to easily run [autotest agents](https://github.com/Drill4J/autotest-agent)
 - **agent-runner-gradle**: Gradle part of plugins for build tools to easily run [autotest agents](https://github.com/Drill4J/autotest-agent)
 - **common**: Common back-end related Drill4J project parts (common part)
 - **drill-hook**: Library for intercepting system functions.
-- **dsm**: Serialization-based ORM for Postgres database
-- **dsm-annotations**: Annotations classes for DSM
-- **dsm-benchmarks**: Benchmark tests for DSM
-- **dsm-test-framework**: Framework for DSM tests (database container)
 - **http-clients-instrumentation**: Common instrumentation for http clients
 - **interceptor-http**: Library for intercepting http protocols calls
 - **interceptor-http-test**: Tests for **interceptor-http**
@@ -38,15 +33,10 @@ The JVM-based shared libraries for Drill4J, used in java-agent, test2code-plugin
 - **knasm**: Port of Java ASM library to Kotlin native
 - **kni-plugin**: Gradle plugin for KNI classes (stub classes to simplify JVMTI calls) generation
 - **kni-runtime**: Annotation and interface classes to use with KNI plugin
-- **kt2dts**: Kotlin API -> TypeScript interfaces converter implementation
-- **kt2dts-api-sample**: **kt2dts** samples for tests
-- **kt2dts-cli**: Module for **kt2dts** executable JAR generation
 - **ktor-swagger**: Library for ktor with swagger integration
 - **ktor-swagger-sample**: Sample implementation for **ktor-swagger**
 - **logging**: Pre-configuration tier for microutils kotlin-logging library (useful for multiplatform modules)
 - **logging-native**: Port of microutils kotlin-logging library to compile for mingwX64 and macosX64 targets
-- **plugin-api-admin**: Common back-end related Drill4J project parts (admin part)
-- **plugin-api-agent**: Common back-end related Drill4J project parts (agent part)
 - **test-data**: Test data for admin/test2code-plugin testing
 - **test-plugin**: Module for test-plugin distribution generation (includes **test-plugin-admin** and **test-plugin-agent** jars)
 - **test-plugin-admin**: Test-plugin for **admin** component tests (admin-part)
