@@ -298,12 +298,12 @@ abstract class MethodVisitor @JvmOverloads constructor(api: Int, methodVisitor: 
      *
      * @param opcode the opcode of the local variable instruction to be visited. This opcode is either
      * ILOAD, LLOAD, FLOAD, DLOAD, ALOAD, ISTORE, LSTORE, FSTORE, DSTORE, ASTORE or RET.
-     * @param var the operand of the instruction to be visited. This operand is the index of a local
-     * variable.
+     * @param varIndex the operand of the instruction to be visited. This operand is the index of a
+     * local variable.
      */
-    open fun visitVarInsn(opcode: Int, `var`: Int) {
+    open fun visitVarInsn(opcode: Int, varIndex: Int) {
         if (mv != null) {
-            mv!!.visitVarInsn(opcode, `var`)
+            mv!!.visitVarInsn(opcode, varIndex)
         }
     }
 
@@ -501,9 +501,9 @@ abstract class MethodVisitor @JvmOverloads constructor(api: Int, methodVisitor: 
      * @param var index of the local variable to be incremented.
      * @param increment amount to increment the local variable by.
      */
-    open fun visitIincInsn(`var`: Int, increment: Int) {
+    open fun visitIincInsn(varIndex: Int, increment: Int) {
         if (mv != null) {
-            mv!!.visitIincInsn(`var`, increment)
+            mv!!.visitIincInsn(varIndex, increment)
         }
     }
 

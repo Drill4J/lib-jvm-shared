@@ -225,7 +225,8 @@ class Label  // ----------------------------------------------------------------
      * @param lineNumber a source line number (which should be strictly positive).
      */
     fun addLineNumber(lineNumber: Int) {
-        if (this.lineNumber.toInt() == 0) {
+        if (flags.toInt() and FLAG_LINE_NUMBER == 0) {
+            flags = (flags.toInt() or FLAG_LINE_NUMBER).toShort()
             this.lineNumber = lineNumber.toShort()
         } else {
             if (otherLineNumbers == null) {
@@ -249,7 +250,7 @@ class Label  // ----------------------------------------------------------------
      */
     fun accept(methodVisitor: MethodVisitor, visitLineNumbers: Boolean) {
         methodVisitor.visitLabel(this)
-        if (visitLineNumbers && lineNumber.toInt() != 0) {
+        if (visitLineNumbers && flags.toInt() and FLAG_LINE_NUMBER != 0) {
             methodVisitor.visitLineNumber(lineNumber.toInt() and 0xFFFF, this)
             if (otherLineNumbers != null) {
                 for (i in 1..otherLineNumbers!![0]) {
@@ -553,6 +554,9 @@ class Label  // ----------------------------------------------------------------
 
         /** A flag indicating that the basic block corresponding to a label is the end of a subroutine.  */
         const val FLAG_SUBROUTINE_END = 64
+
+        /** A flag indicating that this label has at least one associated line number.  */
+        const val FLAG_LINE_NUMBER = 128
 
         /**
          * The number of elements to add to the [.otherLineNumbers] array when it needs to be

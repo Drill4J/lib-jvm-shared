@@ -67,6 +67,15 @@ class ByteVector {
     }
 
     /**
+     * Returns the actual number of bytes in this vector.
+     *
+     * @return the actual number of bytes in this vector.
+     */
+    fun size(): Int {
+        return length
+    }
+
+    /**
      * Puts a byte into this byte vector. The byte vector is automatically enlarged if necessary.
      *
      * @param byteValue a byte.
