@@ -41,15 +41,22 @@ import org.objectweb.asm.*
  */
 class SignatureWriter
 /** Constructs a new [SignatureWriter].  */
-    : SignatureVisitor( /* latest api =*/Opcodes.ASM9) {
+    : SignatureVisitor {
     /** The builder used to construct the visited signature.  */
-    private val stringBuilder: StringBuilder = StringBuilder()
+    private val stringBuilder: StringBuilder
 
     /** Whether the visited signature contains formal type parameters.  */
     private var hasFormals = false
 
     /** Whether the visited signature contains method parameter types.  */
     private var hasParameters = false
+
+    /** Constructs a new {@link SignatureWriter}. */
+    constructor() : this(StringBuilder())
+
+    private constructor(stringBuilder: StringBuilder) : super( /* latest api =*/Opcodes.ASM9) {
+        this.stringBuilder = stringBuilder
+    }
 
     /**
      * The stack used to keep track of class types that have arguments. Each element of this stack is
@@ -70,7 +77,7 @@ class SignatureWriter
      * stack for each new visited type, and popped when the visit of this type ends (either is
      * visitEnd, or because visitInnerClassType is called).
      */
-    private var argumentStack = 0
+    private var argumentStack = 1
 
     // -----------------------------------------------------------------------------------------------
     // Implementation of the SignatureVisitor interface
@@ -145,7 +152,7 @@ class SignatureWriter
         stringBuilder.append(name)
         // Pushes 'false' on the stack, meaning that this type does not have type arguments (as far as
         // we can tell at this point).
-        argumentStack *= 2
+        argumentStack = argumentStack shl 1
     }
 
     override fun visitInnerClassType(name: String?) {
@@ -154,14 +161,14 @@ class SignatureWriter
         stringBuilder.append(name)
         // Pushes 'false' on the stack, meaning that this type does not have type arguments (as far as
         // we can tell at this point).
-        argumentStack *= 2
+        argumentStack = argumentStack shl 1
     }
 
     override fun visitTypeArgument() {
         // If the top of the stack is 'false', this means we are visiting the first type argument of the
         // currently visited type. We therefore need to append a '<', and to replace the top stack
         // element with 'true' (meaning that the current type does have type arguments).
-        if (argumentStack % 2 == 0) {
+        if ((argumentStack and 1) == 0) {
             argumentStack = argumentStack or 1
             stringBuilder.append('<')
         }
@@ -172,14 +179,15 @@ class SignatureWriter
         // If the top of the stack is 'false', this means we are visiting the first type argument of the
         // currently visited type. We therefore need to append a '<', and to replace the top stack
         // element with 'true' (meaning that the current type does have type arguments).
-        if (argumentStack % 2 == 0) {
+        if (argumentStack and 1 == 0) {
             argumentStack = argumentStack or 1
             stringBuilder.append('<')
         }
         if (wildcard != '=') {
             stringBuilder.append(wildcard)
         }
-        return this
+        // If the stack is full, start a nested one by returning a new SignatureWriter.
+        return if (argumentStack and (1 shl 31) == 0) this else SignatureWriter(stringBuilder)
     }
 
     override fun visitEnd() {
@@ -211,9 +219,9 @@ class SignatureWriter
         // If the top of the stack is 'true', this means that some type arguments have been visited for
         // the type whose visit is now ending. We therefore need to append a '>', and to pop one element
         // from the stack.
-        if (argumentStack % 2 == 1) {
+        if (argumentStack and 1 == 1) {
             stringBuilder.append('>')
         }
-        argumentStack /= 2
+        argumentStack = argumentStack ushr 1
     }
 }

@@ -1072,11 +1072,13 @@ open class Frame(owner: Label?) {
                             internalName = buffer.substring(elementDescriptorOffset + 1, buffer.length - 1)
                             typeValue = REFERENCE_KIND or symbolTable!!.addType(internalName)
                         }
-                        else -> throw IllegalArgumentException()
+                        else -> throw IllegalArgumentException(
+                            "Invalid descriptor fragment: " + buffer.substring(elementDescriptorOffset)
+                        )
                     }
                     elementDescriptorOffset - offset shl DIM_SHIFT or typeValue
                 }
-                else -> throw IllegalArgumentException()
+                else -> throw IllegalArgumentException("Invalid descriptor: " + buffer.substring(offset))
             }
         }
 
