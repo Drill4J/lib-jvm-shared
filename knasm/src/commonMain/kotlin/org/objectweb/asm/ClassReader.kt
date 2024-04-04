@@ -3115,7 +3115,10 @@ class ClassReader internal constructor(
         // use 4 and 2 bytes respectively.
         if (checkClassVersion && readShort(classFileOffset + 6) > Opcodes.V21) {
             throw IllegalArgumentException(
-                "Unsupported class file major version " + readShort(classFileOffset + 6))
+                "Knasm: Unsupported java class file version ${readShort(classFileOffset + 6)}. " +
+                        "Make sure knasm is up to date with latest changes from https://gitlab.ow2.org/asm/asm " +
+                        "for the respective Java classfile versions"
+            )
         }
         // Create the constant pool arrays. The constant_pool_count field is after the magic,
         // minor_version and major_version fields, which use 4, 2 and 2 bytes respectively.
