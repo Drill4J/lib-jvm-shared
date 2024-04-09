@@ -29,13 +29,15 @@ import com.epam.drill.agent.instrument.HeadersProcessor
  *     org.apache.httpcomponents:httpclient:4.3.6
  *     org.apache.httpcomponents:httpclient:4.4.1
  *     org.apache.httpcomponents:httpclient:4.5.14
+ *     org.apache.httpcomponents:httpclient:5.3.1
  */
 abstract class ApacheHttpClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        interfaces.any("org/apache/http/HttpClientConnection"::equals)
+        interfaces.any("org/apache/http/HttpClientConnection"::equals) ||
+        interfaces.any("org/apache/hc/core5/http/io/HttpClientConnection"::equals)
 
     override fun transform(className: String, ctClass: CtClass) {
         if (ctClass.isInterface) return
