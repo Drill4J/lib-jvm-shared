@@ -18,7 +18,6 @@ package com.epam.drill.agent.instrument.reactor.transformers
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.TransformerObject
 import com.epam.drill.agent.instrument.reactor.PublisherAssembler
-import com.epam.drill.agent.instrument.servers.FLUX_CLASS_NAME
 import com.epam.drill.common.agent.request.RequestHolder
 import javassist.CtBehavior
 import javassist.CtClass
@@ -31,6 +30,7 @@ abstract class FluxTransformerObject :
     TransformerObject,
     RequestHolder,
     AbstractTransformerObject() {
+
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =

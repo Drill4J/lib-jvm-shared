@@ -16,10 +16,10 @@
 package com.epam.drill.agent.instrument.servers
 
 import java.util.logging.LogManager
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import org.apache.catalina.startup.Tomcat
-import jakarta.servlet.http.HttpServlet
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
 
 class TomcatTransformerObjectTest : AbstractServerTransformerObjectTest() {

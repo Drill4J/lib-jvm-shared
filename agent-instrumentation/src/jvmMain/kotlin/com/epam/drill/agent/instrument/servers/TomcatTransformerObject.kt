@@ -27,6 +27,7 @@ import com.epam.drill.common.agent.request.HeadersRetriever
  * Transformer for Tomcat web server
  *
  * Tested with:
+ *     org.apache.tomcat.embed:tomcat-embed-core:9.0.83
  *     org.apache.tomcat.embed:tomcat-embed-core:10.0.27
  */
 abstract class TomcatTransformerObject(
