@@ -51,7 +51,7 @@ abstract class UndertowTransformerObject(
             """
             if ($1 instanceof io.undertow.server.HttpHandler && $2 instanceof io.undertow.server.HttpServerExchange) {
                 io.undertow.util.HeaderMap responseHeaders = (io.undertow.util.HeaderMap) $2.getResponseHeaders();
-                if (!"$adminUrl".equals(responseHeaders.get("$adminHeader"))) {
+                if (responseHeaders.get("$adminHeader") == null || !responseHeaders.get("$adminHeader").contains("$adminUrl")) {              
                     responseHeaders.add(io.undertow.util.HttpString.tryFromString("$adminHeader"), "$adminUrl");
                     responseHeaders.add(io.undertow.util.HttpString.tryFromString("$agentIdHeader"), "$agentIdValue");
                 }
