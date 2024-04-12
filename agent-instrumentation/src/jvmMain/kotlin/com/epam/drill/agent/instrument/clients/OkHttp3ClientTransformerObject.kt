@@ -35,7 +35,7 @@ abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransf
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         interfaces.any("okhttp3/internal/http/HttpCodec"::equals) ||
-        interfaces.any("okhttp3/internal/http/ExchangeCodec"::equals)
+                interfaces.any("okhttp3/internal/http/ExchangeCodec"::equals)
 
 
     override fun transform(className: String, ctClass: CtClass) {
@@ -55,8 +55,9 @@ abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransf
             }
             """.trimIndent()
         )
-        runCatching { ctClass.getDeclaredMethod("openResponseBody") }
-            .getOrElse { ctClass.getDeclaredMethod("openResponseBodySource") }
+        val methodName =
+            if (ctClass.declaredMethods.any { it.name == "openResponseBody" }) "openResponseBody" else "openResponseBodySource"
+        ctClass.getDeclaredMethod(methodName)
             .insertCatching(
                 CtBehavior::insertBefore,
                 """
