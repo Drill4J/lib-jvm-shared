@@ -21,6 +21,9 @@ object DefaultParameterDefinitions {
 
     val AGENT_ID = AgentParameterDefinition.forString(name = "agentId")
     val INSTANCE_ID = AgentParameterDefinition.forString(name = "instanceId")
+    val VCS_METADATA_HASH = AgentParameterDefinition.forString(name = "vcsMetadataHash")
+    val VCS_METADATA_PARENTS = AgentParameterDefinition.forString(name = "vcsMetadataParents")
+    val VCS_METADATA_BRANCH = AgentParameterDefinition.forString(name = "vcsMetadataBranch")
     val BUILD_VERSION = AgentParameterDefinition.forString(name = "buildVersion")
     val GROUP_ID = AgentParameterDefinition.forString(name = "groupId")
     val AGENT_VERSION = AgentParameterDefinition.forString(name = "agentVersion")

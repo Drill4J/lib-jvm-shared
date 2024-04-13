@@ -15,8 +15,8 @@
  */
 package com.epam.drill.common.agent.configuration
 
-import kotlinx.serialization.Serializable
 import com.epam.drill.common.agent.transport.AgentMessage
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class AgentMetadata(
@@ -26,5 +26,8 @@ data class AgentMetadata(
     val serviceGroupId: String,
     val agentType: AgentType,
     val agentVersion: String = "",
+    val vcsMetadataHash: String = "",
+    val vcsMetadataParents: String = "",
+    val vcsMetadataBranch: String = "",
     val packagesPrefixes: List<String> = emptyList()
 ) : AgentMessage()
