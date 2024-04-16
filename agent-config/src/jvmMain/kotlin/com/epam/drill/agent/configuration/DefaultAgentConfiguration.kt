@@ -37,7 +37,10 @@ actual class DefaultAgentConfiguration(
         serviceGroupId = parameters[DefaultParameterDefinitions.GROUP_ID],
         agentType = AgentType.JAVA,
         agentVersion = parameters[DefaultParameterDefinitions.AGENT_VERSION],
-        packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES]
+        packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES],
+        vcsMetadataHash = parameters[DefaultParameterDefinitions.VCS_METADATA_HASH],
+        vcsMetadataParents = parameters[DefaultParameterDefinitions.VCS_METADATA_PARENTS],
+        vcsMetadataBranch = parameters[DefaultParameterDefinitions.VCS_METADATA_BRANCH]
     )
 
 }
