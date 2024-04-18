@@ -45,21 +45,39 @@ abstract class AbstractWsServerTransformerObjectTest {
     }
 
     @Test
-    fun `test with empty headers request`() = withWebSocketServer {
+    fun `test with empty headers request to annotated endpoint`() =
+        withWebSocketAnnotatedEndpoint(::testEmptyHeadersRequest)
+
+    @Test
+    fun `test with empty headers request to interface endpoint`() =
+        withWebSocketInterfaceEndpoint(::testEmptyHeadersRequest)
+
+    @Test
+    fun `test with session headers request to annotated endpoint`() =
+        withWebSocketAnnotatedEndpoint(::testSessionHeadersRequest)
+
+    @Test
+    fun `test with session headers request to interface endpoint`() =
+        withWebSocketInterfaceEndpoint(::testSessionHeadersRequest)
+
+    protected abstract fun withWebSocketAnnotatedEndpoint(block: (String) -> Unit)
+
+    protected abstract fun withWebSocketInterfaceEndpoint(block: (String) -> Unit)
+
+    private fun testEmptyHeadersRequest(address: String) {
         TestRequestHolder.remove()
-        val responses = callWebsocketEndpoint(it)
+        val responses = callWebsocketEndpoint(address)
         assertEquals(1, responses.size)
         assertEquals("test-request", responses[0])
     }
 
-    @Test
-    fun `test with session headers request`() = withWebSocketServer {
+    private fun testSessionHeadersRequest(address: String) {
         TestRequestHolder.remove()
         val requestHeaders = mapOf(
             "drill-session-id" to "session-123",
             "drill-header-data" to "test-data"
         )
-        val responses = callWebsocketEndpoint(it, requestHeaders)
+        val responses = callWebsocketEndpoint(address, requestHeaders)
         assertEquals(1, responses.size)
         val responseBody = responses[0].split("\nsession-headers:\n")[0]
         val responseHeaders = responses[0].split("\nsession-headers:\n").getOrNull(1)
@@ -70,8 +88,6 @@ abstract class AbstractWsServerTransformerObjectTest {
         assertEquals("session-123", responseHeaders["drill-session-id"])
         assertEquals("test-data", responseHeaders["drill-header-data"])
     }
-
-    protected abstract fun withWebSocketServer(block: (String) -> Unit)
 
     private fun callWebsocketEndpoint(
         endpointAddress: String,
