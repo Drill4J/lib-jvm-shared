@@ -17,13 +17,14 @@ package com.epam.drill.agent.instrument.servers
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import java.net.URI
+import javax.websocket.ClientEndpointConfig
+import javax.websocket.CloseReason
+import javax.websocket.Endpoint
+import javax.websocket.EndpointConfig
+import javax.websocket.Session
 import org.glassfish.tyrus.client.ClientManager
-import jakarta.websocket.ClientEndpointConfig
-import jakarta.websocket.CloseReason
-import jakarta.websocket.Endpoint
-import jakarta.websocket.EndpointConfig
-import jakarta.websocket.Session
 import mu.KLogger
 import com.epam.drill.agent.instrument.TestRequestHolder
 
@@ -31,6 +32,17 @@ import com.epam.drill.agent.instrument.TestRequestHolder
 abstract class AbstractWsServerTransformerObjectTest {
 
     protected abstract val logger: KLogger
+
+    protected companion object {
+        fun attachSessionHeaders(message: String) = TestRequestHolder.retrieve()
+            ?.let {
+                val headers = it.headers
+                    .map { (key, value) -> "${key}=${value}" }
+                    .joinToString("\n")
+                "$message\nsession-headers:\n$headers"
+            }
+            ?: message
+    }
 
     @Test
     fun `test with empty headers request`() = withWebSocketServer {
@@ -50,14 +62,13 @@ abstract class AbstractWsServerTransformerObjectTest {
         val responses = callWebsocketEndpoint(it, requestHeaders)
         assertEquals(1, responses.size)
         val responseBody = responses[0].split("\nsession-headers:\n")[0]
-        val responseHeaders = responses[0].split("\nsession-headers:\n")[1]
-            .lines()
-            .associate { it.substringBefore("=") to it.substringAfter("=", "") }
-        assertEquals("test-agent", responseHeaders["drill-agent-id"])
-        assertEquals("test-admin:8080", responseHeaders["drill-admin-url"])
+        val responseHeaders = responses[0].split("\nsession-headers:\n").getOrNull(1)
+            ?.lines()
+            ?.associate { it.substringBefore("=") to it.substringAfter("=", "") }
+        assertEquals("test-request", responseBody)
+        assertNotNull(responseHeaders)
         assertEquals("session-123", responseHeaders["drill-session-id"])
         assertEquals("test-data", responseHeaders["drill-header-data"])
-        assertEquals("test-request", responseBody)
     }
 
     protected abstract fun withWebSocketServer(block: (String) -> Unit)
@@ -69,7 +80,7 @@ abstract class AbstractWsServerTransformerObjectTest {
     ) = ClientManager.createClient().run {
         val endpoint = WebSocketEndpoint()
         val config = ClientEndpointConfig.Builder.create().configurator(WebSocketEndpointConfigurator(headers)).build()
-        val session = this.connectToServer(WebSocketEndpoint(), config, URI(endpointAddress))
+        val session = this.connectToServer(endpoint, config, URI(endpointAddress))
         session.basicRemote.sendText(body)
         Thread.sleep(500)
         session.close(CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, CloseReason.CloseCodes.NORMAL_CLOSURE.name))

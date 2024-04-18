@@ -37,6 +37,7 @@ object ClassFileLoadHook {
         ApacheHttpClientTransformer,
         OkHttp3ClientTransformer,
         TomcatTransformer,
+        TomcatWsTransformer,
         NettyTransformer,
         UndertowTransformer,
         SSLEngineTransformer,
