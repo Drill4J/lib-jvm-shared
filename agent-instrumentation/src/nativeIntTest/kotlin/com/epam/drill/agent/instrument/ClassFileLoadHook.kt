@@ -40,6 +40,7 @@ object ClassFileLoadHook {
         TomcatWsTransformer,
         NettyTransformer,
         UndertowTransformer,
+        UndertowWsTransformer,
         SSLEngineTransformer,
         KafkaTransformer,
         JettyTransformer,

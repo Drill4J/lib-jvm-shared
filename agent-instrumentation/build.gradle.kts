@@ -84,6 +84,7 @@ kotlin {
                 implementation(kotlin("test-junit"))
                 implementation("org.apache.httpcomponents:httpclient:4.5.14")
                 implementation("org.apache.tomcat.embed:tomcat-embed-core:9.0.83")
+                implementation("org.apache.tomcat.embed:tomcat-embed-websocket:9.0.83")
                 implementation("org.eclipse.jetty:jetty-server:9.4.26.v20200117")
                 implementation("io.undertow:undertow-core:2.0.29.Final")
                 implementation("io.undertow:undertow-websockets-jsr:2.0.29.Final")
@@ -95,7 +96,6 @@ kotlin {
 
                 implementation("org.springframework.kafka:spring-kafka:2.9.13")
                 implementation("org.springframework.kafka:spring-kafka-test:2.9.13")
-                implementation("org.springframework.boot:spring-boot-starter-websocket:2.7.18")
                 implementation("org.springframework.boot:spring-boot-starter-webflux:2.7.18")
                 implementation("org.springframework.boot:spring-boot-starter-test:2.7.18")
             }

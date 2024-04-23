@@ -21,6 +21,12 @@ import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 
+/**
+ * Transformer for Tomcat based websockets
+ *
+ * Tested with:
+ *     org.apache.tomcat.embed:tomcat-embed-websocket:9.0.83
+ */
 abstract class TomcatWsTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
