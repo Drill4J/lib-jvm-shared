@@ -16,11 +16,6 @@
 package com.epam.drill.agent.instrument.servers
 
 import java.net.InetSocketAddress
-import javax.websocket.Endpoint
-import javax.websocket.EndpointConfig
-import javax.websocket.OnMessage
-import javax.websocket.Session
-import javax.websocket.server.ServerEndpoint
 import javax.websocket.server.ServerEndpointConfig
 import org.xnio.OptionMap
 import org.xnio.Xnio
@@ -35,11 +30,11 @@ class UndertowWsTransformerObjectTest : AbstractWsServerTransformerObjectTest() 
     override val logger = KotlinLogging.logger {}
 
     override fun withWebSocketAnnotatedEndpoint(block: (String) -> Unit) = WebSocketDeploymentInfo()
-        .addEndpoint(TestRequestAnnotatedEndpoint::class.java)
+        .addEndpoint(TestRequestServerAnnotatedEndpoint::class.java)
         .let { withWebSocketEndpoint(it, block) }
 
     override fun withWebSocketInterfaceEndpoint(block: (String) -> Unit) = WebSocketDeploymentInfo()
-        .addEndpoint(ServerEndpointConfig.Builder.create(TestRequestInterfaceEndpoint::class.java, "/").build())
+        .addEndpoint(ServerEndpointConfig.Builder.create(TestRequestServerInterfaceEndpoint::class.java, "/").build())
         .let { withWebSocketEndpoint(it, block) }
 
     private fun withWebSocketEndpoint(info: WebSocketDeploymentInfo, block: (String) -> Unit)  = Undertow.builder()
@@ -62,23 +57,6 @@ class UndertowWsTransformerObjectTest : AbstractWsServerTransformerObjectTest() 
             .setDeploymentName("test-websockets")
             .addServletContextAttribute(WebSocketDeploymentInfo.ATTRIBUTE_NAME, info.setWorker(worker))
         this.addDeployment(deployment).also(DeploymentManager::deploy)
-    }
-
-    @ServerEndpoint(value = "/")
-    class TestRequestAnnotatedEndpoint {
-        @OnMessage
-        @Suppress("unused")
-        fun onMessage(message: String, session: Session) {
-            session.basicRemote.sendText(attachSessionHeaders(message))
-        }
-    }
-
-    class TestRequestInterfaceEndpoint : Endpoint() {
-        override fun onOpen(session: Session, config: EndpointConfig) {
-            session.addMessageHandler(String::class.java) { message ->
-                session.basicRemote.sendText(attachSessionHeaders(message))
-            }
-        }
     }
 
 }

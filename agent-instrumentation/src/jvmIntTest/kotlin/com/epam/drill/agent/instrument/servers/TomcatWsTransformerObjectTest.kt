@@ -17,12 +17,7 @@ package com.epam.drill.agent.instrument.servers
 
 import java.util.logging.LogManager
 import javax.servlet.ServletContextEvent
-import javax.websocket.Endpoint
-import javax.websocket.EndpointConfig
-import javax.websocket.OnMessage
-import javax.websocket.Session
 import javax.websocket.server.ServerContainer
-import javax.websocket.server.ServerEndpoint
 import javax.websocket.server.ServerEndpointConfig
 import org.apache.catalina.servlets.DefaultServlet
 import org.apache.catalina.startup.Tomcat
@@ -60,7 +55,7 @@ class TomcatWsTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
         override fun contextInitialized(sce: ServletContextEvent) {
             super.contextInitialized(sce)
             val container = sce.servletContext.getAttribute(Constants.SERVER_CONTAINER_SERVLET_CONTEXT_ATTRIBUTE)
-            (container as ServerContainer).addEndpoint(TestRequestAnnotatedEndpoint::class.java)
+            (container as ServerContainer).addEndpoint(TestRequestServerAnnotatedEndpoint::class.java)
         }
     }
 
@@ -68,25 +63,8 @@ class TomcatWsTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
         override fun contextInitialized(sce: ServletContextEvent) {
             super.contextInitialized(sce)
             val container = sce.servletContext.getAttribute(Constants.SERVER_CONTAINER_SERVLET_CONTEXT_ATTRIBUTE)
-            val config = ServerEndpointConfig.Builder.create(TestRequestInterfaceEndpoint::class.java, "/").build()
+            val config = ServerEndpointConfig.Builder.create(TestRequestServerInterfaceEndpoint::class.java, "/").build()
             (container as ServerContainer).addEndpoint(config)
-        }
-    }
-
-    @ServerEndpoint(value = "/")
-    class TestRequestAnnotatedEndpoint {
-        @OnMessage
-        @Suppress("unused")
-        fun onMessage(message: String, session: Session) {
-            session.basicRemote.sendText(attachSessionHeaders(message))
-        }
-    }
-
-    class TestRequestInterfaceEndpoint : Endpoint() {
-        override fun onOpen(session: Session, config: EndpointConfig) {
-            session.addMessageHandler(String::class.java) { message ->
-                session.basicRemote.sendText(attachSessionHeaders(message))
-            }
         }
     }
 

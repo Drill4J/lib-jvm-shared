@@ -23,7 +23,9 @@ import javax.websocket.ClientEndpointConfig
 import javax.websocket.CloseReason
 import javax.websocket.Endpoint
 import javax.websocket.EndpointConfig
+import javax.websocket.OnMessage
 import javax.websocket.Session
+import javax.websocket.server.ServerEndpoint
 import org.glassfish.tyrus.client.ClientManager
 import mu.KLogger
 import com.epam.drill.agent.instrument.TestRequestHolder
@@ -94,8 +96,8 @@ abstract class AbstractWsServerTransformerObjectTest {
         headers: Map<String, String> = emptyMap(),
         body: String = "test-request"
     ) = ClientManager.createClient().run {
-        val endpoint = WebSocketEndpoint()
-        val config = ClientEndpointConfig.Builder.create().configurator(WebSocketEndpointConfigurator(headers)).build()
+        val endpoint = ClientWebSocketEndpoint()
+        val config = ClientEndpointConfig.Builder.create().configurator(ClientWebSocketEndpointConfigurator(headers)).build()
         val session = this.connectToServer(endpoint, config, URI(endpointAddress))
         session.basicRemote.sendText(body)
         Thread.sleep(500)
@@ -103,13 +105,30 @@ abstract class AbstractWsServerTransformerObjectTest {
         endpoint.incomingMessages
     }
 
-    private class WebSocketEndpoint : Endpoint() {
+    @ServerEndpoint(value = "/")
+    class TestRequestServerAnnotatedEndpoint {
+        @OnMessage
+        @Suppress("unused")
+        fun onMessage(message: String, session: Session) {
+            session.basicRemote.sendText(attachSessionHeaders(message))
+        }
+    }
+
+    class TestRequestServerInterfaceEndpoint : Endpoint() {
+        override fun onOpen(session: Session, config: EndpointConfig) {
+            session.addMessageHandler(String::class.java) { message ->
+                session.basicRemote.sendText(attachSessionHeaders(message))
+            }
+        }
+    }
+
+    private class ClientWebSocketEndpoint : Endpoint() {
         val incomingMessages = mutableListOf<String>()
         override fun onOpen(session: Session, config: EndpointConfig) =
             session.addMessageHandler(String::class.java, incomingMessages::add)
     }
 
-    private class WebSocketEndpointConfigurator(
+    private class ClientWebSocketEndpointConfigurator(
         private val drillHeaders: Map<String, String>
     ) : ClientEndpointConfig.Configurator() {
         override fun beforeRequest(headers: MutableMap<String, MutableList<String>>) =
