@@ -86,6 +86,7 @@ kotlin {
                 implementation("org.apache.tomcat.embed:tomcat-embed-core:9.0.83")
                 implementation("org.apache.tomcat.embed:tomcat-embed-websocket:9.0.83")
                 implementation("org.eclipse.jetty:jetty-server:9.4.26.v20200117")
+                implementation("org.eclipse.jetty.websocket:javax-websocket-server-impl:9.4.26.v20200117")
                 implementation("io.undertow:undertow-core:2.0.29.Final")
                 implementation("io.undertow:undertow-websockets-jsr:2.0.29.Final")
                 implementation("io.netty:netty-codec-http:4.1.106.Final")
