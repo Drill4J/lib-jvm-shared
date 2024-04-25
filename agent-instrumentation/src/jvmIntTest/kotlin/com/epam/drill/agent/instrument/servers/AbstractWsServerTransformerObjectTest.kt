@@ -95,8 +95,10 @@ abstract class AbstractWsServerTransformerObjectTest {
     private fun testEmptyHeadersRequest(address: String, type: String) {
         TestRequestHolder.remove()
         val responses = callWebsocketEndpoint(address, type = type)
-        assertEquals(1, responses.size)
-        assertEquals("test-request", responses[0])
+        assertEquals(10, responses.size)
+        responses.forEachIndexed { i, response ->
+            assertEquals("test-request-$i", response)
+        }
     }
 
     private fun testSessionHeadersRequest(address: String, type: String) {
@@ -106,29 +108,34 @@ abstract class AbstractWsServerTransformerObjectTest {
             "drill-header-data" to "test-data"
         )
         val responses = callWebsocketEndpoint(address, requestHeaders, type = type)
-        assertEquals(1, responses.size)
-        val responseBody = responses[0].split("\nsession-headers:\n")[0]
-        val responseHeaders = responses[0].split("\nsession-headers:\n").getOrNull(1)
-            ?.lines()
-            ?.associate { it.substringBefore("=") to it.substringAfter("=", "") }
-        assertEquals("test-request", responseBody)
-        assertNotNull(responseHeaders)
-        assertEquals("session-123", responseHeaders["drill-session-id"])
-        assertEquals("test-data", responseHeaders["drill-header-data"])
+        assertEquals(10, responses.size)
+        responses.forEachIndexed { i, response ->
+            val responseBody = response.split("\nsession-headers:\n")[0]
+            val responseHeaders = response.split("\nsession-headers:\n").getOrNull(1)
+                ?.lines()
+                ?.associate { it.substringBefore("=") to it.substringAfter("=", "") }
+            assertEquals("test-request-$i", responseBody)
+            assertNotNull(responseHeaders)
+            assertEquals("session-123", responseHeaders["drill-session-id"])
+            assertEquals("test-data", responseHeaders["drill-header-data"])
+        }
     }
 
     private fun callWebsocketEndpoint(
         endpointAddress: String,
         headers: Map<String, String> = emptyMap(),
-        body: String = "test-request",
-        type: String = "text"
+        body: String = "test-request-",
+        type: String = "text",
+        count: Int = 10
     ) = ClientManager.createClient().run {
         val endpoint = ClientWebSocketEndpoint()
-        val config = ClientEndpointConfig.Builder.create().configurator(ClientWebSocketEndpointConfigurator(headers)).build()
+        val config = ClientEndpointConfig.Builder.create()
+            .configurator(ClientWebSocketEndpointConfigurator(headers)).build()
         val session = this.connectToServer(endpoint, config, URI(endpointAddress))
         when (type) {
-            "text" -> session.basicRemote.sendText(body)
-            "binary" -> session.basicRemote.sendBinary(ByteBuffer.wrap(body.encodeToByteArray()))
+            "text" -> (0 until count).map(body::plus).forEach(session.basicRemote::sendText)
+            "binary" -> (0 until count).map(body::plus).map(String::encodeToByteArray).map(ByteBuffer::wrap)
+                .forEach(session.basicRemote::sendBinary)
         }
         Thread.sleep(500)
         session.close(CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, CloseReason.CloseCodes.NORMAL_CLOSURE.name))
