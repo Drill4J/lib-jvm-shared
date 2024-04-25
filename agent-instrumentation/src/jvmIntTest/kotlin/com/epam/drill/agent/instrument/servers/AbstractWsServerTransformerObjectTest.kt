@@ -24,6 +24,7 @@ import javax.websocket.ClientEndpointConfig
 import javax.websocket.CloseReason
 import javax.websocket.Endpoint
 import javax.websocket.EndpointConfig
+import javax.websocket.MessageHandler
 import javax.websocket.OnMessage
 import javax.websocket.Session
 import javax.websocket.server.ServerEndpoint
@@ -149,7 +150,7 @@ abstract class AbstractWsServerTransformerObjectTest {
     }
 
     class TestRequestServerInterfaceEndpoint : Endpoint() {
-        override fun onOpen(session: Session, config: EndpointConfig) {
+        override fun onOpen(session: Session, config: EndpointConfig) = try {
             session.addMessageHandler(String::class.java) { message ->
                 session.basicRemote.sendText(attachSessionHeaders(message))
             }
@@ -157,6 +158,22 @@ abstract class AbstractWsServerTransformerObjectTest {
                 val text = ByteArray(message.limit()).also(message::get).decodeToString()
                 session.basicRemote.sendBinary(ByteBuffer.wrap(attachSessionHeaders(text).encodeToByteArray()))
             }
+        } catch (e: AbstractMethodError) {
+            session.addMessageHandler(TextMessageHandler(session))
+            session.addMessageHandler(BinaryMessageHandler(session))
+        }
+    }
+
+    private class TextMessageHandler(private val session: Session) : MessageHandler.Whole<String> {
+        override fun onMessage(message: String) {
+            session.basicRemote.sendText(attachSessionHeaders(message))
+        }
+    }
+
+    private class BinaryMessageHandler(private val session: Session) : MessageHandler.Whole<ByteBuffer> {
+        override fun onMessage(message: ByteBuffer) {
+            val text = ByteArray(message.limit()).also(message::get).decodeToString()
+            session.basicRemote.sendBinary(ByteBuffer.wrap(attachSessionHeaders(text).encodeToByteArray()))
         }
     }
 

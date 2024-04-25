@@ -15,12 +15,7 @@
  */
 package com.epam.drill.agent.instrument.servers
 
-import java.nio.ByteBuffer
 import javax.servlet.ServletContext
-import javax.websocket.Endpoint
-import javax.websocket.EndpointConfig
-import javax.websocket.MessageHandler
-import javax.websocket.Session
 import javax.websocket.server.ServerEndpointConfig
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
@@ -56,26 +51,6 @@ class JettyWsTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
         }
     }
 
-    class TestRequestJettyServerInterfaceEndpoint : Endpoint() {
-        override fun onOpen(session: Session, config: EndpointConfig) {
-            session.addMessageHandler(TextMessageHandler(session))
-            session.addMessageHandler(BinaryMessageHandler(session))
-        }
-    }
-
-    private class TextMessageHandler(private val session: Session) : MessageHandler.Whole<String> {
-        override fun onMessage(message: String) {
-            session.basicRemote.sendText(attachSessionHeaders(message))
-        }
-    }
-
-    private class BinaryMessageHandler(private val session: Session) : MessageHandler.Whole<ByteBuffer> {
-        override fun onMessage(message: ByteBuffer) {
-            val text = ByteArray(message.limit()).also(message::get).decodeToString()
-            session.basicRemote.sendBinary(ByteBuffer.wrap(attachSessionHeaders(text).encodeToByteArray()))
-        }
-    }
-
     private class AnnotatedEndpointConfigurator : WebSocketServerContainerInitializer.Configurator {
         override fun accept(servletContext: ServletContext, serverContainer: ServerContainer) {
             serverContainer.addEndpoint(TestRequestServerAnnotatedEndpoint::class.java)
@@ -84,7 +59,7 @@ class JettyWsTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
 
     private class InterfaceEndpointConfigurator : WebSocketServerContainerInitializer.Configurator {
         override fun accept(servletContext: ServletContext, serverContainer: ServerContainer) {
-            val config = ServerEndpointConfig.Builder.create(TestRequestJettyServerInterfaceEndpoint::class.java, "/").build()
+            val config = ServerEndpointConfig.Builder.create(TestRequestServerInterfaceEndpoint::class.java, "/").build()
             serverContainer.addEndpoint(config)
         }
     }
