@@ -44,6 +44,7 @@ object ClassFileLoadHook {
         SSLEngineTransformer,
         KafkaTransformer,
         JettyTransformer,
+        JettyWsTransformer,
         ReactorTransformer,
         WebClientTransformer
     )
