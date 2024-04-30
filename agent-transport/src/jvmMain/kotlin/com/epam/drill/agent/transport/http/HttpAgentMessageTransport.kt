@@ -74,6 +74,7 @@ class HttpAgentMessageTransport(
             val connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(sslSocketFactory).build()
             clientBuilder.setConnectionManager(connectionManager)
+            clientBuilder.setConnectionManagerShared(true)
             logger.debug { "constructor: SSL configured, truststore: $sslTruststore" }
             logger.debug { "constructor: SSL configured, trustAll: ${sslTruststore.isEmpty()}" }
         }
