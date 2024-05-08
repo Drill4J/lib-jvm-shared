@@ -37,17 +37,20 @@ class UndertowWsTransformerObjectTest : AbstractWsServerTransformerObjectTest() 
         .addEndpoint(ServerEndpointConfig.Builder.create(TestRequestServerInterfaceEndpoint::class.java, "/").build())
         .let { withWebSocketEndpoint(it, block) }
 
-    private fun withWebSocketEndpoint(info: WebSocketDeploymentInfo, block: (String) -> Unit)  = Undertow.builder()
-        .addHttpListener(0, "localhost")
-        .setHandler(webSocketDeploymentManager(info).start())
-        .build().run {
-            try {
-                this.start()
-                block("ws://localhost:${(this.listenerInfo[0].address as InetSocketAddress).port}")
-            } finally {
-                this.stop()
-            }
+    private fun withWebSocketEndpoint(info: WebSocketDeploymentInfo, block: (String) -> Unit) = Undertow.builder().run {
+        val wsDeploymentManager = webSocketDeploymentManager(info)
+        this.addHttpListener(0, "localhost")
+        this.setHandler(wsDeploymentManager.also(DeploymentManager::deploy).let(DeploymentManager::start))
+        val server = this.build()
+        try {
+            server.start()
+            block("ws://localhost:${(server.listenerInfo[0].address as InetSocketAddress).port}")
+        } finally {
+            wsDeploymentManager.stop()
+            wsDeploymentManager.undeploy()
+            server.stop()
         }
+    }
 
     private fun webSocketDeploymentManager(info: WebSocketDeploymentInfo) = Servlets.defaultContainer().run {
         val worker = Xnio.getInstance().createWorker(OptionMap.EMPTY)
@@ -56,7 +59,7 @@ class UndertowWsTransformerObjectTest : AbstractWsServerTransformerObjectTest() 
             .setContextPath("/")
             .setDeploymentName("test-websockets")
             .addServletContextAttribute(WebSocketDeploymentInfo.ATTRIBUTE_NAME, info.setWorker(worker))
-        this.addDeployment(deployment).also(DeploymentManager::deploy)
+        this.addDeployment(deployment)
     }
 
 }
