@@ -39,6 +39,7 @@ object ClassFileLoadHook {
         TomcatTransformer,
         TomcatWsTransformer,
         NettyTransformer,
+        NettyWsTransformer,
         UndertowTransformer,
         UndertowWsTransformer,
         SSLEngineTransformer,
@@ -67,11 +68,14 @@ object ClassFileLoadHook {
             Memory.of(classData, classDataLen).loadByteArray(0, it)
         }
         val classReader = ClassReader(classBytes)
+        var transformedBytes = classBytes
         clientTransformers.forEach {
             if (it.permit(classReader.className, classReader.superName, classReader.interfaces)) {
-                val transformedBytes = it.transform(className, classBytes, loader, protectionDomain)
-                if (transformedBytes !== classBytes) convertToNativePointers(transformedBytes, newData, newDataLen)
+                transformedBytes = it.transform(className, transformedBytes, loader, protectionDomain)
             }
+        }
+        if (!transformedBytes.contentEquals(classBytes)) {
+            convertToNativePointers(transformedBytes, newData, newDataLen)
         }
     }
 

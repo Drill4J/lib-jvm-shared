@@ -42,7 +42,7 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, AbstractTransform
         ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting UndertowTransformer for $className..." }
+        logger.info { "transform: Starting UndertowWsTransformer for $className..." }
         when (className) {
             "io/undertow/websockets/jsr/UndertowSession" -> transformSession(ctClass)
             "io/undertow/websockets/jsr/EndpointSessionHandler" -> transformSessionHandler(ctClass)

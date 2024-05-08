@@ -22,12 +22,6 @@ import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.common.agent.request.HeadersRetriever
 
-private const val HTTP_REQUEST = "io.netty.handler.codec.http.HttpRequest"
-private const val HTTP_RESPONSE = "io.netty.handler.codec.http.HttpResponse"
-private const val WEBSOCKET_FRAME_TEXT = "io.netty.handler.codec.http.websocketx.TextWebSocketFrame"
-private const val WEBSOCKET_FRAME_BINARY = "io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame"
-private const val DRILL_CONTEXT_KEY = "com.epam.drill.common.agent.request.DrillRequest#DRILL_REQUEST"
-private const val WEB_SOCKET_SERVER_HANDSHAKER_KEY = "io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker#HANDSHAKER"
 
 /**
  * Transformer for simple Netty-based web servers
@@ -38,6 +32,13 @@ private const val WEB_SOCKET_SERVER_HANDSHAKER_KEY = "io.netty.handler.codec.htt
 abstract class NettyTransformerObject(
     protected val headersRetriever: HeadersRetriever
 ) : HeadersProcessor, AbstractTransformerObject() {
+
+    companion object {
+        private const val HTTP_REQUEST = "io.netty.handler.codec.http.HttpRequest"
+        private const val HTTP_RESPONSE = "io.netty.handler.codec.http.HttpResponse"
+        const val DRILL_CONTEXT_KEY = "com.epam.drill.common.agent.request.DrillRequest#DRILL_REQUEST"
+        const val WEB_SOCKET_SERVER_HANDSHAKER_KEY = "io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker#HANDSHAKER"
+    }
 
     override val logger = KotlinLogging.logger {}
 
@@ -67,20 +68,12 @@ abstract class NettyTransformerObject(
                     this.channel().attr(drillContextKey).set(drillHeaders);
                 }
             }
-            if($1 instanceof $WEBSOCKET_FRAME_BINARY || $1 instanceof $WEBSOCKET_FRAME_TEXT) {
-                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");                                            
-                io.netty.util.Attribute drillContextAttr = this.channel().attr(drillContextKey);
-                java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
-                if (drillHeaders != null) {
-                    ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
-                }
-            }
             """.trimIndent()
         )
         invokeChannelReadMethod.insertCatching(
             { insertAfter(it, true) },
             """
-            if ($1 instanceof $HTTP_RESPONSE || $1 instanceof $WEBSOCKET_FRAME_BINARY || $1 instanceof $WEBSOCKET_FRAME_TEXT) {
+            if ($1 instanceof $HTTP_REQUEST) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
             """.trimIndent()
@@ -120,14 +113,6 @@ abstract class NettyTransformerObject(
                          }
                     }                    
                     ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
-                }                            
-            }
-            if($1 instanceof $WEBSOCKET_FRAME_BINARY || ${'$'}1 instanceof $WEBSOCKET_FRAME_TEXT) {
-                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");                                            
-                io.netty.util.Attribute drillContextAttr = this.channel().attr(drillContextKey);
-                java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
-                if (drillHeaders != null) {
-                    ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
                 }
             }
             """.trimIndent()
@@ -135,7 +120,7 @@ abstract class NettyTransformerObject(
         writeMethod.insertCatching(
             { insertAfter(it, true) },
             """
-            if ($1 instanceof $HTTP_RESPONSE || $1 instanceof $WEBSOCKET_FRAME_BINARY || $1 instanceof $WEBSOCKET_FRAME_TEXT) {
+            if ($1 instanceof $HTTP_RESPONSE) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
             """.trimIndent()
