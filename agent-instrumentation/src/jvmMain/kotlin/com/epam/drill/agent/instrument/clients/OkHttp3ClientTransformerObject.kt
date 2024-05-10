@@ -17,6 +17,7 @@ package com.epam.drill.agent.instrument.clients
 
 import javassist.CtBehavior
 import javassist.CtClass
+import javassist.CtMethod
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
@@ -35,8 +36,7 @@ abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransf
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         interfaces.any("okhttp3/internal/http/HttpCodec"::equals) ||
-                interfaces.any("okhttp3/internal/http/ExchangeCodec"::equals)
-
+        interfaces.any("okhttp3/internal/http/ExchangeCodec"::equals)
 
     override fun transform(className: String, ctClass: CtClass) {
         ctClass.getDeclaredMethod("writeRequestHeaders").insertCatching(
@@ -55,8 +55,7 @@ abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransf
             }
             """.trimIndent()
         )
-        val methodName =
-            if (ctClass.declaredMethods.any { it.name == "openResponseBody" }) "openResponseBody" else "openResponseBodySource"
+        val methodName = "openResponseBody".takeIf(ctClass.declaredMethods.map(CtMethod::getName)::contains) ?: "openResponseBodySource"
         ctClass.getDeclaredMethod(methodName)
             .insertCatching(
                 CtBehavior::insertBefore,
