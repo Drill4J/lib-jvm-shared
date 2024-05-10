@@ -26,13 +26,17 @@ import com.epam.drill.agent.instrument.HeadersProcessor
 
  * Tested with:
  *     com.squareup.okhttp3:okhttp:3.12.13
+ *     com.squareup.okhttp3:okhttp:3.14.9
+ *     com.squareup.okhttp3:okhttp:4.12.0
  */
 abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        interfaces.any("okhttp3/internal/http/HttpCodec"::equals)
+        interfaces.any("okhttp3/internal/http/HttpCodec"::equals) ||
+                interfaces.any("okhttp3/internal/http/ExchangeCodec"::equals)
+
 
     override fun transform(className: String, ctClass: CtClass) {
         ctClass.getDeclaredMethod("writeRequestHeaders").insertCatching(
@@ -51,9 +55,12 @@ abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransf
             }
             """.trimIndent()
         )
-        ctClass.getDeclaredMethod("openResponseBody").insertCatching(
-            CtBehavior::insertBefore,
-            """
+        val methodName =
+            if (ctClass.declaredMethods.any { it.name == "openResponseBody" }) "openResponseBody" else "openResponseBodySource"
+        ctClass.getDeclaredMethod(methodName)
+            .insertCatching(
+                CtBehavior::insertBefore,
+                """
             if (${this::class.java.name}.INSTANCE.${this::isProcessResponses.name}()) {
                 java.util.Map allHeaders = new java.util.HashMap();
                 java.util.Iterator iterator = $1.headers().names().iterator();
@@ -65,7 +72,7 @@ abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransf
                 ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
             }
             """.trimIndent()
-        )
+            )
     }
 
 }
