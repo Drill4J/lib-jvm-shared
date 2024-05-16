@@ -17,6 +17,7 @@ package com.epam.drill.agent.instrument.servers
 
 import javassist.CtBehavior
 import javassist.CtClass
+import javassist.CtMethod
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
@@ -32,10 +33,22 @@ abstract class JettyWsTransformerObject : HeadersProcessor, AbstractTransformerO
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
-        "org/eclipse/jetty/websocket/common/events/AbstractEventDriver" == className
+        listOf(
+            "org/eclipse/jetty/websocket/common/events/AbstractEventDriver",
+            "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketFrameHandler",
+            "org/eclipse/jetty/websocket/javax/server/internal/JavaxServerUpgradeRequest"
+        ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting JettyWsTransformerObject..." }
+        logger.info { "transform: Starting JettyWsTransformerObject for $className..." }
+        when (className) {
+            "org/eclipse/jetty/websocket/common/events/AbstractEventDriver" -> transformAbstractEventDriver(ctClass)
+            "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketFrameHandler" -> transformJavaxWebSocketFrameHandler(ctClass)
+            "org/eclipse/jetty/websocket/javax/server/internal/JavaxServerUpgradeRequest" -> transformJavaxServerUpgradeRequest(ctClass)
+        }
+    }
+
+    private fun transformAbstractEventDriver(ctClass: CtClass) {
         val method = ctClass.getMethod("incomingFrame", "(Lorg/eclipse/jetty/websocket/api/extensions/Frame;)V")
         method.insertCatching(
             CtBehavior::insertBefore,
@@ -61,6 +74,46 @@ abstract class JettyWsTransformerObject : HeadersProcessor, AbstractTransformerO
             }
             """.trimIndent()
         )
+    }
+
+    private fun transformJavaxWebSocketFrameHandler(ctClass: CtClass) {
+        val method = ctClass.getMethod("acceptMessage", "(Lorg/eclipse/jetty/websocket/core/Frame;Lorg/eclipse/jetty/util/Callback;)V")
+        method.insertCatching(
+            CtBehavior::insertBefore,
+            """
+            if ($1.isDataFrame()) {
+                java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
+                java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ upgradeHeaders = ((org.eclipse.jetty.websocket.javax.server.internal.JavaxServerUpgradeRequest)this.upgradeRequest).getHeadersMap();
+                java.util.Iterator/*<java.lang.String>*/ headerNames = upgradeHeaders.keySet().iterator();
+                while (headerNames.hasNext()) {
+                    java.lang.String headerName = headerNames.next();
+                    java.util.List/*<java.lang.String>*/ headerValues = upgradeHeaders.get(headerName);
+                    java.lang.String header = java.lang.String.join(",", headerValues);
+                    allHeaders.put(headerName, header);
+                }
+                ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
+            }
+            """.trimIndent()
+        )
+        method.insertCatching(
+            CtBehavior::insertAfter,
+            """
+            if ($1.isDataFrame() && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+                ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
+            }
+            """.trimIndent()
+        )
+    }
+
+    private fun transformJavaxServerUpgradeRequest(ctClass: CtClass) {
+        CtMethod.make(
+            """
+            public java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ getHeadersMap() {
+                return this.servletRequest.getHeadersMap();
+            }
+            """.trimIndent(),
+            ctClass
+        ).also(ctClass::addMethod)
     }
 
 }
