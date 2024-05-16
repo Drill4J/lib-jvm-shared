@@ -35,6 +35,7 @@ abstract class JettyWsTransformerObject : HeadersProcessor, AbstractTransformerO
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
         listOf(
             "org/eclipse/jetty/websocket/common/events/AbstractEventDriver",
+            "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler",
             "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketFrameHandler",
             "org/eclipse/jetty/websocket/javax/server/internal/JavaxServerUpgradeRequest"
         ).contains(className)
@@ -43,6 +44,7 @@ abstract class JettyWsTransformerObject : HeadersProcessor, AbstractTransformerO
         logger.info { "transform: Starting JettyWsTransformerObject for $className..." }
         when (className) {
             "org/eclipse/jetty/websocket/common/events/AbstractEventDriver" -> transformAbstractEventDriver(ctClass)
+            "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler" -> transformJettyWebSocketFrameHandler(ctClass)
             "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketFrameHandler" -> transformJavaxWebSocketFrameHandler(ctClass)
             "org/eclipse/jetty/websocket/javax/server/internal/JavaxServerUpgradeRequest" -> transformJavaxServerUpgradeRequest(ctClass)
         }
@@ -70,6 +72,35 @@ abstract class JettyWsTransformerObject : HeadersProcessor, AbstractTransformerO
             CtBehavior::insertAfter,
             """
             if (($1.getOpCode() == org.eclipse.jetty.websocket.common.OpCode.TEXT || $1.getOpCode() == org.eclipse.jetty.websocket.common.OpCode.BINARY) && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+                ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
+            }
+            """.trimIndent()
+        )
+    }
+
+    private fun transformJettyWebSocketFrameHandler(ctClass: CtClass) {
+        val method = ctClass.getMethod("acceptMessage", "(Lorg/eclipse/jetty/websocket/core/Frame;Lorg/eclipse/jetty/util/Callback;)V")
+        method.insertCatching(
+            CtBehavior::insertBefore,
+            """
+            if ($1.isDataFrame()) {
+                java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
+                java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ upgradeHeaders = ((org.eclipse.jetty.websocket.server.internal.DelegatedServerUpgradeRequest)this.upgradeRequest).getHeaders();
+                java.util.Iterator/*<java.lang.String>*/ headerNames = upgradeHeaders.keySet().iterator();
+                while (headerNames.hasNext()) {
+                    java.lang.String headerName = headerNames.next();
+                    java.util.List/*<java.lang.String>*/ headerValues = upgradeHeaders.get(headerName);
+                    java.lang.String header = java.lang.String.join(",", headerValues);
+                    allHeaders.put(headerName, header);
+                }
+                ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
+            }
+            """.trimIndent()
+        )
+        method.insertCatching(
+            CtBehavior::insertAfter,
+            """
+            if ($1.isDataFrame() && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
             """.trimIndent()
