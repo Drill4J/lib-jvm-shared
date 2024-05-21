@@ -24,7 +24,7 @@ import mu.KotlinLogging
 /**
  * Transformer for Spring Webflux WebClient
  */
-abstract class WebClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
+abstract class SpringWebClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =

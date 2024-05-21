@@ -19,7 +19,7 @@ import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
 
 
-class WebClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
+class SpringWebClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
     private val webClient = WebClient.create()
 
     override fun callHttpEndpoint(
