@@ -32,23 +32,24 @@ data class AstEntity(
 
 /**
  * Ast metadata about the method of class or file
+ * @param classname the full name of the class
  * @param name the name of the method
  * @param params the list of parameters of the method
  * @param returnType the method return type
- * @param probes the probe indices of the method
- * @param checksum the checksum of the method body
+ * @param probesCount the count of probes of the method
+ * @param probesStartPos where to start probes
+ * @param bodyChecksum the checksum of the method body
  */
 @Serializable
 data class AstMethod(
+    val classname: String,
     val name: String,
-    val params: List<String>,
+    val params: String,
     val returnType: String,
-    val probes: List<Int> = emptyList(),
-    val checksum: String = "",
-    val probesStartPos: Int = 0,
-) {
-    val count: Int = probes.size
-}
+    val probesCount: Int,
+    val probesStartPos: Int,
+    val bodyChecksum: String,
+)
 
 /**
  * Class probes received by a specific test
