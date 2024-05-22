@@ -29,10 +29,6 @@ class RetryingAgentMetadataSender<T>(
 
     private val logger = KotlinLogging.logger {}
     private val stateListeners = mutableSetOf<TransportStateListener>()
-    private var sent = false
-
-    override val metadataSent: Boolean
-        get() = sent
 
     override fun addStateListener(listener: TransportStateListener) {
         stateListeners.add(listener)
@@ -54,7 +50,6 @@ class RetryingAgentMetadataSender<T>(
             if(!success) Thread.sleep(500)
         }
         logger.debug { "send: Sending to admin server: successful" }
-        sent = true
         stateListeners.forEach(TransportStateListener::onStateAlive)
     }
 

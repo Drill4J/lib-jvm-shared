@@ -41,6 +41,6 @@ class QueuedAgentMessageMetadataSender<M : AgentMessage, T>(
     }
 
     override val available
-        get() = metadataSent && super.available
+        get() = super.available
 
 }

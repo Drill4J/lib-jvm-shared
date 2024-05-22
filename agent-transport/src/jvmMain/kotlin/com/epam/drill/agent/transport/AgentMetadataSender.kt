@@ -28,7 +28,6 @@ import com.epam.drill.common.agent.configuration.AgentMetadata
  * @see [com.epam.drill.common.agent.transport.AgentMessageSender]
  */
 interface AgentMetadataSender<T> : TransportStateNotifier {
-    val metadataSent: Boolean
     fun send(metadata: T, contentType: String = ""): Thread
     fun send(metadata: AgentMetadata): Thread
 }
