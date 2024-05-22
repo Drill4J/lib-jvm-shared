@@ -20,7 +20,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AgentReference(
     val instanceId: String,
-    val agentId: String,
+    val appId: String,
     val groupId: String,
     val buildVersion: String
 )

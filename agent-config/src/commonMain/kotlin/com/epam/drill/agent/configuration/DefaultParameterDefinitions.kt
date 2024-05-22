@@ -19,7 +19,7 @@ import com.epam.drill.common.agent.configuration.AgentParameterDefinition
 
 object DefaultParameterDefinitions {
 
-    val AGENT_ID = AgentParameterDefinition.forString(name = "agentId")
+    val APP_ID = AgentParameterDefinition.forString(name = "appId")
     val INSTANCE_ID = AgentParameterDefinition.forString(name = "instanceId")
     val BUILD_VERSION = AgentParameterDefinition.forString(name = "buildVersion")
     val GROUP_ID = AgentParameterDefinition.forString(name = "groupId")

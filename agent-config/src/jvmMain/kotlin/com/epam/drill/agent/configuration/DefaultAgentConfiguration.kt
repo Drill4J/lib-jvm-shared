@@ -31,10 +31,10 @@ actual class DefaultAgentConfiguration(
         get() = _inputParameters.toMap()
 
     private fun agentMetadata() = AgentMetadata(
-        id = parameters[DefaultParameterDefinitions.AGENT_ID],
+        appId = parameters[DefaultParameterDefinitions.APP_ID],
         instanceId = parameters[DefaultParameterDefinitions.INSTANCE_ID],
         buildVersion = parameters[DefaultParameterDefinitions.BUILD_VERSION],
-        serviceGroupId = parameters[DefaultParameterDefinitions.GROUP_ID],
+        groupId = parameters[DefaultParameterDefinitions.GROUP_ID],
         agentType = AgentType.JAVA,
         agentVersion = parameters[DefaultParameterDefinitions.AGENT_VERSION],
         packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES]

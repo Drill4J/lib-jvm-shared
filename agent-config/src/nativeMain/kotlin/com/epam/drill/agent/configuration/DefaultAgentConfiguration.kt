@@ -38,7 +38,7 @@ actual class DefaultAgentConfiguration(
         .reduce { acc, map -> acc + map }
 
     private fun defineDefaults(agentParameters: AgentParameters) = agentParameters.define(
-        DefaultParameterDefinitions.AGENT_ID,
+        DefaultParameterDefinitions.APP_ID,
         DefaultParameterDefinitions.INSTANCE_ID,
         DefaultParameterDefinitions.BUILD_VERSION,
         DefaultParameterDefinitions.GROUP_ID,
@@ -49,10 +49,10 @@ actual class DefaultAgentConfiguration(
     )
 
     private fun agentMetadata() = AgentMetadata(
-        id = parameters[DefaultParameterDefinitions.AGENT_ID],
+        appId = parameters[DefaultParameterDefinitions.APP_ID],
         instanceId = parameters[DefaultParameterDefinitions.INSTANCE_ID],
         buildVersion = parameters[DefaultParameterDefinitions.BUILD_VERSION],
-        serviceGroupId = parameters[DefaultParameterDefinitions.GROUP_ID],
+        groupId = parameters[DefaultParameterDefinitions.GROUP_ID],
         agentType = AgentType.JAVA,
         agentVersion = parameters[DefaultParameterDefinitions.AGENT_VERSION],
         packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES]

@@ -20,10 +20,10 @@ import com.epam.drill.common.agent.transport.AgentMessage
 
 @Serializable
 data class AgentMetadata(
-    val id: String,
+    val appId: String,
     val instanceId: String,
     val buildVersion: String,
-    val serviceGroupId: String,
+    val groupId: String,
     val agentType: AgentType,
     val agentVersion: String = "",
     val packagesPrefixes: List<String> = emptyList()
