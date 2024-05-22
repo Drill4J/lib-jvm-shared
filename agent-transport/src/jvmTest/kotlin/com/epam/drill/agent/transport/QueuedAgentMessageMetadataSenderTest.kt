@@ -106,7 +106,6 @@ class QueuedAgentMessageMetadataSenderTest {
         for (i in 0..9) sender.send(AgentMessageDestination("TYPE", "target-$i"), TestAgentMessage("message-$i"))
             .also(responses::add)
 
-        assertTrue(sender.available)
         for (i in 0..9) {
             assertTrue(responses[i].success)
 
@@ -137,7 +136,6 @@ class QueuedAgentMessageMetadataSenderTest {
         for (i in 0..9) sender.send(AgentMessageDestination("TYPE", "target-$i"), TestAgentMessage("message-$i"))
             .also(responses::add)
 
-        assertTrue(sender.available)
         for (i in 0..9) {
             assertFalse(responses[i].success)
 
@@ -167,7 +165,6 @@ class QueuedAgentMessageMetadataSenderTest {
         for (i in 0..9) sender.send(AgentMessageDestination("TYPE", "target-$i"), TestAgentMessage("message-$i"))
             .also(responses::add)
 
-        assertFalse(sender.available)
         assertEquals("MAP", toSendDestinations[0].type)
         assertEquals("mapped-target-0", toSendDestinations[0].target)
         assertEquals("serialized-message-0", toSendMessages[0])
@@ -202,7 +199,6 @@ class QueuedAgentMessageMetadataSenderTest {
         sender.onStateAlive()
         sender.sendingThread?.join(5000)
 
-        assertTrue(sender.available)
         for (i in 0..9) {
             assertEquals("MAP", toSendDestinations[i].type)
             assertEquals("queued-target-$i", toSendDestinations[i].target)
@@ -227,7 +223,6 @@ class QueuedAgentMessageMetadataSenderTest {
         sender.onStateAlive()
         sender.sendingThread?.join(5000)
 
-        assertFalse(sender.available)
         assertEquals("MAP", toSendDestinations[0].type)
         assertEquals("queued-target-0", toSendDestinations[0].target)
         assertEquals("queued-message-0", toSendMessages[0])
@@ -255,7 +250,6 @@ class QueuedAgentMessageMetadataSenderTest {
         sender.onStateAlive()
         sender.sendingThread?.join(5000)
 
-        assertFalse(sender.available)
         for (i in 0..3) {
             assertEquals("MAP", toSendDestinations[i].type)
             assertEquals("queued-target-$i", toSendDestinations[i].target)

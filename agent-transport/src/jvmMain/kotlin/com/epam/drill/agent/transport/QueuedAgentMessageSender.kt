@@ -65,9 +65,6 @@ open class QueuedAgentMessageSender<M : AgentMessage, T>(
         transportStateNotifier.addStateListener(this)
     }
 
-    override val available
-        get() = alive
-
     override fun send(destination: AgentMessageDestination, message: M): ResponseStatus {
         val mappedDestination = destinationMapper.map(destination)
         val serializedMessage = messageSerializer.serialize(message)
@@ -79,7 +76,7 @@ open class QueuedAgentMessageSender<M : AgentMessage, T>(
             messageQueue.offer(Pair(mappedDestination, serializedMessage))
         }
         synchronized(messageQueue) {
-            if (!available) return IOException(TRANSPORT_ERR).also(store).let(::ErrorResponseStatus)
+            if (!alive) return IOException(TRANSPORT_ERR).also(store).let(::ErrorResponseStatus)
         }
         return Pair(mappedDestination, serializedMessage)
             .runCatching(::send).onFailure(store).onFailure(::failure).getOrElse(::ErrorResponseStatus)
@@ -105,8 +102,8 @@ open class QueuedAgentMessageSender<M : AgentMessage, T>(
     }
 
     private fun failure(t: Throwable) = synchronized(messageQueue) {
-        logger.error(t) { "failure: Error during message sending, current availability state: $available" }
-        if (available) {
+        logger.error(t) { "failure: Error during message sending, current availability state: $alive" }
+        if (alive) {
             alive = false
             transportStateListener?.onStateFailed()
         }
