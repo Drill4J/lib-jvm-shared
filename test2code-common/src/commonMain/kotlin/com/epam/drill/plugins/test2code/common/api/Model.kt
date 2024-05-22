@@ -18,19 +18,6 @@ package com.epam.drill.plugins.test2code.common.api
 import kotlinx.serialization.*
 
 /**
- * Ast metadata about the file or the class containing methods
- * @param path the path to class or file
- * @param name the name of class or file
- * @param methods the list of methods
- */
-@Serializable
-data class AstEntity(
-    val path: String,
-    val name: String,
-    var methods: List<AstMethod>,
-)
-
-/**
  * Ast metadata about the method of class or file
  * @param classname the full name of the class
  * @param name the name of the method
