@@ -42,19 +42,18 @@ actual class DefaultAgentConfiguration(
         DefaultParameterDefinitions.INSTANCE_ID,
         DefaultParameterDefinitions.BUILD_VERSION,
         DefaultParameterDefinitions.GROUP_ID,
-        DefaultParameterDefinitions.AGENT_VERSION,
+        DefaultParameterDefinitions.COMMIT_SHA,
         DefaultParameterDefinitions.PACKAGE_PREFIXES,
         DefaultParameterDefinitions.INSTALLATION_DIR,
         DefaultParameterDefinitions.CONFIG_PATH
     )
 
     private fun agentMetadata() = AgentMetadata(
-        appId = parameters[DefaultParameterDefinitions.APP_ID],
-        instanceId = parameters[DefaultParameterDefinitions.INSTANCE_ID],
-        buildVersion = parameters[DefaultParameterDefinitions.BUILD_VERSION],
         groupId = parameters[DefaultParameterDefinitions.GROUP_ID],
-        agentType = AgentType.JAVA,
-        agentVersion = parameters[DefaultParameterDefinitions.AGENT_VERSION],
+        appId = parameters[DefaultParameterDefinitions.APP_ID],
+        buildVersion = parameters[DefaultParameterDefinitions.BUILD_VERSION],
+        commitSha = parameters[DefaultParameterDefinitions.COMMIT_SHA],
+        instanceId = parameters[DefaultParameterDefinitions.INSTANCE_ID],
         packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES]
     )
 

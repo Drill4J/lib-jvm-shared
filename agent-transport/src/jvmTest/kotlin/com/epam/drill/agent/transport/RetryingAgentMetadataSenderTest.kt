@@ -153,7 +153,7 @@ class RetryingAgentMetadataSenderTest {
         verify(exactly = 1) { stateListener.onStateAlive() }
         assertTrue(sender.metadataSent)
         assertEquals("PUT", destination.captured.type)
-        assertEquals("", destination.captured.target)
+        assertEquals("instances", destination.captured.target)
     }
 
 }

@@ -42,7 +42,7 @@ class RetryingAgentMetadataSender<T>(
         send(messageSerializer.serialize(metadata), messageSerializer.contentType())
 
     override fun send(metadata: T, contentType: String) = thread {
-        val destination = destinationMapper.map(AgentMessageDestination("PUT", ""))
+        val destination = destinationMapper.map(AgentMessageDestination("PUT", "instances"))
         val cType = contentType.takeIf(String::isNotEmpty) ?: messageSerializer.contentType()
         val send: () -> ResponseStatus = { transport.send(destination, metadata, cType) }
         val logError: (Throwable) -> Unit = { logger.error(it) { "send: Attempt is failed: $it" } }
