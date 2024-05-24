@@ -25,15 +25,11 @@ class OkHttp3ClientTransformerObjectTest : AbstractClientTransformerObjectTest()
 
     override fun callHttpEndpoint(
         endpoint: String,
-        headers: Map<String, String>,
         body: String
     ): Pair<Map<String, String>, String> {
         lateinit var response: Response
         try {
             val requestBuilder = Request.Builder().url(endpoint)
-            headers.entries.forEach {
-                requestBuilder.addHeader(it.key, it.value)
-            }
             requestBuilder.post(RequestBody.create(MediaType.get("text/text"), body))
             response = OkHttpClient().newCall(requestBuilder.build()).execute()
             val responseHeaders = response.headers().toMultimap().mapValues { it.value.joinToString(",") }

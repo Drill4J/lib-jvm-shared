@@ -67,7 +67,6 @@ abstract class AbstractClientTransformerObjectTest {
 
     protected abstract fun callHttpEndpoint(
         endpoint: String,
-        headers: Map<String, String> = emptyMap(),
         body: String = "test-request"
     ): Pair<Map<String, String>, String>
 

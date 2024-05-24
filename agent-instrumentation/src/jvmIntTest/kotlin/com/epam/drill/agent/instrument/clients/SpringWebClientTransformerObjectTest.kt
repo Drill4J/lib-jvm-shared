@@ -24,7 +24,6 @@ class SpringWebClientTransformerObjectTest : AbstractClientTransformerObjectTest
 
     override fun callHttpEndpoint(
         endpoint: String,
-        headers: Map<String, String>,
         body: String
     ): Pair<Map<String, String>, String> {
         val responseHeaders = mutableMapOf<String, String>()
@@ -32,9 +31,6 @@ class SpringWebClientTransformerObjectTest : AbstractClientTransformerObjectTest
         val response = webClient
             .post()
             .uri(endpoint)
-            .headers {
-                headers.forEach { (k, v) -> it.add(k, v) }
-            }
             .bodyValue(body)
             .exchangeToMono { response: ClientResponse ->
                 responseHeaders.putAll(response.headers().asHttpHeaders().mapValues { it.value.joinToString(",") })

@@ -39,12 +39,9 @@ abstract class AbstractWsServerTransformerObjectTest {
 
     protected companion object {
         fun attachSessionHeaders(message: String) = TestRequestHolder.retrieve()
-            ?.let {
-                val headers = it.headers
-                    .map { (key, value) -> "${key}=${value}" }
-                    .joinToString("\n")
-                "$message\nsession-headers:\n$headers"
-            }
+            ?.headers
+            ?.map { (key, value) -> "${key}=${value}" }
+            ?.joinToString("\n", "$message\nsession-headers:\n")
             ?: message
     }
 

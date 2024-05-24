@@ -93,6 +93,7 @@ kotlin {
                 implementation("com.squareup.okhttp3:okhttp:3.12.13")
                 implementation("org.simpleframework:simple-http:6.0.1")
                 implementation("org.glassfish.tyrus:tyrus-client:1.20")
+                implementation("org.glassfish.tyrus:tyrus-server:1.20")
                 implementation("org.glassfish.tyrus:tyrus-container-grizzly-client:1.20")
 
                 implementation("org.springframework.kafka:spring-kafka:2.9.13")

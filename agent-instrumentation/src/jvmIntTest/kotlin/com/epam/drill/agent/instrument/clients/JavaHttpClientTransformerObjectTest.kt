@@ -22,16 +22,12 @@ open class JavaHttpClientTransformerObjectTest : AbstractClientTransformerObject
 
     override fun callHttpEndpoint(
         endpoint: String,
-        headers: Map<String, String>,
         body: String
     ): Pair<Map<String, String>, String> {
         lateinit var connection: HttpURLConnection
         try {
             connection = URL(endpoint).openConnection() as HttpURLConnection
             connection.requestMethod = "POST"
-            headers.entries.forEach {
-                connection.setRequestProperty(it.key, it.value)
-            }
             connection.doOutput = true
             connection.outputStream.write(body.encodeToByteArray())
             connection.outputStream.close()

@@ -23,13 +23,9 @@ class ApacheHttpClientTransformerObjectTest : AbstractClientTransformerObjectTes
 
     override fun callHttpEndpoint(
         endpoint: String,
-        headers: Map<String, String>,
         body: String
     ): Pair<Map<String, String>, String> = DefaultHttpClient().run {
         val request = HttpPost(endpoint)
-        headers.entries.forEach {
-            request.addHeader(it.key, it.value)
-        }
         request.entity = StringEntity(body)
         val response = this.execute(request)
         val responseHeaders = response.allHeaders.associate { it.name to it.value }
