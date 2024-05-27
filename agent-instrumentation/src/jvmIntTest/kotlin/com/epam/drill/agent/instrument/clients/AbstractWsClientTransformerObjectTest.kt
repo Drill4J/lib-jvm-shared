@@ -18,7 +18,13 @@ package com.epam.drill.agent.instrument.clients
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import java.nio.ByteBuffer
+import java.util.logging.LogManager
+import javax.websocket.ClientEndpoint
+import javax.websocket.Endpoint
+import javax.websocket.EndpointConfig
 import javax.websocket.HandshakeResponse
+import javax.websocket.MessageHandler
 import javax.websocket.OnMessage
 import javax.websocket.OnOpen
 import javax.websocket.Session
@@ -34,44 +40,92 @@ import com.epam.drill.common.agent.request.DrillRequest
 abstract class AbstractWsClientTransformerObjectTest {
 
     @Test
-    fun `test request-response with empty thread session and headers data`() = withWebSocketServer {
+    fun `test annotated endpoint text request-response with empty thread session data`() =
+        testEmptySessionDataRequest(::connectToWebsocketAnnotatedEndpoint, "text")
+
+    @Test
+    fun `test interface endpoint text request-response with empty thread session data`() =
+        testEmptySessionDataRequest(::connectToWebsocketInterfaceEndpoint, "text")
+
+    @Test
+    fun `test annotated endpoint text request with existing thread session data`() =
+        testExistingSessionDataRequest(::connectToWebsocketAnnotatedEndpoint, "text")
+
+    @Test
+    fun `test interface endpoint text request with existing thread session data`() =
+        testExistingSessionDataRequest(::connectToWebsocketInterfaceEndpoint, "text")
+
+    @Test
+    fun `test annotated endpoint binary request-response with empty thread session data`() =
+        testEmptySessionDataRequest(::connectToWebsocketAnnotatedEndpoint, "binary")
+
+    @Test
+    fun `test interface endpoint binary request-response with empty thread session data`() =
+        testEmptySessionDataRequest(::connectToWebsocketInterfaceEndpoint, "binary")
+
+    @Test
+    fun `test annotated endpoint binary request with existing thread session data`() =
+        testExistingSessionDataRequest(::connectToWebsocketAnnotatedEndpoint, "binary")
+
+    @Test
+    fun `test interface endpoint binary request with existing thread session data`() =
+        testExistingSessionDataRequest(::connectToWebsocketInterfaceEndpoint, "binary")
+
+    protected abstract fun connectToWebsocketAnnotatedEndpoint(endpoint: String): Pair<TestRequestClientEndpoint, Session>
+
+    protected abstract fun connectToWebsocketInterfaceEndpoint(endpoint: String): Pair<TestRequestClientEndpoint, Session>
+
+    private fun testEmptySessionDataRequest(
+        connect: (String) -> Pair<TestRequestClientEndpoint, Session>,
+        type: String
+    ) = withWebSocketServer {
         TestRequestHolder.remove()
-        val handshake = connectToWebsocketEndpoint(it)
-        val handshakeHeaders = handshake.first
-        val session = handshake.second
-        val responseBody = sendToWebSocketEndpoint(session)
-        session.close()
+        val call = callWebSocketEndpoint(it, connect, type = type)
+        val incomingMessages = call.first
+        val handshakeHeaders = call.second
         assertNull(TestRequestHolder.retrieve())
         assertNull(handshakeHeaders["drill-session-id"])
         assertNull(handshakeHeaders["drill-header-data"])
-        assertEquals("test-request", responseBody)
+        assertEquals(2, incomingMessages.size)
+        assertEquals("test-request", incomingMessages[1])
     }
 
-    @Test
-    fun `test request with existing thread session data`() = withWebSocketServer {
+    private fun testExistingSessionDataRequest(
+        connect: (String) -> Pair<TestRequestClientEndpoint, Session>,
+        type: String
+    ) = withWebSocketServer {
         TestRequestHolder.store(DrillRequest("session-123", mapOf("drill-header-data" to "test-data")))
-        val handshake = connectToWebsocketEndpoint(it)
-        val handshakeHeaders = handshake.first
-        val session = handshake.second
-        val responseBody = sendToWebSocketEndpoint(session)
-        session.close()
+        val call = callWebSocketEndpoint(it, connect, type = type)
+        val incomingMessages = call.first
+        val handshakeHeaders = call.second
         assertEquals("session-123", handshakeHeaders["drill-session-id"])
         assertEquals("test-data", handshakeHeaders["drill-header-data"])
-        assertEquals("test-request", responseBody)
+        assertEquals(2, incomingMessages.size)
+        assertEquals("test-request", incomingMessages[1])
     }
 
-    protected abstract fun connectToWebsocketEndpoint(endpoint: String): Pair<Map<String, String>, Session>
-
-    protected open fun sendToWebSocketEndpoint(session: Session, body: String = "test-request"): String? {
-        var response: String? = null
-        session.addMessageHandler(String::class.java) { msg -> response = msg }
-        session.basicRemote.sendText(body)
+    private fun callWebSocketEndpoint(
+        endpoint: String,
+        connect: (String) -> Pair<TestRequestClientEndpoint, Session>,
+        body: String = "test-request",
+        type: String = "text"
+    ) = connect(endpoint).run {
+        val incomingMessages = this.first.incomingMessages
+        val session = this.second
+        when(type) {
+            "text" -> session.basicRemote.sendText(body)
+            "binary" -> session.basicRemote.sendBinary(ByteBuffer.wrap(body.encodeToByteArray()))
+        }
         Thread.sleep(500)
-        return response
+        session.close()
+        val handshakeHeaders = incomingMessages[0].removePrefix("session-headers:\n").lines()
+            .associate { it.substringBefore("=") to it.substringAfter("=", "") }
+        incomingMessages to handshakeHeaders
     }
 
     private fun withWebSocketServer(block: (String) -> Unit) = Server(TestRequestServerEndpoint::class.java).run {
         try {
+            LogManager.getLogManager().readConfiguration(ClassLoader.getSystemResourceAsStream("logging.properties"))
             this.start()
             block("ws://localhost:${this.port}")
         } finally {
@@ -81,21 +135,63 @@ abstract class AbstractWsClientTransformerObjectTest {
 
     @Suppress("unused")
     @ServerEndpoint(value = "/", configurator = TestRequestConfigurator::class)
-    private class TestRequestServerEndpoint {
+    class TestRequestServerEndpoint {
         @OnOpen
-        fun onOpen(session: Session, config: ServerEndpointConfig) = (config.configurator as TestRequestConfigurator)
+        fun onOpen(session: Session, config: EndpointConfig) = config
+            .let { it as ServerEndpointConfig }
+            .let { it.configurator as TestRequestConfigurator }
             .headers
             .map { (key, value) -> "${key}=${value}" }
             .joinToString("\n", "session-headers:\n")
-            .let(session.basicRemote::sendText)
+            .also(session.basicRemote::sendText)
         @OnMessage
         fun onTextMessage(message: String, session: Session) = session.basicRemote.sendText(message)
+        @OnMessage
+        fun onBinaryMessage(message: ByteBuffer, session: Session) = session.basicRemote.sendBinary(message)
     }
 
-    private class TestRequestConfigurator : TyrusServerEndpointConfigurator() {
+    class TestRequestConfigurator : TyrusServerEndpointConfigurator() {
         val headers = mutableMapOf<String, String>()
         override fun modifyHandshake(sec: ServerEndpointConfig, req: HandshakeRequest, resp: HandshakeResponse) =
             req.headers.forEach { headers[it.key] = it.value.joinToString(",") }
+    }
+
+    @Suppress("unused")
+    @ClientEndpoint
+    protected class TestRequestAnnotatedClientEndpoint : TestRequestClientEndpoint {
+        override val incomingMessages = mutableListOf<String>()
+        @OnMessage
+        fun onTextMessage(message: String) {
+            incomingMessages.add(message)
+        }
+        @OnMessage
+        fun onBinaryMessage(message: ByteBuffer) {
+            incomingMessages.add(ByteArray(message.limit()).also(message::get).decodeToString())
+        }
+    }
+
+    protected class TestRequestInterfaceClientEndpoint : Endpoint(), TestRequestClientEndpoint {
+        override val incomingMessages = mutableListOf<String>()
+        override fun onOpen(session: Session, config: EndpointConfig) {
+            session.addMessageHandler(TextMessageHandler(incomingMessages))
+            session.addMessageHandler(BinaryMessageHandler(incomingMessages))
+        }
+    }
+
+    protected interface TestRequestClientEndpoint {
+        val incomingMessages: MutableList<String>
+    }
+
+    private class TextMessageHandler(private val incomingMessages: MutableList<String>) : MessageHandler.Whole<String> {
+        override fun onMessage(message: String) {
+            incomingMessages.add(message)
+        }
+    }
+
+    private class BinaryMessageHandler(private val incomingMessages: MutableList<String>) : MessageHandler.Whole<ByteBuffer> {
+        override fun onMessage(message: ByteBuffer) {
+            incomingMessages.add(ByteArray(message.limit()).also(message::get).decodeToString())
+        }
     }
 
 }

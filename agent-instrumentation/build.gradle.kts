@@ -95,6 +95,7 @@ kotlin {
                 implementation("org.glassfish.tyrus:tyrus-client:1.20")
                 implementation("org.glassfish.tyrus:tyrus-server:1.20")
                 implementation("org.glassfish.tyrus:tyrus-container-grizzly-client:1.20")
+                implementation("org.glassfish.tyrus:tyrus-container-grizzly-server:1.20")
 
                 implementation("org.springframework.kafka:spring-kafka:2.9.13")
                 implementation("org.springframework.kafka:spring-kafka-test:2.9.13")
