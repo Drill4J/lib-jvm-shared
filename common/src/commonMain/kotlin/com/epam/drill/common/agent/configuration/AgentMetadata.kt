@@ -17,6 +17,7 @@ package com.epam.drill.common.agent.configuration
 
 import kotlinx.serialization.Serializable
 import com.epam.drill.common.agent.transport.AgentMessage
+import kotlinx.serialization.Transient
 
 @Serializable
 data class AgentMetadata(
@@ -25,5 +26,5 @@ data class AgentMetadata(
     val instanceId: String,
     val buildVersion: String? = null,
     val commitSha: String? = null,
-    val packagesPrefixes: List<String> = emptyList()
+    @Transient val packagesPrefixes: List<String> = emptyList()
 ) : AgentMessage()
