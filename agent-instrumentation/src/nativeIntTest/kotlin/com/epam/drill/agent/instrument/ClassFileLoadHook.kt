@@ -20,10 +20,7 @@ import org.objectweb.asm.ClassReader
 import io.ktor.utils.io.bits.Memory
 import io.ktor.utils.io.bits.loadByteArray
 import io.ktor.utils.io.bits.of
-import com.epam.drill.agent.instrument.transformers.clients.ApacheHttpClientTransformer
-import com.epam.drill.agent.instrument.transformers.clients.JavaHttpClientTransformer
-import com.epam.drill.agent.instrument.transformers.clients.OkHttp3ClientTransformer
-import com.epam.drill.agent.instrument.transformers.clients.SpringWebClientTransformer
+import com.epam.drill.agent.instrument.transformers.clients.*
 import com.epam.drill.agent.instrument.transformers.servers.*
 import com.epam.drill.jvmapi.gen.Allocate
 import com.epam.drill.jvmapi.gen.jint
@@ -36,6 +33,10 @@ object ClassFileLoadHook {
         JavaHttpClientTransformer,
         ApacheHttpClientTransformer,
         OkHttp3ClientTransformer,
+        JettyWsClientTransformer,
+        NettyWsClientTransformer,
+        TomcatWsClientTransformer,
+        UndertowWsClientTransformer,
         TomcatTransformer,
         TomcatWsTransformer,
         NettyTransformer,
