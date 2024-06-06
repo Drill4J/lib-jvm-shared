@@ -17,6 +17,7 @@ package com.epam.drill.agent.instrument.clients
 
 import javassist.CtBehavior
 import javassist.CtClass
+import javassist.NotFoundException
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
@@ -30,21 +31,25 @@ abstract class TomcatWsClientTransformerObject : HeadersProcessor, AbstractTrans
 
     override fun transform(className: String, ctClass: CtClass) {
         logger.info { "transform: Starting TomcatWsClientTransformer..." }
-        ctClass.getMethod("createRequestHeaders", "(Ljava/lang/String;IZLjavax/websocket/ClientEndpointConfig;)Ljava/util/Map;")
-            .insertCatching(
-                CtBehavior::insertAfter,
-                """
-                if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) { 
-                    java.util.Map headers = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
-                    java.util.Iterator iterator = headers.entrySet().iterator();             
-                    while (iterator.hasNext()) {
-                        java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
-                        ${'$'}_.put((String) entry.getKey(), java.util.Collections.singletonList((String) entry.getValue()));
-                    }
-                    ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(headers);
+        val method = try {
+            ctClass.getMethod("createRequestHeaders", "(Ljava/lang/String;IZLjavax/websocket/ClientEndpointConfig;)Ljava/util/Map;")
+        } catch (e: NotFoundException) {
+            ctClass.getMethod("createRequestHeaders", "(Ljava/lang/String;IZLjakarta/websocket/ClientEndpointConfig;)Ljava/util/Map;")
+        }
+        method.insertCatching(
+            CtBehavior::insertAfter,
+            """
+            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) { 
+                java.util.Map headers = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
+                java.util.Iterator iterator = headers.entrySet().iterator();             
+                while (iterator.hasNext()) {
+                    java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
+                    ${'$'}_.put((String) entry.getKey(), java.util.Collections.singletonList((String) entry.getValue()));
                 }
-                """.trimIndent()
-            )
+                ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(headers);
+            }
+            """.trimIndent()
+        )
     }
 
 }

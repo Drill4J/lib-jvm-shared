@@ -99,11 +99,15 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, AbstractTransform
         val onBinaryMethod = ctClass.getMethod("onBinary", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/StreamSourceFrameChannel;)V")
         val storeHeadersCode =
             """
-            ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(this.session.getHandshakeHeaders());
+            if (this.session.getHandshakeHeaders() != null) {
+                ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(this.session.getHandshakeHeaders());
+            }
             """.trimIndent()
         val removeHeadersCode =
             """
-            ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
+            if (this.session.getHandshakeHeaders() != null) {
+                ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
+            }
             """.trimIndent()
         onTextMethod.insertCatching(CtBehavior::insertBefore, storeHeadersCode)
         onTextMethod.insertCatching(CtBehavior::insertAfter, removeHeadersCode)

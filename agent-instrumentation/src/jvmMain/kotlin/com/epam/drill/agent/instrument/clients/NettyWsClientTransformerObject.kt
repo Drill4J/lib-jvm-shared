@@ -33,7 +33,7 @@ abstract class NettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
         ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting NettyWsTransformerObject for $className..." }
+        logger.info { "transform: Starting NettyWsClientTransformerObject for $className..." }
         when (className) {
             "io/netty/bootstrap/Bootstrap" -> transformBootstrap(ctClass)
             "io/netty/handler/codec/http/websocketx/WebSocketClientHandshaker" -> transformClientHandshaker(ctClass)
@@ -68,7 +68,8 @@ abstract class NettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
                      if (!customHeaders.contains((String) entry.getKey())) {
                          customHeaders.add((String) entry.getKey(), entry.getValue());
                      }
-                }                    
+                }
+                ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(drillHeaders);
             }
             """.trimIndent()
         )
