@@ -26,12 +26,22 @@ abstract class JettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        "org/eclipse/jetty/websocket/client/WebSocketClient" == className
+        listOf(
+            "org/eclipse/jetty/websocket/client/WebSocketClient",
+            "org/eclipse/jetty/websocket/core/client/WebSocketCoreClient"
+        ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting JettyWsClientTransformer..." }
-        ctClass.getMethod("connect", "(Ljava/lang/Object;Ljava/net/URI;Lorg/eclipse/jetty/websocket/client/ClientUpgradeRequest;Lorg/eclipse/jetty/websocket/client/io/UpgradeListener;)Ljava/util/concurrent/Future;")
-            .insertCatching(
+        logger.info { "transform: Starting JettyWsClientTransformer for $className..." }
+        when (className) {
+            "org/eclipse/jetty/websocket/client/WebSocketClient" -> transformWebSocketClient(ctClass)
+            "org/eclipse/jetty/websocket/core/client/WebSocketCoreClient" -> transformWebSocketCoreClient(ctClass)
+        }
+    }
+
+    private fun transformWebSocketClient(ctClass: CtClass) = ctClass
+        .getMethod("connect", "(Ljava/lang/Object;Ljava/net/URI;Lorg/eclipse/jetty/websocket/client/ClientUpgradeRequest;Lorg/eclipse/jetty/websocket/client/io/UpgradeListener;)Ljava/util/concurrent/Future;")
+        .insertCatching(
             CtBehavior::insertBefore,
             """
             if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) { 
@@ -45,6 +55,22 @@ abstract class JettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
             }
             """.trimIndent()
         )
-    }
+
+    private fun transformWebSocketCoreClient(ctClass: CtClass) = ctClass
+        .getMethod("connect", "(Lorg/eclipse/jetty/websocket/core/client/CoreClientUpgradeRequest;)Ljava/util/concurrent/CompletableFuture;")
+        .insertCatching(
+            CtBehavior::insertBefore,
+            """
+            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) { 
+                java.util.Map headers = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
+                java.util.Iterator iterator = headers.entrySet().iterator();             
+                while (iterator.hasNext()) {
+                    java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
+                    $1.addHeader(new org.eclipse.jetty.http.HttpField((String) entry.getKey(), (String) entry.getValue()));
+                }
+                ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(headers);
+            }
+            """.trimIndent()
+        )
 
 }

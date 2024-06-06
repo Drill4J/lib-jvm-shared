@@ -33,7 +33,7 @@ abstract class NettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
         ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting NettyWsClientTransformerObject for $className..." }
+        logger.info { "transform: Starting NettyWsClientTransformer for $className..." }
         when (className) {
             "io/netty/bootstrap/Bootstrap" -> transformBootstrap(ctClass)
             "io/netty/handler/codec/http/websocketx/WebSocketClientHandshaker" -> transformClientHandshaker(ctClass)

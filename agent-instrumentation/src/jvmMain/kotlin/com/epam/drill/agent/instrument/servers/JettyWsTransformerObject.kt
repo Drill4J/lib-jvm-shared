@@ -17,7 +17,7 @@ package com.epam.drill.agent.instrument.servers
 
 import javassist.CtBehavior
 import javassist.CtClass
-import javassist.CtMethod
+import javassist.CtNewMethod
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
@@ -37,6 +37,8 @@ abstract class JettyWsTransformerObject : HeadersProcessor, AbstractTransformerO
             "org/eclipse/jetty/websocket/common/events/AbstractEventDriver",
             "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler",
             "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketFrameHandler",
+            "org/eclipse/jetty/websocket/javax/common/UpgradeRequest",
+            "org/eclipse/jetty/websocket/javax/client/internal/JavaxClientUpgradeRequest",
             "org/eclipse/jetty/websocket/javax/server/internal/JavaxServerUpgradeRequest"
         ).contains(className)
 
@@ -46,6 +48,8 @@ abstract class JettyWsTransformerObject : HeadersProcessor, AbstractTransformerO
             "org/eclipse/jetty/websocket/common/events/AbstractEventDriver" -> transformAbstractEventDriver(ctClass)
             "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler" -> transformJettyWebSocketFrameHandler(ctClass)
             "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketFrameHandler" -> transformJavaxWebSocketFrameHandler(ctClass)
+            "org/eclipse/jetty/websocket/javax/common/UpgradeRequest" -> transformUpgradeRequest(ctClass)
+            "org/eclipse/jetty/websocket/javax/client/internal/JavaxClientUpgradeRequest" -> transformJavaxClientUpgradeRequest(ctClass)
             "org/eclipse/jetty/websocket/javax/server/internal/JavaxServerUpgradeRequest" -> transformJavaxServerUpgradeRequest(ctClass)
         }
     }
@@ -85,7 +89,7 @@ abstract class JettyWsTransformerObject : HeadersProcessor, AbstractTransformerO
             """
             if ($1.isDataFrame()) {
                 java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
-                java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ upgradeHeaders = ((org.eclipse.jetty.websocket.server.internal.DelegatedServerUpgradeRequest)this.upgradeRequest).getHeaders();
+                java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ upgradeHeaders = this.upgradeRequest.getHeaders();
                 java.util.Iterator/*<java.lang.String>*/ headerNames = upgradeHeaders.keySet().iterator();
                 while (headerNames.hasNext()) {
                     java.lang.String headerName = headerNames.next();
@@ -114,7 +118,7 @@ abstract class JettyWsTransformerObject : HeadersProcessor, AbstractTransformerO
             """
             if ($1.isDataFrame()) {
                 java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
-                java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ upgradeHeaders = ((org.eclipse.jetty.websocket.javax.server.internal.JavaxServerUpgradeRequest)this.upgradeRequest).getHeadersMap();
+                java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ upgradeHeaders = this.upgradeRequest.getHeadersMap();
                 java.util.Iterator/*<java.lang.String>*/ headerNames = upgradeHeaders.keySet().iterator();
                 while (headerNames.hasNext()) {
                     java.lang.String headerName = headerNames.next();
@@ -136,8 +140,35 @@ abstract class JettyWsTransformerObject : HeadersProcessor, AbstractTransformerO
         )
     }
 
+    private fun transformUpgradeRequest(ctClass: CtClass) {
+        CtNewMethod.abstractMethod(
+            ctClass.classPool.get("java.util.Map"),
+            "getHeadersMap",
+            null,
+            null,
+            ctClass
+        ).also(ctClass::addMethod)
+    }
+
+    private fun transformJavaxClientUpgradeRequest(ctClass: CtClass) {
+        CtNewMethod.make(
+            """
+            public java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ getHeadersMap() {
+                java.util.Iterator/*<java.lang.String>*/ headerNames = this.getHeaders().getFieldNamesCollection().iterator();
+                java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ result = new java.util.HashMap();
+                while (headerNames.hasNext()) {
+                    java.lang.String headerName = (java.lang.String)headerNames.next();
+                    result.put(headerName, this.getHeaders().getValuesList(headerName));
+                }
+                return result;
+            }
+            """.trimIndent(),
+            ctClass
+        ).also(ctClass::addMethod)
+    }
+
     private fun transformJavaxServerUpgradeRequest(ctClass: CtClass) {
-        CtMethod.make(
+        CtNewMethod.make(
             """
             public java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ getHeadersMap() {
                 return this.servletRequest.getHeadersMap();
