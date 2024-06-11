@@ -35,6 +35,7 @@ kotlin {
             dependencies {
                 compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
                 api(project(":common"))
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
             }
         }
     }
