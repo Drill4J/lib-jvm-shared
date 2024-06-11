@@ -17,14 +17,24 @@ package com.epam.drill.common.agent.configuration
 
 import kotlinx.serialization.Serializable
 import com.epam.drill.common.agent.transport.AgentMessage
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Transient
+import kotlinx.serialization.protobuf.ProtoNumber
 
 @Serializable
+@ExperimentalSerializationApi
 data class AgentMetadata(
+    @ProtoNumber(1)
     val groupId: String,
+    @ProtoNumber(2)
     val appId: String,
+    @ProtoNumber(3)
     val instanceId: String,
-    val buildVersion: String? = null,
+    @ProtoNumber(4)
     val commitSha: String? = null,
-    @Transient val packagesPrefixes: List<String> = emptyList()
+    @ProtoNumber(5)
+    val buildVersion: String? = null,
+    @ProtoNumber(6)
+    @Transient
+    val packagesPrefixes: List<String> = emptyList()
 ) : AgentMessage()

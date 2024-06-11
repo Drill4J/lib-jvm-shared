@@ -15,10 +15,15 @@
  */
 package com.epam.drill.common.agent.transport
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.protobuf.ProtoNumber
 
 @Serializable
+@ExperimentalSerializationApi
 open class ReferencingAgentMessage<T: AgentMessage>(
+    @ProtoNumber(1)
     open var agentReference: AgentReference?,
+    @ProtoNumber(2)
     open val agentMessage: T
 ): AgentMessage()

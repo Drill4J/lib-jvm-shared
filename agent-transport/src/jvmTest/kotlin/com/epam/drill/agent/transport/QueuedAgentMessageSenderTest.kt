@@ -33,10 +33,11 @@ import io.mockk.ThrowingAnswer
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.verify
+import kotlinx.serialization.protobuf.ProtoNumber
 
 class QueuedAgentMessageSenderTest {
 
-    private class TestAgentMessage(val msg: String) : AgentMessage()
+    private class TestAgentMessage(@ProtoNumber(0) val msg: String) : AgentMessage()
 
     @MockK
     private lateinit var messageTransport: AgentMessageTransport<String>

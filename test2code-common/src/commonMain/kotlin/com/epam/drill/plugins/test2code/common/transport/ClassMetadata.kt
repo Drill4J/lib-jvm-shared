@@ -18,13 +18,22 @@ package com.epam.drill.plugins.test2code.common.transport
 import kotlinx.serialization.Serializable
 import com.epam.drill.common.agent.transport.AgentMessage
 import com.epam.drill.plugins.test2code.common.api.AstMethod
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.protobuf.ProtoNumber
 
 @Serializable
+@ExperimentalSerializationApi
 data class ClassMetadata(
+    @ProtoNumber(1)
     val groupId: String,
+    @ProtoNumber(2)
     val appId: String,
+    @ProtoNumber(3)
     val commitSha: String? = null,
+    @ProtoNumber(4)
     val buildVersion: String? = null,
+    @ProtoNumber(5)
     val instanceId: String,
+    @ProtoNumber(6)
     val methods: List<AstMethod>
 ): AgentMessage()
