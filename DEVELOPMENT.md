@@ -116,6 +116,10 @@ To set up environment for local development please perform following steps:
 2. Clone component repository, checkout corresponding branch
 3. Run script to set up **lib-jvm-shared** repository from Git: setup-shared-libs.bat/setup-shared-libs.sh 
 
+NOTE for MacOS users (Intel-base):MacOS users with Intel-based systems might encounter the error `unknown parameter --sdk-version`
+during local builds. This issue arises due to the new linker in Xcode. To resolve it, set `macosLd64` to `true` in the `gradle.properties` 
+file and add the `-ld64` parameter to `linkerOpts` for the `macosX64` target.
+
 ## Making changes
 
 There is following workflow to make changes to component code:
