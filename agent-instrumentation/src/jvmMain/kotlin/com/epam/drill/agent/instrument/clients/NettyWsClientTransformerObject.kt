@@ -29,7 +29,8 @@ abstract class NettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         listOf(
             "io/netty/bootstrap/Bootstrap",
-            "io/netty/handler/codec/http/websocketx/WebSocketClientHandshaker"
+            "io/netty/handler/codec/http/websocketx/WebSocketClientHandshaker",
+            "org/springframework/web/reactive/socket/client/ReactorNettyWebSocketClient"
         ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
@@ -37,6 +38,7 @@ abstract class NettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
         when (className) {
             "io/netty/bootstrap/Bootstrap" -> transformBootstrap(ctClass)
             "io/netty/handler/codec/http/websocketx/WebSocketClientHandshaker" -> transformClientHandshaker(ctClass)
+            "org/springframework/web/reactive/socket/client/ReactorNettyWebSocketClient" -> transformReactorNettyWebSocketClient(ctClass)
         }
     }
 
@@ -67,6 +69,25 @@ abstract class NettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
                      java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
                      if (!customHeaders.contains((String) entry.getKey())) {
                          customHeaders.add((String) entry.getKey(), entry.getValue());
+                     }
+                }
+                ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(drillHeaders);
+            }
+            """.trimIndent()
+        )
+
+    private fun transformReactorNettyWebSocketClient(ctClass: CtClass) = ctClass
+        .getMethod("setNettyHeaders", "(Lorg/springframework/http/HttpHeaders;Lio/netty/handler/codec/http/HttpHeaders;)V")
+        .insertCatching(
+            CtBehavior::insertAfter,
+            """
+            if(${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+                java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
+                java.util.Iterator iterator = drillHeaders.entrySet().iterator();
+                while (iterator.hasNext()) {
+                     java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
+                     if (!$2.contains((String) entry.getKey())) {
+                         $2.add((String) entry.getKey(), entry.getValue());
                      }
                 }
                 ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(drillHeaders);
