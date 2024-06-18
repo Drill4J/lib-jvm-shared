@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.transformers.servers
+package com.epam.drill.agent.instrument.transformers.reactor
 
 import com.epam.drill.agent.instrument.*
-import com.epam.drill.agent.instrument.servers.ReactorTransformerObject
-import com.epam.drill.agent.instrument.transformers.reactor.FluxTransformer
-import com.epam.drill.agent.instrument.transformers.reactor.MonoTransformer
-import com.epam.drill.agent.instrument.transformers.reactor.ParallelFluxTransformer
-import com.epam.drill.agent.instrument.transformers.reactor.SchedulersTransformer
-import com.epam.drill.agent.instrument.transformers.reactor.TaskExecutorTransformer
+import com.epam.drill.agent.instrument.reactor.transformers.TaskExecutorTransformerObject
 import com.epam.drill.common.agent.request.RequestHolder
 
-actual object ReactorTransformer :
-    TransformerObject,
-    ReactorTransformerObject(
-        setOf(
-            FluxTransformer, MonoTransformer, ParallelFluxTransformer, SchedulersTransformer, TaskExecutorTransformer
-        )
-    ),
+object TaskExecutorTransformer: TransformerObject,
+    TaskExecutorTransformerObject(),
     RequestHolder by TestRequestHolder,
     ClassPathProvider by TestClassPathProvider

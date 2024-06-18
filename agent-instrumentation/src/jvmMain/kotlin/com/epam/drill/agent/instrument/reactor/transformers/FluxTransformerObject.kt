@@ -34,7 +34,7 @@ abstract class FluxTransformerObject :
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        className == FLUX_CLASS_NAME
+        className == "reactor/core/publisher/Flux"
 
     override fun transform(className: String, ctClass: CtClass) {
         ctClass.getMethod("onAssembly", "(Lreactor/core/publisher/Flux;)Lreactor/core/publisher/Flux;").insertCatching(

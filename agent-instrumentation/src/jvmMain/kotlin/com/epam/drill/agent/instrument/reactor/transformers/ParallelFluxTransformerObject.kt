@@ -34,7 +34,7 @@ abstract class ParallelFluxTransformerObject :
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        className == PARALLEL_FLUX_CLASS_NAME
+        className == "reactor/core/publisher/ParallelFlux"
 
     override fun transform(className: String, ctClass: CtClass) {
         ctClass.getMethod("onAssembly", "(Lreactor/core/publisher/ParallelFlux;)Lreactor/core/publisher/ParallelFlux;")

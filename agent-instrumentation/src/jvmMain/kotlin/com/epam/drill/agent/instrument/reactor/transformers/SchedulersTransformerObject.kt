@@ -36,7 +36,7 @@ abstract class SchedulersTransformerObject :
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        className == SCHEDULERS_CLASS_NAME
+        className == "reactor/core/scheduler/Schedulers"
 
     override fun transform(className: String, ctClass: CtClass) {
         ctClass.getDeclaredMethod("onSchedule").insertCatching(

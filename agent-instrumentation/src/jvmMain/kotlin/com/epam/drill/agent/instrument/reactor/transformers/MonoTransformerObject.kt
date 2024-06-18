@@ -34,7 +34,7 @@ abstract class MonoTransformerObject :
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        className == MONO_CLASS_NAME
+        className == "reactor/core/publisher/Mono"
 
     override fun transform(className: String, ctClass: CtClass) {
         ctClass.getMethod("onAssembly", "(Lreactor/core/publisher/Mono;)Lreactor/core/publisher/Mono;").insertCatching(
