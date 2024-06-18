@@ -17,7 +17,7 @@ package com.epam.drill.agent.instrument.clients
 
 import javassist.CtBehavior
 import javassist.CtClass
-import javassist.NotFoundException
+import javassist.CtMethod
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
@@ -31,12 +31,17 @@ abstract class TomcatWsClientTransformerObject : HeadersProcessor, AbstractTrans
 
     override fun transform(className: String, ctClass: CtClass) {
         logger.info { "transform: Starting TomcatWsClientTransformer..." }
-        val method = try {
-            ctClass.getMethod("createRequestHeaders", "(Ljava/lang/String;IZLjavax/websocket/ClientEndpointConfig;)Ljava/util/Map;")
-        } catch (e: NotFoundException) {
-            ctClass.getMethod("createRequestHeaders", "(Ljava/lang/String;IZLjakarta/websocket/ClientEndpointConfig;)Ljava/util/Map;")
+        val signatures = sequenceOf(
+            "(Ljava/lang/String;IZLjakarta/websocket/ClientEndpointConfig;)Ljava/util/Map;",
+            "(Ljava/lang/String;IZLjavax/websocket/ClientEndpointConfig;)Ljava/util/Map;",
+            "(Ljava/lang/String;ILjavax/websocket/ClientEndpointConfig;)Ljava/util/Map;"
+        )
+        val getMethod: (String) -> CtMethod? = {
+            ctClass
+                .runCatching { this.getMethod("createRequestHeaders", it) }
+                .getOrNull()
         }
-        method.insertCatching(
+        signatures.mapNotNull(getMethod).first().insertCatching(
             CtBehavior::insertAfter,
             """
             if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) { 
