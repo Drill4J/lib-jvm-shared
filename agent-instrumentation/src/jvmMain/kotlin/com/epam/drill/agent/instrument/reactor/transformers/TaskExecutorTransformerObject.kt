@@ -53,6 +53,14 @@ abstract class TaskExecutorTransformerObject : RequestHolder, AbstractTransforme
                 if (drillRequest != null) $1 = new ${PropagatedDrillRequestRunnable::class.java.name}(drillRequest, ${this::class.java.name}.INSTANCE, $1);
                 """.trimIndent()
             )
+        ctClass.getMethod("execute", "(Ljava/lang/Runnable;)V")
+            .insertCatching(
+                CtBehavior::insertBefore,
+                """
+                ${DrillRequest::class.java.name} drillRequest = ${this::class.java.name}.INSTANCE.${RequestHolder::retrieve.name}();
+                if (drillRequest != null) $1 = new ${PropagatedDrillRequestRunnable::class.java.name}(drillRequest, ${this::class.java.name}.INSTANCE, $1);
+                """.trimIndent()
+            )
     }
 
 }
