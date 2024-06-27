@@ -17,7 +17,9 @@ package com.epam.drill.agent.instrument.transformers.servers
 
 import com.epam.drill.agent.instrument.ClassPathProvider
 import com.epam.drill.agent.instrument.DrillRequestHeadersProcessor
+import com.epam.drill.agent.instrument.DrillRequestPayloadProcessor
 import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.agent.instrument.PayloadProcessor
 import com.epam.drill.agent.instrument.TestClassPathProvider
 import com.epam.drill.agent.instrument.TestHeadersRetriever
 import com.epam.drill.agent.instrument.TestRequestHolder
@@ -28,4 +30,5 @@ actual object UndertowWsTransformer :
     TransformerObject,
     UndertowWsTransformerObject(),
     HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder),
+    PayloadProcessor by DrillRequestPayloadProcessor(),
     ClassPathProvider by TestClassPathProvider

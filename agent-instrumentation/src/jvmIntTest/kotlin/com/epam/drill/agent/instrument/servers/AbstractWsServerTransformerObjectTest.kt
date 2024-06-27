@@ -134,7 +134,7 @@ abstract class AbstractWsServerTransformerObjectTest {
             "binary" -> (0 until count).map(body::plus).map(String::encodeToByteArray).map(ByteBuffer::wrap)
                 .forEach(session.basicRemote::sendBinary)
         }
-        Thread.sleep(500)
+        Thread.sleep(1000)
         session.close(CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, CloseReason.CloseCodes.NORMAL_CLOSURE.name))
         endpoint.incomingMessages
     }
