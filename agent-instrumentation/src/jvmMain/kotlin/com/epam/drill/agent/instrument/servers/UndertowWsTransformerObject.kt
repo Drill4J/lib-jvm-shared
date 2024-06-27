@@ -59,7 +59,9 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
         listOf(
             "io/undertow/websockets/jsr/UndertowSession",
             "io/undertow/websockets/jsr/EndpointSessionHandler",
-            "io/undertow/websockets/jsr/FrameHandler"
+            "io/undertow/websockets/jsr/FrameHandler",
+            "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint",
+            "io/undertow/websockets/core/WebSockets"
         ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
@@ -68,6 +70,8 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
             "io/undertow/websockets/jsr/UndertowSession" -> transformSession(ctClass)
             "io/undertow/websockets/jsr/EndpointSessionHandler" -> transformSessionHandler(ctClass)
             "io/undertow/websockets/jsr/FrameHandler" -> transformFrameHandler(ctClass)
+            "io/undertow/websockets/jsr?WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint" -> transformBasicRemoteEndpoint(ctClass)
+            "io/undertow/websockets/core/WebSockets" -> transformWebSockets(ctClass)
         }
     }
 
@@ -195,6 +199,43 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
             """
             if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
                 $1 = new ${binaryMessageProxy}($1);
+            }
+            """.trimIndent()
+        )
+    }
+
+    private fun transformBasicRemoteEndpoint(ctClass: CtClass) {
+        ctClass.getMethod("sendText", "(Ljava/lang.String;Z)V").insertCatching(
+            CtBehavior::insertBefore,
+            """
+            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+                $1 = ${this::class.java.name}.INSTANCE.storePayload($1, ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}());
+            }
+            """.trimIndent()
+        )
+        ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Z)V").insertCatching(
+            CtBehavior::insertBefore,
+            """
+            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+                byte[] original = org.xnio.Buffers.take($1);
+                byte[] modified = ${this::class.java.name}.INSTANCE.storePayload(original, ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}());
+                $1.clear();
+                $1 = java.nio.ByteBuffer.wrap(modified);
+            }
+            """.trimIndent()
+        )
+    }
+
+    private fun transformWebSockets(ctClass: CtClass) {
+        val method = ctClass.getMethod("sendBlockingInternal", "(Ljava/nio/ByteBuffer;Lio/undertow/websockets/core/WebSocketFrameType;Lio/undertow/websockets/core/WebSocketChannel;)V")
+        method.insertCatching(
+            CtBehavior::insertBefore,
+            """
+            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+                byte[] original = org.xnio.Buffers.take($1);
+                byte[] modified = ${this::class.java.name}.INSTANCE.storePayload(original, ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}());
+                $1.clear();
+                $1 = java.nio.ByteBuffer.wrap(modified);
             }
             """.trimIndent()
         )
