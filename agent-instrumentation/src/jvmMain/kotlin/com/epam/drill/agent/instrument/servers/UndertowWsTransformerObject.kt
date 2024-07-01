@@ -87,9 +87,7 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
         @FieldValue("target") target: Any
     ) = (method.invoke(target) as String)
         .also { logger.trace { "delegatedTextMessageData: Payload received: $it" } }
-        .let(::retrievePayload)
-        .also { storeHeaders(it.second) }
-        .let(Pair<String, Map<String, String>>::first)
+        .let(::retrieveDrillHeaders)
 
     @RuntimeType
     fun delegatedBinaryMessageData(
@@ -116,13 +114,10 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
                 .getMethod("take", Array<ByteBuffer>::class.java, Int::class.java, Int::class.java)
                 .invoke(null, buffers, 0, buffers.size) as ByteArray
         }
-        val buffer = array
-            .also { logger.trace { "delegatedPooledResource: Payload received: ${it.decodeToString()}" } }
-            .let(::retrievePayload)
-            .also { storeHeaders(it.second) }
-            .let(Pair<ByteArray, Map<String, String>>::first)
+        array.also { logger.trace { "delegatedPooledResource: Payload received: ${it.decodeToString()}" } }
+            .let(::retrieveDrillHeaders)
             .let(ByteBuffer::wrap)
-        arrayOf(buffer)
+            .let { arrayOf(it) }
     }
 
     private fun transformSession(ctClass: CtClass) {
@@ -208,7 +203,7 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
             CtBehavior::insertBefore,
             """
             if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
-                $1 = ${this::class.java.name}.INSTANCE.storePayload($1, ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}());
+                $1 = ${this::class.java.name}.INSTANCE.storeDrillHeaders($1);
             }
             """.trimIndent()
         )
@@ -216,8 +211,7 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
             CtBehavior::insertBefore,
             """
             if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
-                byte[] original = org.xnio.Buffers.take($1);
-                byte[] modified = ${this::class.java.name}.INSTANCE.storePayload(original, ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}());
+                byte[] modified = ${this::class.java.name}.INSTANCE.storeDrillHeaders(org.xnio.Buffers.take($1));
                 $1.clear();
                 $1 = java.nio.ByteBuffer.wrap(modified);
             }
@@ -233,8 +227,7 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
             CtBehavior::insertBefore,
             """
             if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
-                byte[] original = org.xnio.Buffers.take($1);
-                byte[] modified = ${this::class.java.name}.INSTANCE.storePayload(original, ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}());
+                byte[] modified = ${this::class.java.name}.INSTANCE.storeDrillHeaders(org.xnio.Buffers.take($1));
                 $1.clear();
                 $1 = java.nio.ByteBuffer.wrap(modified);
             }

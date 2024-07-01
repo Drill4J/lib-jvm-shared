@@ -4,31 +4,34 @@ private const val PAYLOAD_PREFIX = "\n\ndrill-payload-begin\n"
 private const val PAYLOAD_SUFFIX = "\ndrill-payload-end"
 
 class DrillRequestPayloadProcessor(
-    private val enabled: Boolean = true
+    private val enabled: Boolean = true,
+    private val headersProcessor: HeadersProcessor
 ) : PayloadProcessor {
 
-    override fun retrievePayload(message: String) = message
-        .takeIf { it.endsWith(PAYLOAD_SUFFIX) }
+    override fun retrieveDrillHeaders(message: String) = message.takeIf { it.endsWith(PAYLOAD_SUFFIX) }
         ?.removeSuffix(PAYLOAD_SUFFIX)
-        ?.removePrefix(PAYLOAD_PREFIX)
+        ?.substringAfter(PAYLOAD_PREFIX)
         ?.split("\n")
         ?.associate { it.substringBefore("=") to it.substringAfter("=", "") }
-        ?.let(message.substringBefore(PAYLOAD_PREFIX)::to)
-        ?: emptyMap<String, String>().let(message::to)
+        ?.also(headersProcessor::storeHeaders)
+        ?.let { message.substringBefore(PAYLOAD_PREFIX) }
+        ?: message
 
-    override fun retrievePayload(message: ByteArray) =
-        retrievePayload(message.decodeToString()).let { it.first.encodeToByteArray() to it.second }
+    override fun retrieveDrillHeaders(message: ByteArray) =
+        retrieveDrillHeaders(message.decodeToString()).encodeToByteArray()
 
-    override fun storePayload(message: String, headers: Map<String, String>) = headers
-        .map { (k, v) -> "$k=$v" }
-        .joinToString("\n", PAYLOAD_PREFIX, PAYLOAD_SUFFIX)
-        .let(message::plus)
+    override fun storeDrillHeaders(message: String) = headersProcessor.retrieveHeaders()
+        ?.map { (k, v) -> "$k=$v" }
+        ?.joinToString("\n", PAYLOAD_PREFIX, PAYLOAD_SUFFIX)
+        ?.let(message::plus)
+        ?: message
 
-    override fun storePayload(message: ByteArray, headers: Map<String, String>) =
-        storePayload(message.decodeToString(), headers).encodeToByteArray()
+    override fun storeDrillHeaders(message: ByteArray) =
+        storeDrillHeaders(message.decodeToString()).encodeToByteArray()
 
     override fun isPayloadProcessingEnabled() = enabled
 
-    override fun isPayloadProcessingSupported(headers: Map<String, String>) = true
+    override fun isPayloadProcessingSupported(headers: Map<String, String>) =
+        headers.containsKey("drill-ws-per-message") && headers["drill-ws-per-message"].toBoolean()
 
 }

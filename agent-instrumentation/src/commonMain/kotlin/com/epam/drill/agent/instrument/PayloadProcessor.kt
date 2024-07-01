@@ -1,10 +1,10 @@
 package com.epam.drill.agent.instrument
 
 interface PayloadProcessor {
-    fun retrievePayload(message: String): Pair<String, Map<String, String>>
-    fun retrievePayload(message: ByteArray): Pair<ByteArray, Map<String, String>>
-    fun storePayload(message: String, headers: Map<String, String>): String
-    fun storePayload(message: ByteArray, headers: Map<String, String>): ByteArray
+    fun retrieveDrillHeaders(message: String): String
+    fun retrieveDrillHeaders(message: ByteArray): ByteArray
+    fun storeDrillHeaders(message: String): String
+    fun storeDrillHeaders(message: ByteArray): ByteArray
     fun isPayloadProcessingEnabled(): Boolean
     fun isPayloadProcessingSupported(headers: Map<String, String>): Boolean
 }

@@ -29,6 +29,8 @@ import com.epam.drill.agent.instrument.servers.UndertowWsTransformerObject
 actual object UndertowWsTransformer :
     TransformerObject,
     UndertowWsTransformerObject(),
-    HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder),
-    PayloadProcessor by DrillRequestPayloadProcessor(),
+    HeadersProcessor by headersProcessor,
+    PayloadProcessor by DrillRequestPayloadProcessor(true, headersProcessor),
     ClassPathProvider by TestClassPathProvider
+
+private val headersProcessor = DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder)
