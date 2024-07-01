@@ -3,7 +3,9 @@ package com.epam.drill.agent.instrument
 private const val PAYLOAD_PREFIX = "\n\ndrill-payload-begin\n"
 private const val PAYLOAD_SUFFIX = "\ndrill-payload-end"
 
-class DrillRequestPayloadProcessor : PayloadProcessor {
+class DrillRequestPayloadProcessor(
+    private val enabled: Boolean = true
+) : PayloadProcessor {
 
     override fun retrievePayload(message: String) = message
         .takeIf { it.endsWith(PAYLOAD_SUFFIX) }
@@ -24,5 +26,9 @@ class DrillRequestPayloadProcessor : PayloadProcessor {
 
     override fun storePayload(message: ByteArray, headers: Map<String, String>) =
         storePayload(message.decodeToString(), headers).encodeToByteArray()
+
+    override fun isPayloadProcessingEnabled() = enabled
+
+    override fun isPayloadProcessingSupported(headers: Map<String, String>) = true
 
 }

@@ -102,16 +102,19 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
     fun delegatedPooledResource(
         @Origin method: Method,
         @FieldValue("target") target: Any
-    ) = (method.invoke(target) as Array<ByteBuffer>).let {
-        val simpleArray = it.size == 1 && it[0].hasArray()
-                && it[0].arrayOffset() == 0 && it[0].position() == 0 && it[0].array().size == it[0].remaining()
-        val array: ByteArray = if (simpleArray) {
-            it[0].array()
+    ) = (method.invoke(target) as Array<ByteBuffer>).let { buffers ->
+        val isSimpleArray = buffers.size == 1 &&
+                buffers[0].hasArray() &&
+                buffers[0].arrayOffset() == 0 &&
+                buffers[0].position() == 0 &&
+                buffers[0].array().size == buffers[0].remaining()
+        val array: ByteArray = if (isSimpleArray) {
+            buffers[0].array()
         }
         else {
             Class.forName("org.xnio.Buffers", true, target::class.java.classLoader)
                 .getMethod("take", Array<ByteBuffer>::class.java, Int::class.java, Int::class.java)
-                .invoke(null, it, 0, it.size) as ByteArray
+                .invoke(null, buffers, 0, buffers.size) as ByteArray
         }
         val buffer = array
             .also { logger.trace { "delegatedPooledResource: Payload received: ${it.decodeToString()}" } }
@@ -183,28 +186,24 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
         onTextMethod.insertCatching(CtBehavior::insertAfter, removeHeadersCode)
         onBinaryMethod.insertCatching(CtBehavior::insertBefore, storeHeadersCode)
         onBinaryMethod.insertCatching(CtBehavior::insertAfter, removeHeadersCode)
+        if (!isPayloadProcessingEnabled()) return
         val textMessageProxy = createTextMessageProxy(ctClass.classPool).name
         val binaryMessageProxy = createBinaryMessageProxy(ctClass.classPool).name
         pooledProxyClass = createPooledProxy(ctClass.classPool)
-        invokeTextHandlerMethod.insertCatching(
-            CtBehavior::insertBefore,
-            """
+        val createProxyCode: (String) -> String = { proxy ->
+        """
             if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
-                $1 = new ${textMessageProxy}($1);
+                $1 = new $proxy($1);
             }
             """.trimIndent()
-        )
-        invokeBinaryHandlerMethod.insertCatching(
-            CtBehavior::insertBefore,
-            """
-            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
-                $1 = new ${binaryMessageProxy}($1);
-            }
-            """.trimIndent()
-        )
+        }
+        invokeTextHandlerMethod.insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxy))
+        invokeBinaryHandlerMethod.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxy))
     }
 
+    @Suppress("DuplicatedCode")
     private fun transformBasicRemoteEndpoint(ctClass: CtClass) {
+        if (!isPayloadProcessingEnabled()) return
         ctClass.getMethod("sendText", "(Ljava/lang.String;Z)V").insertCatching(
             CtBehavior::insertBefore,
             """
@@ -226,7 +225,9 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
         )
     }
 
+    @Suppress("DuplicatedCode")
     private fun transformWebSockets(ctClass: CtClass) {
+        if (!isPayloadProcessingEnabled()) return
         val method = ctClass.getMethod("sendBlockingInternal", "(Ljava/nio/ByteBuffer;Lio/undertow/websockets/core/WebSocketFrameType;Lio/undertow/websockets/core/WebSocketChannel;)V")
         method.insertCatching(
             CtBehavior::insertBefore,
