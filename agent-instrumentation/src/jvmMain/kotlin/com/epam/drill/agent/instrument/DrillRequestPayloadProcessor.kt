@@ -20,14 +20,14 @@ class DrillRequestPayloadProcessor(
     override fun retrieveDrillHeaders(message: ByteArray) =
         retrieveDrillHeaders(message.decodeToString()).encodeToByteArray()
 
-    override fun storeDrillHeaders(message: String) = headersProcessor.retrieveHeaders()
+    override fun storeDrillHeaders(message: String?) = message
+        ?.let { headersProcessor.retrieveHeaders() }
         ?.map { (k, v) -> "$k=$v" }
         ?.joinToString("\n", PAYLOAD_PREFIX, PAYLOAD_SUFFIX)
         ?.let(message::plus)
-        ?: message
 
-    override fun storeDrillHeaders(message: ByteArray) =
-        storeDrillHeaders(message.decodeToString()).encodeToByteArray()
+    override fun storeDrillHeaders(message: ByteArray?) = message
+        ?.let { storeDrillHeaders(message.decodeToString())!!.encodeToByteArray() }
 
     override fun isPayloadProcessingEnabled() = enabled
 

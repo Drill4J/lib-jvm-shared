@@ -60,6 +60,7 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
             "io/undertow/websockets/jsr/UndertowSession",
             "io/undertow/websockets/jsr/EndpointSessionHandler",
             "io/undertow/websockets/jsr/FrameHandler",
+            "io/undertow/websockets/jsr/JsrWebSocketFilter",
             "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint",
             "io/undertow/websockets/core/WebSockets"
         ).contains(className)
@@ -70,6 +71,7 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
             "io/undertow/websockets/jsr/UndertowSession" -> transformSession(ctClass)
             "io/undertow/websockets/jsr/EndpointSessionHandler" -> transformSessionHandler(ctClass)
             "io/undertow/websockets/jsr/FrameHandler" -> transformFrameHandler(ctClass)
+            "io/undertow/websockets/jsr/JsrWebSocketFilter" -> transformWebSocketFilter(ctClass)
             "io/undertow/websockets/jsr?WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint" -> transformBasicRemoteEndpoint(ctClass)
             "io/undertow/websockets/core/WebSockets" -> transformWebSockets(ctClass)
         }
@@ -186,8 +188,8 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
         val binaryMessageProxy = createBinaryMessageProxy(ctClass.classPool).name
         pooledProxyClass = createPooledProxy(ctClass.classPool)
         val createProxyCode: (String) -> String = { proxy ->
-        """
-            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+            """
+            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.session.getHandshakeHeaders())) {
                 $1 = new $proxy($1);
             }
             """.trimIndent()
@@ -196,13 +198,34 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
         invokeBinaryHandlerMethod.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxy))
     }
 
-    @Suppress("DuplicatedCode")
+    private fun transformWebSocketFilter(ctClass: CtClass) {
+        if (!isPayloadProcessingEnabled()) return
+        val method = ctClass.getMethod("doFilter", "(Ljavax/servlet/ServletRequest;Ljavax/servlet/ServletResponse;Ljavax/servlet/FilterChain;)V")
+        method.insertCatching(
+            CtBehavior::insertBefore,
+            """
+            ((javax.servlet.http.HttpServletResponse)$2).setHeader("drill-ws-per-message", "true");
+            """.trimIndent()
+        )
+    }
+
     private fun transformBasicRemoteEndpoint(ctClass: CtClass) {
         if (!isPayloadProcessingEnabled()) return
+        val propagateHandshakeHeaderCode =
+            """
+            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && this.undertowSession.getHandshakeHeaders() != null && ) {
+                java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
+                drillHeaders.put("drill-ws-per-message", this.undertowSession.getHandshakeHeaders().get("drill-ws-per-message"));
+                ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
+            }
+            """.trimIndent()
+        ctClass.getMethod("sendText", "(Ljava/lang.String;)V").insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+        ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;)V").insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+        ctClass.getMethod("sendObject", "(Ljava/lang/Object;)V").insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
         ctClass.getMethod("sendText", "(Ljava/lang.String;Z)V").insertCatching(
             CtBehavior::insertBefore,
             """
-            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.undertowSession.getHandshakeHeaders())) {
                 $1 = ${this::class.java.name}.INSTANCE.storeDrillHeaders($1);
             }
             """.trimIndent()
@@ -210,7 +233,7 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
         ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Z)V").insertCatching(
             CtBehavior::insertBefore,
             """
-            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.undertowSession.getHandshakeHeaders())) {
                 byte[] modified = ${this::class.java.name}.INSTANCE.storeDrillHeaders(org.xnio.Buffers.take($1));
                 $1.clear();
                 $1 = java.nio.ByteBuffer.wrap(modified);
@@ -219,14 +242,13 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
         )
     }
 
-    @Suppress("DuplicatedCode")
     private fun transformWebSockets(ctClass: CtClass) {
         if (!isPayloadProcessingEnabled()) return
         val method = ctClass.getMethod("sendBlockingInternal", "(Ljava/nio/ByteBuffer;Lio/undertow/websockets/core/WebSocketFrameType;Lio/undertow/websockets/core/WebSocketChannel;)V")
         method.insertCatching(
             CtBehavior::insertBefore,
             """
-            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}())) {
                 byte[] modified = ${this::class.java.name}.INSTANCE.storeDrillHeaders(org.xnio.Buffers.take($1));
                 $1.clear();
                 $1 = java.nio.ByteBuffer.wrap(modified);
