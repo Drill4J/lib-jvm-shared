@@ -43,7 +43,7 @@ abstract class TomcatTransformerObject(
         val adminUrl = headersRetriever.adminAddressValue()
         val agentIdHeader = headersRetriever.agentIdHeader()
         val agentIdValue = headersRetriever.agentIdHeaderValue()
-        logger.info { "transform: Starting TomcatTransformer with admin host $adminUrl..." }
+        logger.debug { "transform: Starting TomcatTransformer with admin host $adminUrl..." }
         val method = try {
             ctClass.getMethod("doFilter", "(Ljavax/servlet/ServletRequest;Ljavax/servlet/ServletResponse;)V")
         } catch (e: NotFoundException) {

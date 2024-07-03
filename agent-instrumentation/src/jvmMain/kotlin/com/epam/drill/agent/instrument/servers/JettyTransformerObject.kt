@@ -37,7 +37,7 @@ abstract class JettyTransformerObject(
         val adminUrl = headersRetriever.adminAddressValue()
         val agentIdHeader = headersRetriever.agentIdHeader()
         val agentIdValue = headersRetriever.agentIdHeaderValue()
-        logger.info { "transform: Starting JettyTransformer with admin host $adminUrl..." }
+        logger.debug { "transform: Starting JettyTransformer with admin host $adminUrl..." }
         val method = ctClass.getDeclaredMethod("handle")
         method.insertCatching(
             CtBehavior::insertBefore,

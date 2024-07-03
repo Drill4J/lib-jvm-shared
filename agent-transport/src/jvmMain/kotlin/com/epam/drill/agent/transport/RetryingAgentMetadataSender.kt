@@ -42,7 +42,7 @@ class RetryingAgentMetadataSender<T>(
         val cType = contentType.takeIf(String::isNotEmpty) ?: messageSerializer.contentType()
         val send: () -> ResponseStatus = { transport.send(destination, metadata, cType) }
         val logError: (Throwable) -> Unit = { logger.error(it) { "send: Attempt is failed: $it" } }
-        val logResp: (ResponseStatus) -> Unit = { logger.info { "send: HTTP status received: ${it.statusObject}" } }
+        val logResp: (ResponseStatus) -> Unit = { logger.debug { "send: HTTP status received: ${it.statusObject}" } }
         logger.debug { "send: Sending to admin server" }
         var success = false
         while(!success) {
