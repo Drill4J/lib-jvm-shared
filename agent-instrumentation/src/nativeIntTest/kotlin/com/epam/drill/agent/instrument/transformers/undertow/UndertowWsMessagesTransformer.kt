@@ -15,11 +15,7 @@
  */
 package com.epam.drill.agent.instrument.transformers.undertow
 
-import com.epam.drill.agent.instrument.*
-import com.epam.drill.agent.instrument.undertow.UndertowWsClientTransformerObject
+import com.epam.drill.agent.instrument.AbstractTransformerObject
+import com.epam.drill.agent.instrument.TransformerObject
 
-actual object UndertowWsClientTransformer:
-    TransformerObject,
-    UndertowWsClientTransformerObject(),
-    HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder),
-    ClassPathProvider by TestClassPathProvider
+actual object UndertowWsMessagesTransformer : TransformerObject, AbstractTransformerObject()

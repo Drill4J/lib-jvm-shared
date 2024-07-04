@@ -37,19 +37,20 @@ object ClassFileLoadHook {
         JettyWsClientTransformer,
         NettyWsClientTransformer,
         TomcatWsClientTransformer,
-        UndertowWsClientTransformer,
         TomcatTransformer,
         TomcatWsTransformer,
         NettyTransformer,
         NettyWsTransformer,
-        UndertowHttpServerTransformer,
-        UndertowWsServerTransformer,
         SSLEngineTransformer,
         KafkaTransformer,
         JettyTransformer,
         JettyWsTransformer,
         ReactorTransformer,
-        SpringWebClientTransformer
+        SpringWebClientTransformer,
+        UndertowHttpServerTransformer,
+        UndertowWsServerTransformer,
+        UndertowWsClientTransformer,
+        UndertowWsMessagesTransformer
     )
 
     operator fun invoke(

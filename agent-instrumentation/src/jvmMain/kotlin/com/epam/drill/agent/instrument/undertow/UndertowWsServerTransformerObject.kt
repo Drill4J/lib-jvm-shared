@@ -23,7 +23,6 @@ import javassist.NotFoundException
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
-import com.epam.drill.agent.instrument.PayloadProcessor
 
 /**
  * Transformer for Undertow-based websockets
@@ -31,7 +30,7 @@ import com.epam.drill.agent.instrument.PayloadProcessor
  * Tested with:
  *      io.undertow:undertow-websockets-jsr:2.0.29.Final
  */
-abstract class UndertowWsServerTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
+abstract class UndertowWsServerTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
     private var openingSession: ThreadLocal<Map<String, String>?> = ThreadLocal()
@@ -43,7 +42,7 @@ abstract class UndertowWsServerTransformerObject : HeadersProcessor, PayloadProc
     ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting UndertowWsTransformer for $className..." }
+        logger.info { "transform: Starting UndertowWsServerTransformer for $className..." }
         when (className) {
             "io/undertow/websockets/jsr/UndertowSession" -> transformSession(ctClass)
             "io/undertow/websockets/jsr/EndpointSessionHandler" -> transformSessionHandler(ctClass)

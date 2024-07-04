@@ -40,7 +40,7 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
     ).contains(className) || "io/undertow/websockets/client/WebSocketClientHandshake" == superName
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting UndertowWsTransformer for $className..." }
+        logger.info { "transform: Starting UndertowWsMessagesTransformer for $className..." }
         when (className) {
             "io/undertow/websockets/jsr/FrameHandler" -> transformFrameHandler(ctClass)
             "io/undertow/websockets/jsr/JsrWebSocketFilter" -> transformWebSocketFilter(ctClass)
@@ -156,7 +156,7 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             """.trimIndent()
         ctClass.getMethod("sendBlockingInternal", "(Ljava/nio/ByteBuffer;Lio/undertow/websockets/core/WebSocketFrameType;Lio/undertow/websockets/core/WebSocketChannel;)V")
             .insertCatching(CtBehavior::insertBefore, wrapByteBufferCode)
-        ctClass.getMethod("sendInternal", "(Ljava/nio/ByteBuffer;Lio/undertow/websockets/core/WebSocketFrameType;Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/WebSocketCallback;Ljava.lang.Object;J)V")
+        ctClass.getMethod("sendInternal", "(Ljava/nio/ByteBuffer;Lio/undertow/websockets/core/WebSocketFrameType;Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/WebSocketCallback;Ljava/lang/Object;J)V")
             .insertCatching(CtBehavior::insertBefore, wrapByteBufferCode)
     }
 

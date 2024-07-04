@@ -23,9 +23,8 @@ import javassist.NotFoundException
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
-import com.epam.drill.agent.instrument.PayloadProcessor
 
-abstract class UndertowWsClientTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
+abstract class UndertowWsClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
