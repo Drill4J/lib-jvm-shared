@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.undertow
 
 import kotlin.reflect.KCallable
 import java.lang.reflect.Method
@@ -48,7 +48,7 @@ import com.epam.drill.agent.instrument.PayloadProcessor
  * Tested with:
  *      io.undertow:undertow-websockets-jsr:2.0.29.Final
  */
-abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
+abstract class UndertowWsServerTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
     private val byteBuddy by lazy(::ByteBuddy)
@@ -306,7 +306,7 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
                 .method(ElementMatchers.named<MethodDescription>(delegatedMethod).and(ElementMatchers.takesNoArguments()))
                 .intercept(MethodDelegation.withDefaultConfiguration()
                     .filter(ElementMatchers.named(delegateMethod.name))
-                    .to(this@UndertowWsTransformerObject))
+                    .to(this@UndertowWsServerTransformerObject))
                 .make()
                 .load(clazz.classLoader, ClassLoadingStrategy.Default.INJECTION)
                 .also { classPool.appendClassPath(ByteArrayClassPath(proxyName, it.bytes)) }

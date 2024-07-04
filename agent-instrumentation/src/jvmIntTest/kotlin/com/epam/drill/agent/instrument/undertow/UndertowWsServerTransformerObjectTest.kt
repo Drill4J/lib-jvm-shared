@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.undertow
 
 import java.net.InetSocketAddress
 import javax.websocket.server.ServerEndpointConfig
@@ -24,8 +24,9 @@ import io.undertow.servlet.Servlets
 import io.undertow.servlet.api.DeploymentManager
 import io.undertow.websockets.jsr.WebSocketDeploymentInfo
 import mu.KotlinLogging
+import com.epam.drill.agent.instrument.servers.AbstractWsServerTransformerObjectTest
 
-class UndertowWsTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
+class UndertowWsServerTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 

@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.undertow
 
+import java.net.InetSocketAddress
 import io.undertow.Undertow
 import io.undertow.server.HttpServerExchange
 import mu.KotlinLogging
-import java.net.InetSocketAddress
+import com.epam.drill.agent.instrument.servers.AbstractServerTransformerObjectTest
 
-class UndertowTransformerObjectTest : AbstractServerTransformerObjectTest() {
+class UndertowHttpServerTransformerObjectTest : AbstractServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 
@@ -44,4 +45,5 @@ class UndertowTransformerObjectTest : AbstractServerTransformerObjectTest() {
         exchange.responseSender.send(requestBody.decodeToString())
         exchange.responseSender.close()
     }
+
 }

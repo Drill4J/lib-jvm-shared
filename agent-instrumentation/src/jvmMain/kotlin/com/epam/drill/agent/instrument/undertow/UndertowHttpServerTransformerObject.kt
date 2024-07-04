@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.undertow
 
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
@@ -28,8 +28,8 @@ import mu.KotlinLogging
  * Tested with:
  *      io.undertow:undertow-core:2.0.29.Final
  */
-abstract class UndertowTransformerObject(
-    protected val headersRetriever: HeadersRetriever
+abstract class UndertowHttpServerTransformerObject(
+    private val headersRetriever: HeadersRetriever
 ) : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}

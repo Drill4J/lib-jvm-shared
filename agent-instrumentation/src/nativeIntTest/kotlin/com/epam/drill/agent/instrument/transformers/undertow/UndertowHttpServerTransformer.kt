@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.transformers.clients
+package com.epam.drill.agent.instrument.transformers.undertow
 
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.TransformerObject
 
-actual object UndertowWsClientTransformer : TransformerObject, AbstractTransformerObject()
+actual object UndertowHttpServerTransformer : TransformerObject, AbstractTransformerObject()

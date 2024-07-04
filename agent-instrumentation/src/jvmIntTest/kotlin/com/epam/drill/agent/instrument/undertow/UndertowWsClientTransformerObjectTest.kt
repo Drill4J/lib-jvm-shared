@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.clients
+package com.epam.drill.agent.instrument.undertow
 
 import java.net.URI
 import javax.websocket.ClientEndpointConfig
 import javax.websocket.WebSocketContainer
 import io.undertow.websockets.jsr.UndertowContainerProvider
+import com.epam.drill.agent.instrument.clients.AbstractWsClientTransformerObjectTest
 
 class UndertowWsClientTransformerObjectTest : AbstractWsClientTransformerObjectTest() {
 

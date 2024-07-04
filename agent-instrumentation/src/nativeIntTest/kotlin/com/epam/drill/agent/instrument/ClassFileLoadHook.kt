@@ -22,6 +22,7 @@ import io.ktor.utils.io.bits.loadByteArray
 import io.ktor.utils.io.bits.of
 import com.epam.drill.agent.instrument.transformers.clients.*
 import com.epam.drill.agent.instrument.transformers.servers.*
+import com.epam.drill.agent.instrument.transformers.undertow.*
 import com.epam.drill.jvmapi.gen.Allocate
 import com.epam.drill.jvmapi.gen.jint
 import com.epam.drill.jvmapi.gen.jintVar
@@ -41,8 +42,8 @@ object ClassFileLoadHook {
         TomcatWsTransformer,
         NettyTransformer,
         NettyWsTransformer,
-        UndertowTransformer,
-        UndertowWsTransformer,
+        UndertowHttpServerTransformer,
+        UndertowWsServerTransformer,
         SSLEngineTransformer,
         KafkaTransformer,
         JettyTransformer,
@@ -80,7 +81,7 @@ object ClassFileLoadHook {
         }
     }
 
-    private fun isBootstrapClassloading(loader: jobject?, protectionDomain: jobject?,) =
+    private fun isBootstrapClassloading(loader: jobject?, protectionDomain: jobject?) =
         loader == null || protectionDomain == null
 
     private fun convertToNativePointers(
