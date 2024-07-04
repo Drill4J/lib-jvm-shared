@@ -86,21 +86,21 @@ abstract class UndertowWsServerTransformerObject : HeadersProcessor, PayloadProc
     }
 
     private fun transformSessionHandler(ctClass: CtClass) {
-        val method = ctClass.getMethod("onConnect", "(Lio/undertow/websockets/spi/WebSocketHttpExchange;Lio/undertow/websockets/core/WebSocketChannel;)V")
-        method.insertCatching(
-            CtBehavior::insertBefore,
-            """
-            java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
-            java.util.Iterator/*<java.lang.String>*/ headerNames = $1.getRequestHeaders().keySet().iterator();
-            while (headerNames.hasNext()) {
-                java.lang.String headerName = headerNames.next();
-                java.util.List/*<java.lang.String>*/ headerValues = $1.getRequestHeaders().get(headerName);
-                java.lang.String header = java.lang.String.join(",", headerValues);
-                allHeaders.put(headerName, header);
-            }
-            ${this::class.java.name}.INSTANCE.${this::setHandshakeHeaders.name}(allHeaders);
-            """.trimIndent()
-        )
+        ctClass.getMethod("onConnect", "(Lio/undertow/websockets/spi/WebSocketHttpExchange;Lio/undertow/websockets/core/WebSocketChannel;)V")
+            .insertCatching(
+                CtBehavior::insertBefore,
+                """
+                java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
+                java.util.Iterator/*<java.lang.String>*/ headerNames = $1.getRequestHeaders().keySet().iterator();
+                while (headerNames.hasNext()) {
+                    java.lang.String headerName = headerNames.next();
+                    java.util.List/*<java.lang.String>*/ headerValues = $1.getRequestHeaders().get(headerName);
+                    java.lang.String header = java.lang.String.join(",", headerValues);
+                    allHeaders.put(headerName, header);
+                }
+                ${this::class.java.name}.INSTANCE.${this::setHandshakeHeaders.name}(allHeaders);
+                """.trimIndent()
+            )
     }
 
     private fun transformFrameHandler(ctClass: CtClass) {

@@ -35,6 +35,7 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
         "io/undertow/websockets/jsr/FrameHandler",
         "io/undertow/websockets/jsr/JsrWebSocketFilter",
         "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint",
+        "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$AsyncWebSocketSessionRemoteEndpoint",
         "io/undertow/websockets/core/WebSockets"
     ).contains(className) || "io/undertow/websockets/client/WebSocketClientHandshake" == superName
 
@@ -43,7 +44,8 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
         when (className) {
             "io/undertow/websockets/jsr/FrameHandler" -> transformFrameHandler(ctClass)
             "io/undertow/websockets/jsr/JsrWebSocketFilter" -> transformWebSocketFilter(ctClass)
-            "io/undertow/websockets/jsr?WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint" -> transformBasicRemoteEndpoint(ctClass)
+            "io/undertow/websockets/jsr?WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint" -> transformRemoteEndpoint(ctClass, "basic")
+            "io/undertow/websockets/jsr?WebSocketSessionRemoteEndpoint\$AsyncWebSocketSessionRemoteEndpoint" -> transformRemoteEndpoint(ctClass, "async")
             "io/undertow/websockets/core/WebSockets" -> transformWebSockets(ctClass)
         }
         when (ctClass.superclass.name) {
@@ -53,11 +55,9 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
 
     private fun transformFrameHandler(ctClass: CtClass) {
         if (!isPayloadProcessingEnabled()) return
-        val invokeTextHandlerMethod = ctClass.getMethod("invokeTextHandler", "(Lio/undertow/websockets/core/BufferedTextMessage;Lio/undertow/websockets/jsr/FrameHandler\$HandlerWrapper;Z)V")
-        val invokeBinaryHandlerMethod = ctClass.getMethod("invokeBinaryHandler", "(Lio/undertow/websockets/core/BufferedBinaryMessage;Lio/undertow/websockets/jsr/FrameHandler\$HandlerWrapper;Z)V")
+        pooledProxyClass = createPooledProxy(ctClass.classPool)
         val textMessageProxy = createTextMessageProxy(ctClass.classPool).name
         val binaryMessageProxy = createBinaryMessageProxy(ctClass.classPool).name
-        pooledProxyClass = createPooledProxy(ctClass.classPool)
         val createProxyCode: (String) -> String = { proxy ->
             """
             if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.session.getHandshakeHeaders())) {
@@ -65,8 +65,10 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             }
             """.trimIndent()
         }
-        invokeTextHandlerMethod.insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxy))
-        invokeBinaryHandlerMethod.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxy))
+        ctClass.getMethod("invokeTextHandler", "(Lio/undertow/websockets/core/BufferedTextMessage;Lio/undertow/websockets/jsr/FrameHandler\$HandlerWrapper;Z)V")
+            .insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxy))
+        ctClass.getMethod("invokeBinaryHandler", "(Lio/undertow/websockets/core/BufferedBinaryMessage;Lio/undertow/websockets/jsr/FrameHandler\$HandlerWrapper;Z)V")
+            .insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxy))
     }
 
     private fun transformClientHandshake(ctClass: CtClass) {
@@ -81,16 +83,16 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
 
     private fun transformWebSocketFilter(ctClass: CtClass) {
         if (!isPayloadProcessingEnabled()) return
-        val method = ctClass.getMethod("doFilter", "(Ljavax/servlet/ServletRequest;Ljavax/servlet/ServletResponse;Ljavax/servlet/FilterChain;)V")
-        method.insertCatching(
-            CtBehavior::insertBefore,
-            """
-            ((javax.servlet.http.HttpServletResponse)$2).setHeader("drill-ws-per-message", "true");
-            """.trimIndent()
-        )
+        ctClass.getMethod("doFilter", "(Ljavax/servlet/ServletRequest;Ljavax/servlet/ServletResponse;Ljavax/servlet/FilterChain;)V")
+            .insertCatching(
+                CtBehavior::insertBefore,
+                """
+                ((javax.servlet.http.HttpServletResponse)$2).setHeader("drill-ws-per-message", "true");
+                """.trimIndent()
+            )
     }
 
-    private fun transformBasicRemoteEndpoint(ctClass: CtClass) {
+    private fun transformRemoteEndpoint(ctClass: CtClass, type: String) {
         if (!isPayloadProcessingEnabled()) return
         val propagateHandshakeHeaderCode =
             """
@@ -100,34 +102,51 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
                 ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
             }
             """.trimIndent()
-        ctClass.getMethod("sendText", "(Ljava/lang.String;)V").insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
-        ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;)V").insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
-        ctClass.getMethod("sendObject", "(Ljava/lang/Object;)V").insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
-        ctClass.getMethod("sendText", "(Ljava/lang.String;Z)V").insertCatching(
-            CtBehavior::insertBefore,
-            """
-            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.undertowSession.getHandshakeHeaders())) {
-                $1 = ${this::class.java.name}.INSTANCE.storeDrillHeaders($1);
-            }
-            """.trimIndent()
-        )
-        ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Z)V").insertCatching(
-            CtBehavior::insertBefore,
-            """
-            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.undertowSession.getHandshakeHeaders())) {
-                byte[] modified = ${this::class.java.name}.INSTANCE.storeDrillHeaders(org.xnio.Buffers.take($1));
-                $1.clear();
-                $1 = java.nio.ByteBuffer.wrap(modified);
-            }
-            """.trimIndent()
-        )
+        if (type == "async") {
+            ctClass.getMethod("sendText", "(Ljava/lang.String;Ljavax/websocket/SendHandler;)V")
+                .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+            ctClass.getMethod("sendText", "(Ljava/lang.String;)Ljava/util/concurrent/Future;")
+                .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+            ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Ljavax/websocket/SendHandler;)V")
+                .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+            ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;)Ljava/util/concurrent/Future;")
+                .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+            ctClass.getMethod("sendObject", "(Ljava/lang/Object;Ljavax/websocket/SendHandler;)V")
+                .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+            ctClass.getMethod("sendObject", "(Ljava/lang/Object;)Ljava/util/concurrent/Future;")
+                .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+        }
+        if (type == "basic") {
+            ctClass.getMethod("sendText", "(Ljava/lang.String;)V")
+                .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+            ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;)V")
+                .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+            ctClass.getMethod("sendObject", "(Ljava/lang/Object;)V")
+                .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+            ctClass.getMethod("sendText", "(Ljava/lang.String;Z)V").insertCatching(
+                CtBehavior::insertBefore,
+                """
+                if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.undertowSession.getHandshakeHeaders())) {
+                    $1 = ${this::class.java.name}.INSTANCE.storeDrillHeaders($1);
+                }
+                """.trimIndent()
+            )
+            ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Z)V").insertCatching(
+                CtBehavior::insertBefore,
+                """
+                if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.undertowSession.getHandshakeHeaders())) {
+                    byte[] modified = ${this::class.java.name}.INSTANCE.storeDrillHeaders(org.xnio.Buffers.take($1));
+                    $1.clear();
+                    $1 = java.nio.ByteBuffer.wrap(modified);
+                }
+                """.trimIndent()
+            )
+        }
     }
 
     private fun transformWebSockets(ctClass: CtClass) {
         if (!isPayloadProcessingEnabled()) return
-        val method = ctClass.getMethod("sendBlockingInternal", "(Ljava/nio/ByteBuffer;Lio/undertow/websockets/core/WebSocketFrameType;Lio/undertow/websockets/core/WebSocketChannel;)V")
-        method.insertCatching(
-            CtBehavior::insertBefore,
+        val wrapByteBufferCode =
             """
             if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}())) {
                 byte[] modified = ${this::class.java.name}.INSTANCE.storeDrillHeaders(org.xnio.Buffers.take($1));
@@ -135,7 +154,10 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
                 $1 = java.nio.ByteBuffer.wrap(modified);
             }
             """.trimIndent()
-        )
+        ctClass.getMethod("sendBlockingInternal", "(Ljava/nio/ByteBuffer;Lio/undertow/websockets/core/WebSocketFrameType;Lio/undertow/websockets/core/WebSocketChannel;)V")
+            .insertCatching(CtBehavior::insertBefore, wrapByteBufferCode)
+        ctClass.getMethod("sendInternal", "(Ljava/nio/ByteBuffer;Lio/undertow/websockets/core/WebSocketFrameType;Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/WebSocketCallback;Ljava.lang.Object;J)V")
+            .insertCatching(CtBehavior::insertBefore, wrapByteBufferCode)
     }
 
     @RuntimeType
