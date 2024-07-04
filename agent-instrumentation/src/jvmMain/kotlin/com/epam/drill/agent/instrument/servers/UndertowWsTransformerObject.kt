@@ -24,6 +24,7 @@ import javassist.CtBehavior
 import javassist.CtClass
 import javassist.CtField
 import javassist.CtMethod
+import javassist.NotFoundException
 import mu.KotlinLogging
 import net.bytebuddy.ByteBuddy
 import net.bytebuddy.TypeCache
@@ -55,15 +56,14 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
     private var openingSession: ThreadLocal<Map<String, String>?> = ThreadLocal()
     private lateinit var pooledProxyClass: Class<*>
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
-        listOf(
-            "io/undertow/websockets/jsr/UndertowSession",
-            "io/undertow/websockets/jsr/EndpointSessionHandler",
-            "io/undertow/websockets/jsr/FrameHandler",
-            "io/undertow/websockets/jsr/JsrWebSocketFilter",
-            "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint",
-            "io/undertow/websockets/core/WebSockets"
-        ).contains(className)
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) = listOf(
+        "io/undertow/websockets/jsr/UndertowSession",
+        "io/undertow/websockets/jsr/EndpointSessionHandler",
+        "io/undertow/websockets/jsr/FrameHandler",
+        "io/undertow/websockets/jsr/JsrWebSocketFilter",
+        "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint",
+        "io/undertow/websockets/core/WebSockets"
+    ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
         logger.info { "transform: Starting UndertowWsTransformer for $className..." }
@@ -123,23 +123,29 @@ abstract class UndertowWsTransformerObject : HeadersProcessor, PayloadProcessor,
     }
 
     private fun transformSession(ctClass: CtClass) {
-        CtField.make(
-            "private java.util.Map/*<java.lang.String, java.lang.String>*/ handshakeHeaders = null;",
-            ctClass
-        ).also(ctClass::addField)
-        CtMethod.make(
-            """
+        try {
+            ctClass.getField("handshakeHeaders")
+        } catch (e: NotFoundException) {
+            CtField.make(
+                "private java.util.Map/*<java.lang.String, java.lang.String>*/ handshakeHeaders = null;",
+                ctClass
+            ).also(ctClass::addField)
+            CtMethod.make(
+                """
             public java.util.Map/*<java.lang.String, java.lang.String>*/ getHandshakeHeaders() {
                 return this.handshakeHeaders;
             }
             """.trimIndent(),
-            ctClass
-        ).also(ctClass::addMethod)
+                ctClass
+            ).also(ctClass::addMethod)
+        }
         ctClass.constructors[0].insertCatching(
             CtBehavior::insertAfter,
             """
-            this.handshakeHeaders = ${this::class.java.name}.INSTANCE.${this::getHandshakeHeaders.name}();
-            ${this::class.java.name}.INSTANCE.${this::setHandshakeHeaders.name}(null);
+            if (this.handshakeHeaders == null && ${this::class.java.name}.INSTANCE.${this::getHandshakeHeaders.name}() != null) {
+                this.handshakeHeaders = ${this::class.java.name}.INSTANCE.${this::getHandshakeHeaders.name}();
+                ${this::class.java.name}.INSTANCE.${this::setHandshakeHeaders.name}(null);
+            }
             """.trimIndent()
         )
     }

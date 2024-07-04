@@ -17,20 +17,67 @@ package com.epam.drill.agent.instrument.clients
 
 import javassist.CtBehavior
 import javassist.CtClass
+import javassist.CtField
+import javassist.CtMethod
+import javassist.NotFoundException
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.agent.instrument.PayloadProcessor
 
-abstract class UndertowWsClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
+abstract class UndertowWsClientTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        "io/undertow/websockets/client/WebSocketClientHandshake" == superName
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) = listOf(
+        "io/undertow/websockets/jsr/UndertowSession",
+        "io/undertow/websockets/jsr/ServerWebSocketContainer\$ClientNegotiation"
+    ).contains(className) || "io/undertow/websockets/client/WebSocketClientHandshake" == superName
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting UndertowWsClientTransformer..." }
-        ctClass.getMethod("createHeaders", "()Ljava/util/Map;").insertCatching(
+        logger.info { "transform: Starting UndertowWsClientTransformer for $className..." }
+        when (className) {
+            "io/undertow/websockets/jsr/UndertowSession" -> transformSession(ctClass)
+            "io/undertow/websockets/jsr/ServerWebSocketContainer\$ClientNegotiation" -> transformClientNegotiation(ctClass)
+        }
+        when (ctClass.superclass.name) {
+            "io.undertow.websockets.client.WebSocketClientHandshake" -> transformClientHandshake(ctClass)
+        }
+    }
+
+    private fun transformSession(ctClass: CtClass) {
+        try {
+            ctClass.getField("handshakeHeaders")
+        } catch (e: NotFoundException) {
+            CtField.make(
+                "private java.util.Map/*<java.lang.String, java.lang.String>*/ handshakeHeaders = null;",
+                ctClass
+            ).also(ctClass::addField)
+            CtMethod.make(
+                """
+                public java.util.Map/*<java.lang.String, java.lang.String>*/ getHandshakeHeaders() {
+                    return this.handshakeHeaders;
+                }
+                """.trimIndent(),
+                ctClass
+            ).also(ctClass::addMethod)
+        }
+        ctClass.constructors[0].insertCatching(
+            CtBehavior::insertAfter,
+            """
+            if (this.clientConnectionBuilder != null) {
+                java.util.Map/*<java.lang.String, java.lang.String>*/ responseHeaders = ((io.undertow.websockets.jsr.ServerWebSocketContainer.ClientNegotiation) this.clientConnectionBuilder.getClientNegotiation()).getResponseHeaders();
+                if (this.handshakeHeaders == null && responseHeaders != null) {
+                    this.handshakeHeaders = responseHeaders;
+                }
+            }
+            """.trimIndent()
+        )
+    }
+
+    private fun transformClientHandshake(ctClass: CtClass) {
+        val method = ctClass.getMethod("createHeaders", "()Ljava/util/Map;")
+        method.insertCatching(
             CtBehavior::insertAfter,
             """
             if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) { 
@@ -41,6 +88,41 @@ abstract class UndertowWsClientTransformerObject : HeadersProcessor, AbstractTra
                     ${'$'}_.put((String) entry.getKey(), (String) entry.getValue());
                 }
                 ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(headers);
+            }
+            """.trimIndent()
+        )
+        if(!isPayloadProcessingEnabled()) return
+        method.insertCatching(
+            CtBehavior::insertAfter,
+            """
+            ${'$'}_.put("drill-ws-per-message", "true");
+            """.trimIndent()
+        )
+    }
+
+    private fun transformClientNegotiation(ctClass: CtClass) {
+        CtField.make(
+            "private java.util.Map/*<java.lang.String, java.lang.String>*/ responseHeaders = null;",
+            ctClass
+        ).also(ctClass::addField)
+        CtMethod.make(
+            """
+            public java.util.Map/*<java.lang.String, java.lang.String>*/ getResponseHeaders() {
+                return this.responseHeaders;
+            }
+            """.trimIndent(),
+            ctClass
+        ).also(ctClass::addMethod)
+        ctClass.getMethod("afterRequest", "(Ljava/util/Map;)V").insertCatching(
+            CtBehavior::insertAfter,
+            """
+            this.responseHeaders = new java.util.HashMap();
+            java.util.Iterator/*<java.lang.String>*/ headerNames = $1.keySet().iterator();
+            while (headerNames.hasNext()) {
+                java.lang.String headerName = headerNames.next();
+                java.util.List/*<java.lang.String>*/ headerValues = $1.get(headerName);
+                java.lang.String header = java.lang.String.join(",", headerValues);
+                this.responseHeaders.put(headerName, header);
             }
             """.trimIndent()
         )
