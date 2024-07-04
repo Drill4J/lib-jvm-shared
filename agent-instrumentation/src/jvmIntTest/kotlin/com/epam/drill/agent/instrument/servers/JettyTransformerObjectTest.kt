@@ -23,7 +23,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class JettyTransformerObjectTest : AbstractServerTransformerObjectTest() {
+class JettyTransformerObjectTest : AbstractHttpServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 

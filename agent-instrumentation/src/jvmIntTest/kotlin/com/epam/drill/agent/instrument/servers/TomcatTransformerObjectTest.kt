@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse
 import org.apache.catalina.startup.Tomcat
 import mu.KotlinLogging
 
-class TomcatTransformerObjectTest : AbstractServerTransformerObjectTest() {
+class TomcatTransformerObjectTest : AbstractHttpServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 

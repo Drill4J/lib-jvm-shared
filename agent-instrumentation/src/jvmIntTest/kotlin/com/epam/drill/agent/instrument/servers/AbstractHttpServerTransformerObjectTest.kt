@@ -24,7 +24,7 @@ import mu.KLogger
 import com.epam.drill.agent.instrument.TestRequestHolder
 
 @Suppress("FunctionName")
-abstract class AbstractServerTransformerObjectTest {
+abstract class AbstractHttpServerTransformerObjectTest {
 
     protected abstract val logger: KLogger
 
@@ -34,7 +34,7 @@ abstract class AbstractServerTransformerObjectTest {
         val response = callHttpEndpoint(it)
         val responseHeaders = response.first
         val responseBody = response.second
-        val drillHeaders = responseHeaders.filterKeys(Objects::nonNull).filterKeys { it.startsWith("drill-") }
+        val drillHeaders = responseHeaders.filterKeys(Objects::nonNull).filterKeys { key -> key.startsWith("drill-") }
         assertEquals(2, drillHeaders.size)
         assertEquals("test-agent", responseHeaders["drill-agent-id"])
         assertEquals("test-admin:8080", responseHeaders["drill-admin-url"])

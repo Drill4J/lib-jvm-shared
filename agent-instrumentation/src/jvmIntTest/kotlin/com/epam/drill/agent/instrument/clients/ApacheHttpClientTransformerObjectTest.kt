@@ -19,7 +19,7 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.DefaultHttpClient
 
-class ApacheHttpClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
+class ApacheHttpClientTransformerObjectTest : AbstractHttpClientTransformerObjectTest() {
 
     override fun callHttpEndpoint(
         endpoint: String,

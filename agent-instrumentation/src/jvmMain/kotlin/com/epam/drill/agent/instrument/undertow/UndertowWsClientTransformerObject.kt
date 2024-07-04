@@ -66,7 +66,8 @@ abstract class UndertowWsClientTransformerObject : HeadersProcessor, PayloadProc
             CtBehavior::insertAfter,
             """
             if (this.clientConnectionBuilder != null) {
-                java.util.Map/*<java.lang.String, java.lang.String>*/ responseHeaders = ((io.undertow.websockets.jsr.ServerWebSocketContainer.ClientNegotiation) this.clientConnectionBuilder.getClientNegotiation()).getResponseHeaders();
+                java.util.Map/*<java.lang.String, java.lang.String>*/ responseHeaders =
+                        ((io.undertow.websockets.jsr.ServerWebSocketContainer.ClientNegotiation) this.clientConnectionBuilder.getClientNegotiation()).getResponseHeaders();
                 if (this.handshakeHeaders == null && responseHeaders != null) {
                     this.handshakeHeaders = responseHeaders;
                 }
@@ -76,8 +77,7 @@ abstract class UndertowWsClientTransformerObject : HeadersProcessor, PayloadProc
     }
 
     private fun transformClientHandshake(ctClass: CtClass) {
-        val method = ctClass.getMethod("createHeaders", "()Ljava/util/Map;")
-        method.insertCatching(
+        ctClass.getMethod("createHeaders", "()Ljava/util/Map;").insertCatching(
             CtBehavior::insertAfter,
             """
             if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) { 
@@ -89,13 +89,6 @@ abstract class UndertowWsClientTransformerObject : HeadersProcessor, PayloadProc
                 }
                 ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(headers);
             }
-            """.trimIndent()
-        )
-        if(!isPayloadProcessingEnabled()) return
-        method.insertCatching(
-            CtBehavior::insertAfter,
-            """
-            ${'$'}_.put("drill-ws-per-message", "true");
             """.trimIndent()
         )
     }

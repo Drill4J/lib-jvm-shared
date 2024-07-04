@@ -21,7 +21,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
 
-class OkHttp3ClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
+class OkHttp3ClientTransformerObjectTest : AbstractHttpClientTransformerObjectTest() {
 
     override fun callHttpEndpoint(
         endpoint: String,

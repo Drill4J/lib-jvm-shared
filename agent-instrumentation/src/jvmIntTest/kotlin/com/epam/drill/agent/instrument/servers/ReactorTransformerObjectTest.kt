@@ -47,7 +47,7 @@ import kotlin.test.Test
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = [ReactorTransformerObjectTest.SimpleController::class]
 )
-class ReactorTransformerObjectTest: AbstractServerTransformerObjectTest() {
+class ReactorTransformerObjectTest: AbstractHttpServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 

@@ -29,7 +29,7 @@ import com.epam.drill.agent.instrument.TestRequestHolder
 import com.epam.drill.common.agent.request.DrillRequest
 
 @Suppress("FunctionName")
-abstract class AbstractClientTransformerObjectTest {
+abstract class AbstractHttpClientTransformerObjectTest {
 
     @Test
     open fun `test request-response with empty thread session and headers data`() = withHttpServer(returnHeaders = true) {

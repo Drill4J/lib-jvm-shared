@@ -32,7 +32,7 @@ import io.netty.handler.codec.http.HttpVersion
 import io.netty.handler.codec.http.LastHttpContent
 import mu.KotlinLogging
 
-class NettyTransformerObjectTest : AbstractServerTransformerObjectTest() {
+class NettyTransformerObjectTest : AbstractHttpServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 

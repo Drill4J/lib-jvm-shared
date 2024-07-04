@@ -19,9 +19,9 @@ import java.net.InetSocketAddress
 import io.undertow.Undertow
 import io.undertow.server.HttpServerExchange
 import mu.KotlinLogging
-import com.epam.drill.agent.instrument.servers.AbstractServerTransformerObjectTest
+import com.epam.drill.agent.instrument.servers.AbstractHttpServerTransformerObjectTest
 
-class UndertowHttpServerTransformerObjectTest : AbstractServerTransformerObjectTest() {
+class UndertowHttpServerTransformerObjectTest : AbstractHttpServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 
