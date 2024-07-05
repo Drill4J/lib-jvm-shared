@@ -21,5 +21,5 @@ import com.epam.drill.agent.instrument.clients.SpringWebClientTransformerObject
 actual object SpringWebClientTransformer:
     TransformerObject,
     SpringWebClientTransformerObject(),
-    HeadersProcessor by DrillRequestHeadersProcessor(TestHeadersRetriever, TestRequestHolder),
+    HeadersProcessor by TestHeadersProcessor,
     ClassPathProvider by TestClassPathProvider

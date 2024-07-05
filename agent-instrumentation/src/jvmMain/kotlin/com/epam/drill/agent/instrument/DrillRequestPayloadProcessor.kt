@@ -18,7 +18,7 @@ package com.epam.drill.agent.instrument
 private const val PAYLOAD_PREFIX = "\n\ndrill-payload-begin\n"
 private const val PAYLOAD_SUFFIX = "\ndrill-payload-end"
 
-class DrillRequestPayloadProcessor(
+open class DrillRequestPayloadProcessor(
     private val enabled: Boolean = true,
     private val headersProcessor: HeadersProcessor
 ) : PayloadProcessor {

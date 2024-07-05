@@ -69,13 +69,14 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
     }
 
     private fun transformFrameHandler(ctClass: CtClass) {
-        if (!isPayloadProcessingEnabled()) return
         pooledProxyClass = createPooledProxy(ctClass.classPool)
         val textMessageProxy = createTextMessageProxy(ctClass.classPool).name
         val binaryMessageProxy = createBinaryMessageProxy(ctClass.classPool).name
         val createProxyCode: (String) -> String = { proxy ->
             """
-            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.session.getHandshakeHeaders())) {
+            if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
+                    && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.session.getHandshakeHeaders())) {
                 $1 = new $proxy($1);
             }
             """.trimIndent()
@@ -87,31 +88,34 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
     }
 
     private fun transformClientHandshake(ctClass: CtClass) {
-        if(!isPayloadProcessingEnabled()) return
         ctClass.getMethod("createHeaders", "()Ljava/util/Map;").insertCatching(
             CtBehavior::insertAfter,
             """
-            ${'$'}_.put("drill-ws-per-message", "true");
+            if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
+                ${'$'}_.put("drill-ws-per-message", "true");
+            }
             """.trimIndent()
         )
     }
 
     private fun transformWebSocketFilter(ctClass: CtClass) {
-        if (!isPayloadProcessingEnabled()) return
         ctClass.getMethod("doFilter", "(Ljavax/servlet/ServletRequest;Ljavax/servlet/ServletResponse;Ljavax/servlet/FilterChain;)V")
             .insertCatching(
                 CtBehavior::insertBefore,
                 """
-                ((javax.servlet.http.HttpServletResponse)$2).setHeader("drill-ws-per-message", "true");
+                if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
+                    ((javax.servlet.http.HttpServletResponse)$2).setHeader("drill-ws-per-message", "true");
+                }
                 """.trimIndent()
             )
     }
 
     private fun transformRemoteEndpoint(ctClass: CtClass, type: String) {
-        if (!isPayloadProcessingEnabled()) return
         val propagateHandshakeHeaderCode =
             """
-            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && this.undertowSession.getHandshakeHeaders() != null) {
+            if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
+                    && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
+                    && this.undertowSession.getHandshakeHeaders() != null) {
                 java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
                 drillHeaders.put("drill-ws-per-message", this.undertowSession.getHandshakeHeaders().get("drill-ws-per-message"));
                 ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
@@ -141,7 +145,9 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             ctClass.getMethod("sendText", "(Ljava/lang.String;Z)V").insertCatching(
                 CtBehavior::insertBefore,
                 """
-                if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.undertowSession.getHandshakeHeaders())) {
+                if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
+                        && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
+                        && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.undertowSession.getHandshakeHeaders())) {
                     $1 = ${this::class.java.name}.INSTANCE.storeDrillHeaders($1);
                 }
                 """.trimIndent()
@@ -149,7 +155,9 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Z)V").insertCatching(
                 CtBehavior::insertBefore,
                 """
-                if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.undertowSession.getHandshakeHeaders())) {
+                if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
+                        && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
+                        && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.undertowSession.getHandshakeHeaders())) {
                     byte[] modified = ${this::class.java.name}.INSTANCE.storeDrillHeaders(org.xnio.Buffers.take($1));
                     $1.clear();
                     $1 = java.nio.ByteBuffer.wrap(modified);
@@ -160,10 +168,11 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
     }
 
     private fun transformWebSockets(ctClass: CtClass) {
-        if (!isPayloadProcessingEnabled()) return
         val wrapByteBufferCode =
             """
-            if (${this::class.java.name}.INSTANCE.${this::hasHeaders.name}() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}())) {
+            if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
+                    && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}())) {
                 byte[] modified = ${this::class.java.name}.INSTANCE.storeDrillHeaders(org.xnio.Buffers.take($1));
                 $1.clear();
                 $1 = java.nio.ByteBuffer.wrap(modified);
