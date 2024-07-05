@@ -16,6 +16,8 @@
 package com.epam.drill.agent.instrument.undertow
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import java.net.InetSocketAddress
 import java.net.URI
 import java.nio.ByteBuffer
@@ -36,105 +38,124 @@ import io.undertow.servlet.Servlets
 import io.undertow.servlet.api.DeploymentManager
 import io.undertow.websockets.jsr.UndertowContainerProvider
 import io.undertow.websockets.jsr.WebSocketDeploymentInfo
+import com.epam.drill.agent.instrument.TestPayloadProcessor
+import com.epam.drill.agent.instrument.TestRequestHolder
+import com.epam.drill.common.agent.request.DrillRequest
 
 @Suppress("FunctionName")
 class UndertowWsMessagesTransformerObjectTest {
 
     @Test
-    fun `test annotated endpoint sync-remote string with disabled per-message flag`() = Unit
+    fun `test annotated endpoint sync-remote string with disabled per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerAnnotatedEndpoint,
+        ::connectToWebsocketAnnotatedEndpoint,
+        false, "text", "basic"
+    )
 
     @Test
-    fun `test annotated endpoint sync-remote binary with disabled per-message flag`() = Unit
+    fun `test annotated endpoint sync-remote binary with disabled per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerAnnotatedEndpoint,
+        ::connectToWebsocketAnnotatedEndpoint,
+        false, "binary", "basic"
+    )
 
     @Test
-    fun `test annotated endpoint async-remote string with disabled per-message flag`() = Unit
+    fun `test annotated endpoint async-remote string with disabled per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerAnnotatedEndpoint,
+        ::connectToWebsocketAnnotatedEndpoint,
+        false, "text", "async"
+    )
 
     @Test
-    fun `test annotated endpoint async-remote binary with disabled per-message flag`() = Unit
+    fun `test annotated endpoint async-remote binary with disabled per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerAnnotatedEndpoint,
+        ::connectToWebsocketAnnotatedEndpoint,
+        false, "binary", "async"
+    )
 
     @Test
-    fun `test interface endpoint sync-remote string with disabled per-message flag`() = Unit
+    fun `test interface endpoint sync-remote string with disabled per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerInterfaceEndpoint,
+        ::connectToWebsocketInterfaceEndpoint,
+        false, "text", "basic"
+    )
 
     @Test
-    fun `test interface endpoint sync-remote binary with disabled per-message flag`() = Unit
+    fun `test interface endpoint sync-remote binary with disabled per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerInterfaceEndpoint,
+        ::connectToWebsocketInterfaceEndpoint,
+        false, "binary", "basic"
+    )
 
     @Test
-    fun `test interface endpoint async-remote string with disabled per-message flag`() = Unit
+    fun `test interface endpoint async-remote string with disabled per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerInterfaceEndpoint,
+        ::connectToWebsocketInterfaceEndpoint,
+        false, "text", "async"
+    )
 
     @Test
-    fun `test interface endpoint async-remote binary with disabled per-message flag`() = Unit
+    fun `test interface endpoint async-remote binary with disabled per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerInterfaceEndpoint,
+        ::connectToWebsocketInterfaceEndpoint,
+        false, "binary", "async"
+    )
 
     @Test
-    fun `test annotated endpoint sync-remote string with client-side per-message flag`() = Unit
+    fun `test annotated endpoint sync-remote string with both-side per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerAnnotatedEndpoint,
+        ::connectToWebsocketAnnotatedEndpoint,
+        true, "text", "basic"
+    )
 
     @Test
-    fun `test annotated endpoint sync-remote binary with client-side per-message flag`() = Unit
+    fun `test annotated endpoint sync-remote binary with both-side per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerAnnotatedEndpoint,
+        ::connectToWebsocketAnnotatedEndpoint,
+        true, "binary", "basic"
+    )
 
     @Test
-    fun `test annotated endpoint async-remote string with client-side per-message flag`() = Unit
+    fun `test annotated endpoint async-remote string with both-side per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerAnnotatedEndpoint,
+        ::connectToWebsocketAnnotatedEndpoint,
+        true, "text", "async"
+    )
 
     @Test
-    fun `test annotated endpoint async-remote binary with client-side per-message flag`() = Unit
+    fun `test annotated endpoint async-remote binary with both-side per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerAnnotatedEndpoint,
+        ::connectToWebsocketAnnotatedEndpoint,
+        true, "binary", "async"
+    )
 
     @Test
-    fun `test interface endpoint sync-remote string with client-side per-message flag`() = Unit
+    fun `test interface endpoint sync-remote string with both-side per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerInterfaceEndpoint,
+        ::connectToWebsocketInterfaceEndpoint,
+        true, "text", "basic"
+    )
 
     @Test
-    fun `test interface endpoint sync-remote binary with client-side per-message flag`() = Unit
+    fun `test interface endpoint sync-remote binary with both-side per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerInterfaceEndpoint,
+        ::connectToWebsocketInterfaceEndpoint,
+        true, "binary", "basic"
+    )
 
     @Test
-    fun `test interface endpoint async-remote string with client-side per-message flag`() = Unit
+    fun `test interface endpoint async-remote string with both-side per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerInterfaceEndpoint,
+        ::connectToWebsocketInterfaceEndpoint,
+        true, "text", "async"
+    )
 
     @Test
-    fun `test interface endpoint async-remote binary with client-side per-message flag`() = Unit
-
-    @Test
-    fun `test annotated endpoint sync-remote string with server-side per-message flag`() = Unit
-
-    @Test
-    fun `test annotated endpoint sync-remote binary with server-side per-message flag`() = Unit
-
-    @Test
-    fun `test annotated endpoint async-remote string with server-side per-message flag`() = Unit
-
-    @Test
-    fun `test annotated endpoint async-remote binary with server-side per-message flag`() = Unit
-
-    @Test
-    fun `test interface endpoint sync-remote string with server-side per-message flag`() = Unit
-
-    @Test
-    fun `test interface endpoint sync-remote binary with server-side per-message flag`() = Unit
-
-    @Test
-    fun `test interface endpoint async-remote string with server-side per-message flag`() = Unit
-
-    @Test
-    fun `test interface endpoint async-remote binary with server-side per-message flag`() = Unit
-
-    @Test
-    fun `test annotated endpoint sync-remote string with both-side per-message flag`() = Unit
-
-    @Test
-    fun `test annotated endpoint sync-remote binary with both-side per-message flag`() = Unit
-
-    @Test
-    fun `test annotated endpoint async-remote string with both-side per-message flag`() = Unit
-
-    @Test
-    fun `test annotated endpoint async-remote binary with both-side per-message flag`() = Unit
-
-    @Test
-    fun `test interface endpoint sync-remote string with both-side per-message flag`() = Unit
-
-    @Test
-    fun `test interface endpoint sync-remote binary with both-side per-message flag`() = Unit
-
-    @Test
-    fun `test interface endpoint async-remote string with both-side per-message flag`() = Unit
-
-    @Test
-    fun `test interface endpoint async-remote binary with both-side per-message flag`() = Unit
+    fun `test interface endpoint async-remote binary with both-side per-message flag`() = testPerMessageRequests(
+        ::withWebSocketServerInterfaceEndpoint,
+        ::connectToWebsocketInterfaceEndpoint,
+        true, "binary", "async"
+    )
 
     private fun withWebSocketServerAnnotatedEndpoint(block: (String) -> Unit) = WebSocketDeploymentInfo()
         .addEndpoint(TestRequestServerAnnotatedEndpoint::class.java)
@@ -169,106 +190,204 @@ class UndertowWsMessagesTransformerObjectTest {
         this.addDeployment(deployment)
     }
 
-    private fun connectToWebsocketAnnotatedEndpoint(endpoint: String) = TestRequestClientAnnotatedEndpoint().run {
-        val session = TestUndertowContainerProvider().container.connectToServer(this, URI(endpoint))
+    private fun connectToWebsocketAnnotatedEndpoint(address: String) = TestRequestClientAnnotatedEndpoint().run {
+        val session = TestUndertowContainerProvider().container.connectToServer(this, URI(address))
         this to session
     }
 
-    private fun connectToWebsocketInterfaceEndpoint(endpoint: String) = TestRequestClientInterfaceEndpoint().run {
+    private fun connectToWebsocketInterfaceEndpoint(address: String) = TestRequestClientInterfaceEndpoint().run {
         val session = TestUndertowContainerProvider().container
-            .connectToServer(this, ClientEndpointConfig.Builder.create().build(), URI(endpoint))
+            .connectToServer(this, ClientEndpointConfig.Builder.create().build(), URI(address))
         this to session
+    }
+
+    private fun testPerMessageRequests(
+        withServer: (block: (String) -> Unit) -> Unit,
+        withConnection: (String) -> Pair<TestRequestEndpoint, Session>,
+        perMessageEnabled: Boolean,
+        payloadType: String,
+        sendType: String
+    ) = withServer { address ->
+        TestRequestEndpoint.incomingMessages.clear()
+        TestRequestEndpoint.incomingContexts.clear()
+        TestPayloadProcessor.enabled = perMessageEnabled
+        val results = callWebSocketEndpoint(withConnection, address, payloadType, sendType)
+        assertEquals(10, TestRequestEndpoint.incomingMessages.size)
+        assertEquals(10, TestRequestEndpoint.incomingContexts.size)
+        assertEquals(10, results.first.size)
+        assertEquals(10, results.second.size)
+        results.first.forEachIndexed { i, message ->
+            assertEquals("test-request-$i", message)
+        }
+        results.second.forEachIndexed { i, drillRequest ->
+            assertNull(drillRequest)
+        }
+        TestRequestEndpoint.incomingMessages.forEachIndexed { i, message ->
+            assertEquals("test-request-$i", message)
+        }
+        TestRequestEndpoint.incomingContexts.forEachIndexed { i, drillRequest ->
+            assertNull(drillRequest)
+        }
+    }
+
+    private fun callWebSocketEndpoint(
+        withConnection: (String) -> Pair<TestRequestEndpoint, Session>,
+        address: String,
+        payloadType: String,
+        sendType: String,
+        body: String = "test-request-",
+        count: Int = 10
+    ) = withConnection(address).run {
+        val session = this.second
+        when (payloadType) {
+            "text" -> when (sendType) {
+                "basic" -> (0 until count).map(body::plus).forEach(session.basicRemote::sendText)
+                "async" -> (0 until count).map(body::plus).forEach(session.asyncRemote::sendText)
+            }
+            "binary" -> when (sendType) {
+                "basic" -> (0 until count).map(body::plus).map(String::encodeToByteArray).map(ByteBuffer::wrap)
+                    .forEach(session.basicRemote::sendBinary)
+                "async" -> (0 until count).map(body::plus).map(String::encodeToByteArray).map(ByteBuffer::wrap)
+                    .forEach(session.asyncRemote::sendBinary)
+            }
+        }
+        Thread.sleep(1000)
+        session.close()
+        this.first.incomingMessages to this.first.incomingContexts
+    }
+
+    interface TestRequestEndpoint {
+        companion object {
+            val incomingMessages = mutableListOf<String>()
+            val incomingContexts = mutableListOf<DrillRequest?>()
+        }
+        val incomingMessages: MutableList<String>
+        val incomingContexts: MutableList<DrillRequest?>
     }
 
     @Suppress("unused")
     @ServerEndpoint(value = "/")
-    class TestRequestServerAnnotatedEndpoint {
+    class TestRequestServerAnnotatedEndpoint : TestRequestEndpoint {
+        override val incomingMessages = TestRequestEndpoint.incomingMessages
+        override val incomingContexts = TestRequestEndpoint.incomingContexts
         @OnMessage
         fun onTextMessage(message: String, session: Session) {
+            incomingMessages.add(message)
+            incomingContexts.add(TestRequestHolder.retrieve())
             session.basicRemote.sendText(message)
         }
         @OnMessage
         fun onBinaryMessage(message: ByteBuffer, session: Session) {
             val text = ByteArray(message.limit()).also(message::get).decodeToString()
+            incomingMessages.add(text)
+            incomingContexts.add(TestRequestHolder.retrieve())
             session.basicRemote.sendBinary(ByteBuffer.wrap(text.encodeToByteArray()))
         }
     }
 
-    class TestRequestServerInterfaceEndpoint : Endpoint() {
+    class TestRequestServerInterfaceEndpoint : Endpoint(), TestRequestEndpoint {
+        override val incomingMessages = TestRequestEndpoint.incomingMessages
+        override val incomingContexts = TestRequestEndpoint.incomingContexts
         override fun onOpen(session: Session, config: EndpointConfig) = try {
             session.addMessageHandler(String::class.java) { message ->
+                incomingMessages.add(message)
+                incomingContexts.add(TestRequestHolder.retrieve())
                 session.basicRemote.sendText(message)
             }
             session.addMessageHandler(ByteBuffer::class.java) { message ->
                 val text = ByteArray(message.limit()).also(message::get).decodeToString()
+                incomingMessages.add(text)
+                incomingContexts.add(TestRequestHolder.retrieve())
                 session.basicRemote.sendBinary(ByteBuffer.wrap(text.encodeToByteArray()))
             }
         } catch (e: AbstractMethodError) {
-            session.addMessageHandler(ServerTextMessageHandler(session))
-            session.addMessageHandler(ServerBinaryMessageHandler(session))
+            session.addMessageHandler(ServerTextMessageHandler(session, incomingMessages, incomingContexts))
+            session.addMessageHandler(ServerBinaryMessageHandler(session, incomingMessages, incomingContexts))
         }
     }
 
-    private class ServerTextMessageHandler(private val session: Session) : MessageHandler.Whole<String> {
+    @Suppress("unused")
+    @ClientEndpoint
+    class TestRequestClientAnnotatedEndpoint : TestRequestEndpoint {
+        override val incomingMessages = mutableListOf<String>()
+        override val incomingContexts = mutableListOf<DrillRequest?>()
+        @OnMessage
+        fun onTextMessage(message: String) {
+            incomingMessages.add(message)
+            incomingContexts.add(TestRequestHolder.retrieve())
+        }
+        @OnMessage
+        fun onBinaryMessage(message: ByteBuffer) {
+            incomingMessages.add(ByteArray(message.limit()).also(message::get).decodeToString())
+            incomingContexts.add(TestRequestHolder.retrieve())
+        }
+    }
+
+    class TestRequestClientInterfaceEndpoint : Endpoint(), TestRequestEndpoint {
+        override val incomingMessages = mutableListOf<String>()
+        override val incomingContexts = mutableListOf<DrillRequest?>()
+        override fun onOpen(session: Session, config: EndpointConfig) = try {
+            session.addMessageHandler(String::class.java) { message ->
+                incomingMessages.add(message)
+                incomingContexts.add(TestRequestHolder.retrieve())
+            }
+            session.addMessageHandler(ByteBuffer::class.java) { message ->
+                incomingMessages.add(ByteArray(message.limit()).also(message::get).decodeToString())
+                incomingContexts.add(TestRequestHolder.retrieve())
+            }
+        } catch (e: AbstractMethodError) {
+            session.addMessageHandler(ClientTextMessageHandler(incomingMessages, incomingContexts))
+            session.addMessageHandler(ClientBinaryMessageHandler(incomingMessages, incomingContexts))
+        }
+    }
+
+    private class ServerTextMessageHandler(
+        private val session: Session,
+        private val incomingMessages: MutableList<String>,
+        private val incomingContexts: MutableList<DrillRequest?>
+    ) : MessageHandler.Whole<String> {
         override fun onMessage(message: String) {
+            incomingMessages.add(message)
+            incomingContexts.add(TestRequestHolder.retrieve())
             session.basicRemote.sendText(message)
         }
     }
 
-    private class ServerBinaryMessageHandler(private val session: Session) : MessageHandler.Whole<ByteBuffer> {
+    private class ServerBinaryMessageHandler(
+        private val session: Session,
+        private val incomingMessages: MutableList<String>,
+        private val incomingContexts: MutableList<DrillRequest?>
+    ) : MessageHandler.Whole<ByteBuffer> {
         override fun onMessage(message: ByteBuffer) {
             val text = ByteArray(message.limit()).also(message::get).decodeToString()
+            incomingMessages.add(text)
+            incomingContexts.add(TestRequestHolder.retrieve())
             session.basicRemote.sendBinary(ByteBuffer.wrap(text.encodeToByteArray()))
+        }
+    }
+
+    private class ClientTextMessageHandler(
+        private val incomingMessages: MutableList<String>,
+        private val incomingContexts: MutableList<DrillRequest?>
+    ) : MessageHandler.Whole<String> {
+        override fun onMessage(message: String) {
+            incomingMessages.add(message)
+            incomingContexts.add(TestRequestHolder.retrieve())
+        }
+    }
+
+    private class ClientBinaryMessageHandler(
+        private val incomingMessages: MutableList<String>,
+        private val incomingContexts: MutableList<DrillRequest?>
+    ) : MessageHandler.Whole<ByteBuffer> {
+        override fun onMessage(message: ByteBuffer) {
+            incomingMessages.add(ByteArray(message.limit()).also(message::get).decodeToString())
+            incomingContexts.add(TestRequestHolder.retrieve())
         }
     }
 
     private class TestUndertowContainerProvider : UndertowContainerProvider() {
         public override fun getContainer(): WebSocketContainer = super.getContainer()
-    }
-
-    @Suppress("unused")
-    @ClientEndpoint
-    private class TestRequestClientAnnotatedEndpoint : TestRequestClientEndpoint {
-        override val incomingMessages = mutableListOf<String>()
-        @OnMessage
-        fun onTextMessage(message: String) {
-            incomingMessages.add(message)
-        }
-        @OnMessage
-        fun onBinaryMessage(message: ByteBuffer) {
-            incomingMessages.add(ByteArray(message.limit()).also(message::get).decodeToString())
-        }
-    }
-
-    private class TestRequestClientInterfaceEndpoint : Endpoint(), TestRequestClientEndpoint {
-        override val incomingMessages = mutableListOf<String>()
-        override fun onOpen(session: Session, config: EndpointConfig) = try {
-            session.addMessageHandler(String::class.java) { message ->
-                incomingMessages.add(message)
-            }
-            session.addMessageHandler(ByteBuffer::class.java) { message ->
-                incomingMessages.add(ByteArray(message.limit()).also(message::get).decodeToString())
-            }
-        } catch (e: AbstractMethodError) {
-            session.addMessageHandler(ClientTextMessageHandler(incomingMessages))
-            session.addMessageHandler(ClientBinaryMessageHandler(incomingMessages))
-        }
-    }
-
-    private interface TestRequestClientEndpoint {
-        val incomingMessages: MutableList<String>
-    }
-
-    private class ClientTextMessageHandler(private val incomingMessages: MutableList<String>) : MessageHandler.Whole<String> {
-        override fun onMessage(message: String) {
-            incomingMessages.add(message)
-        }
-    }
-
-    private class ClientBinaryMessageHandler(private val incomingMessages: MutableList<String>) : MessageHandler.Whole<ByteBuffer> {
-        override fun onMessage(message: ByteBuffer) {
-            incomingMessages.add(ByteArray(message.limit()).also(message::get).decodeToString())
-        }
     }
 
 }
