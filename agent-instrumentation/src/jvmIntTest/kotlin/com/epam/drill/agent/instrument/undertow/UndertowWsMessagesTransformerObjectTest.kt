@@ -211,21 +211,21 @@ class UndertowWsMessagesTransformerObjectTest {
         TestRequestEndpoint.incomingMessages.clear()
         TestRequestEndpoint.incomingContexts.clear()
         TestPayloadProcessor.enabled = perMessageEnabled
-        val results = callWebSocketEndpoint(withConnection, address, payloadType, sendType)
+        val responses = callWebSocketEndpoint(withConnection, address, payloadType, sendType)
         assertEquals(10, TestRequestEndpoint.incomingMessages.size)
         assertEquals(10, TestRequestEndpoint.incomingContexts.size)
-        assertEquals(10, results.first.size)
-        assertEquals(10, results.second.size)
-        results.first.forEachIndexed { i, message ->
-            assertEquals("test-request-$i", message)
-        }
-        results.second.forEachIndexed { i, drillRequest ->
-            assertNull(drillRequest)
-        }
+        assertEquals(10, responses.first.size)
+        assertEquals(10, responses.second.size)
         TestRequestEndpoint.incomingMessages.forEachIndexed { i, message ->
             assertEquals("test-request-$i", message)
         }
         TestRequestEndpoint.incomingContexts.forEachIndexed { i, drillRequest ->
+            assertNull(drillRequest)
+        }
+        responses.first.forEachIndexed { i, message ->
+            assertEquals("test-request-$i-response", message)
+        }
+        responses.second.forEachIndexed { i, drillRequest ->
             assertNull(drillRequest)
         }
     }
@@ -274,14 +274,14 @@ class UndertowWsMessagesTransformerObjectTest {
         fun onTextMessage(message: String, session: Session) {
             incomingMessages.add(message)
             incomingContexts.add(TestRequestHolder.retrieve())
-            session.basicRemote.sendText(message)
+            session.basicRemote.sendText("$message-response")
         }
         @OnMessage
         fun onBinaryMessage(message: ByteBuffer, session: Session) {
             val text = ByteArray(message.limit()).also(message::get).decodeToString()
             incomingMessages.add(text)
             incomingContexts.add(TestRequestHolder.retrieve())
-            session.basicRemote.sendBinary(ByteBuffer.wrap(text.encodeToByteArray()))
+            session.basicRemote.sendBinary(ByteBuffer.wrap("$text-response".encodeToByteArray()))
         }
     }
 
@@ -292,13 +292,13 @@ class UndertowWsMessagesTransformerObjectTest {
             session.addMessageHandler(String::class.java) { message ->
                 incomingMessages.add(message)
                 incomingContexts.add(TestRequestHolder.retrieve())
-                session.basicRemote.sendText(message)
+                session.basicRemote.sendText("$message-response")
             }
             session.addMessageHandler(ByteBuffer::class.java) { message ->
                 val text = ByteArray(message.limit()).also(message::get).decodeToString()
                 incomingMessages.add(text)
                 incomingContexts.add(TestRequestHolder.retrieve())
-                session.basicRemote.sendBinary(ByteBuffer.wrap(text.encodeToByteArray()))
+                session.basicRemote.sendBinary(ByteBuffer.wrap("$text-response".encodeToByteArray()))
             }
         } catch (e: AbstractMethodError) {
             session.addMessageHandler(ServerTextMessageHandler(session, incomingMessages, incomingContexts))
@@ -349,7 +349,7 @@ class UndertowWsMessagesTransformerObjectTest {
         override fun onMessage(message: String) {
             incomingMessages.add(message)
             incomingContexts.add(TestRequestHolder.retrieve())
-            session.basicRemote.sendText(message)
+            session.basicRemote.sendText("$message-response")
         }
     }
 
@@ -362,6 +362,7 @@ class UndertowWsMessagesTransformerObjectTest {
             val text = ByteArray(message.limit()).also(message::get).decodeToString()
             incomingMessages.add(text)
             incomingContexts.add(TestRequestHolder.retrieve())
+            session.basicRemote.sendBinary(ByteBuffer.wrap("$text-response".encodeToByteArray()))
             session.basicRemote.sendBinary(ByteBuffer.wrap(text.encodeToByteArray()))
         }
     }
