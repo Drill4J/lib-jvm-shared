@@ -17,6 +17,7 @@ package com.epam.drill.agent.instrument.undertow
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import java.net.InetSocketAddress
 import java.net.URI
@@ -210,6 +211,7 @@ class UndertowWsMessagesTransformerObjectTest {
     ) = withServer { address ->
         TestRequestEndpoint.incomingMessages.clear()
         TestRequestEndpoint.incomingContexts.clear()
+        TestRequestHolder.remove()
         TestPayloadProcessor.enabled = perMessageEnabled
         val responses = callWebSocketEndpoint(withConnection, address, payloadType, sendType)
         assertEquals(10, TestRequestEndpoint.incomingMessages.size)
@@ -220,13 +222,25 @@ class UndertowWsMessagesTransformerObjectTest {
             assertEquals("test-request-$i", message)
         }
         TestRequestEndpoint.incomingContexts.forEachIndexed { i, drillRequest ->
-            assertNull(drillRequest)
+            if(perMessageEnabled) {
+                assertNotNull(drillRequest)
+                assertEquals("test-request-$i-session", drillRequest.drillSessionId)
+                assertEquals("test-request-$i-data", drillRequest.headers["drill-data"])
+            } else {
+                assertNull(drillRequest)
+            }
         }
         responses.first.forEachIndexed { i, message ->
             assertEquals("test-request-$i-response", message)
         }
         responses.second.forEachIndexed { i, drillRequest ->
-            assertNull(drillRequest)
+            if(perMessageEnabled) {
+                assertNotNull(drillRequest)
+                assertEquals("test-request-$i-response-session", drillRequest.drillSessionId)
+                assertEquals("test-request-$i-response-data", drillRequest.headers["drill-data"])
+            } else {
+                assertNull(drillRequest)
+            }
         }
     }
 
@@ -241,14 +255,24 @@ class UndertowWsMessagesTransformerObjectTest {
         val session = this.second
         when (payloadType) {
             "text" -> when (sendType) {
-                "basic" -> (0 until count).map(body::plus).forEach(session.basicRemote::sendText)
-                "async" -> (0 until count).map(body::plus).forEach(session.asyncRemote::sendText)
+                "basic" -> (0 until count).map(body::plus).forEach {
+                    TestRequestHolder.store(DrillRequest("$it-session", mapOf("drill-data" to "$it-data")))
+                    session.basicRemote.sendText(it)
+                }
+                "async" -> (0 until count).map(body::plus).forEach {
+                    TestRequestHolder.store(DrillRequest("$it-session", mapOf("drill-data" to "$it-data")))
+                    session.asyncRemote.sendText(it)
+                }
             }
             "binary" -> when (sendType) {
-                "basic" -> (0 until count).map(body::plus).map(String::encodeToByteArray).map(ByteBuffer::wrap)
-                    .forEach(session.basicRemote::sendBinary)
-                "async" -> (0 until count).map(body::plus).map(String::encodeToByteArray).map(ByteBuffer::wrap)
-                    .forEach(session.asyncRemote::sendBinary)
+                "basic" -> (0 until count).map(body::plus).forEach {
+                    TestRequestHolder.store(DrillRequest("$it-session", mapOf("drill-data" to "$it-data")))
+                    session.basicRemote.sendBinary(ByteBuffer.wrap(it.encodeToByteArray()))
+                }
+                "async" -> (0 until count).map(body::plus).forEach {
+                    TestRequestHolder.store(DrillRequest("$it-session", mapOf("drill-data" to "$it-data")))
+                    session.asyncRemote.sendBinary(ByteBuffer.wrap(it.encodeToByteArray()))
+                }
             }
         }
         Thread.sleep(1000)
@@ -274,6 +298,7 @@ class UndertowWsMessagesTransformerObjectTest {
         fun onTextMessage(message: String, session: Session) {
             incomingMessages.add(message)
             incomingContexts.add(TestRequestHolder.retrieve())
+            TestRequestHolder.store(DrillRequest("$message-response-session", mapOf("drill-data" to "$message-response-data")))
             session.basicRemote.sendText("$message-response")
         }
         @OnMessage
@@ -281,6 +306,7 @@ class UndertowWsMessagesTransformerObjectTest {
             val text = ByteArray(message.limit()).also(message::get).decodeToString()
             incomingMessages.add(text)
             incomingContexts.add(TestRequestHolder.retrieve())
+            TestRequestHolder.store(DrillRequest("$text-response-session", mapOf("drill-data" to "$text-response-data")))
             session.basicRemote.sendBinary(ByteBuffer.wrap("$text-response".encodeToByteArray()))
         }
     }
@@ -292,12 +318,14 @@ class UndertowWsMessagesTransformerObjectTest {
             session.addMessageHandler(String::class.java) { message ->
                 incomingMessages.add(message)
                 incomingContexts.add(TestRequestHolder.retrieve())
+                TestRequestHolder.store(DrillRequest("$message-response-session", mapOf("drill-data" to "$message-response-data")))
                 session.basicRemote.sendText("$message-response")
             }
             session.addMessageHandler(ByteBuffer::class.java) { message ->
                 val text = ByteArray(message.limit()).also(message::get).decodeToString()
                 incomingMessages.add(text)
                 incomingContexts.add(TestRequestHolder.retrieve())
+                TestRequestHolder.store(DrillRequest("$text-response-session", mapOf("drill-data" to "$text-response-data")))
                 session.basicRemote.sendBinary(ByteBuffer.wrap("$text-response".encodeToByteArray()))
             }
         } catch (e: AbstractMethodError) {
@@ -349,6 +377,7 @@ class UndertowWsMessagesTransformerObjectTest {
         override fun onMessage(message: String) {
             incomingMessages.add(message)
             incomingContexts.add(TestRequestHolder.retrieve())
+            TestRequestHolder.store(DrillRequest("$message-response-session", mapOf("drill-data" to "$message-response-data")))
             session.basicRemote.sendText("$message-response")
         }
     }
@@ -362,8 +391,8 @@ class UndertowWsMessagesTransformerObjectTest {
             val text = ByteArray(message.limit()).also(message::get).decodeToString()
             incomingMessages.add(text)
             incomingContexts.add(TestRequestHolder.retrieve())
+            TestRequestHolder.store(DrillRequest("$text-response-session", mapOf("drill-data" to "$text-response-data")))
             session.basicRemote.sendBinary(ByteBuffer.wrap("$text-response".encodeToByteArray()))
-            session.basicRemote.sendBinary(ByteBuffer.wrap(text.encodeToByteArray()))
         }
     }
 

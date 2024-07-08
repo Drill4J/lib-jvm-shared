@@ -66,10 +66,10 @@ abstract class UndertowWsServerTransformerObject : HeadersProcessor, AbstractTra
             ).also(ctClass::addField)
             CtMethod.make(
                 """
-            public java.util.Map/*<java.lang.String, java.lang.String>*/ getHandshakeHeaders() {
-                return this.handshakeHeaders;
-            }
-            """.trimIndent(),
+                public java.util.Map/*<java.lang.String, java.lang.String>*/ getHandshakeHeaders() {
+                    return this.handshakeHeaders;
+                }
+                """.trimIndent(),
                 ctClass
             ).also(ctClass::addMethod)
         }

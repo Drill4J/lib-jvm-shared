@@ -22,6 +22,7 @@ import javassist.ByteArrayClassPath
 import javassist.ClassPool
 import javassist.CtBehavior
 import javassist.CtClass
+import javassist.CtMethod
 import mu.KotlinLogging
 import net.bytebuddy.ByteBuddy
 import net.bytebuddy.TypeCache
@@ -49,6 +50,7 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) = listOf(
         "io/undertow/websockets/jsr/FrameHandler",
         "io/undertow/websockets/jsr/JsrWebSocketFilter",
+        "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint",
         "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint",
         "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$AsyncWebSocketSessionRemoteEndpoint",
         "io/undertow/websockets/core/WebSockets"
@@ -59,8 +61,9 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
         when (className) {
             "io/undertow/websockets/jsr/FrameHandler" -> transformFrameHandler(ctClass)
             "io/undertow/websockets/jsr/JsrWebSocketFilter" -> transformWebSocketFilter(ctClass)
-            "io/undertow/websockets/jsr?WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint" -> transformRemoteEndpoint(ctClass, "basic")
-            "io/undertow/websockets/jsr?WebSocketSessionRemoteEndpoint\$AsyncWebSocketSessionRemoteEndpoint" -> transformRemoteEndpoint(ctClass, "async")
+            "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint" -> transformRemoteEndpoint(ctClass)
+            "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint" -> transformSessionRemoteEndpoint(ctClass)
+            "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$AsyncWebSocketSessionRemoteEndpoint" -> transformSessionRemoteEndpoint(ctClass)
             "io/undertow/websockets/core/WebSockets" -> transformWebSockets(ctClass)
         }
         when (ctClass.superclass.name) {
@@ -75,16 +78,24 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
         val createProxyCode: (String) -> String = { proxy ->
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
-                    && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
                     && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.session.getHandshakeHeaders())) {
                 $1 = new $proxy($1);
             }
             """.trimIndent()
         }
+        val removeHeadersCode =
+            """
+            if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.session.getHandshakeHeaders())) {
+                ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
+            }
+            """.trimIndent()
         ctClass.getMethod("invokeTextHandler", "(Lio/undertow/websockets/core/BufferedTextMessage;Lio/undertow/websockets/jsr/FrameHandler\$HandlerWrapper;Z)V")
-            .insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxy))
+            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxy)) }
+            .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
         ctClass.getMethod("invokeBinaryHandler", "(Lio/undertow/websockets/core/BufferedBinaryMessage;Lio/undertow/websockets/jsr/FrameHandler\$HandlerWrapper;Z)V")
-            .insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxy))
+            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxy)) }
+            .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
     }
 
     private fun transformClientHandshake(ctClass: CtClass) {
@@ -110,21 +121,33 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             )
     }
 
-    private fun transformRemoteEndpoint(ctClass: CtClass, type: String) {
+    private fun transformRemoteEndpoint(ctClass: CtClass) {
+        CtMethod.make(
+            """
+            public io.undertow.websockets.jsr.UndertowSession getUndertowSession() {
+                return this.undertowSession;
+            }
+            """.trimIndent(),
+            ctClass
+        ).also(ctClass::addMethod)
+    }
+
+    private fun transformSessionRemoteEndpoint(ctClass: CtClass) {
         val propagateHandshakeHeaderCode =
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
                     && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
-                    && this.undertowSession.getHandshakeHeaders() != null) {
+                    && this$0.getUndertowSession().getHandshakeHeaders() != null) {
                 java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
-                drillHeaders.put("drill-ws-per-message", this.undertowSession.getHandshakeHeaders().get("drill-ws-per-message"));
+                drillHeaders.put("drill-ws-per-message", this$0.getUndertowSession().getHandshakeHeaders().get("drill-ws-per-message"));
                 ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
             }
             """.trimIndent()
-        if (type == "async") {
-            ctClass.getMethod("sendText", "(Ljava/lang.String;Ljavax/websocket/SendHandler;)V")
+        ctClass.declaringClass.defrost()
+        if (ctClass.simpleName == "WebSocketSessionRemoteEndpoint\$AsyncWebSocketSessionRemoteEndpoint") {
+            ctClass.getMethod("sendText", "(Ljava/lang/String;Ljavax/websocket/SendHandler;)V")
                 .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
-            ctClass.getMethod("sendText", "(Ljava/lang.String;)Ljava/util/concurrent/Future;")
+            ctClass.getMethod("sendText", "(Ljava/lang/String;)Ljava/util/concurrent/Future;")
                 .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
             ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Ljavax/websocket/SendHandler;)V")
                 .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
@@ -135,19 +158,19 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             ctClass.getMethod("sendObject", "(Ljava/lang/Object;)Ljava/util/concurrent/Future;")
                 .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
         }
-        if (type == "basic") {
-            ctClass.getMethod("sendText", "(Ljava/lang.String;)V")
+        if (ctClass.simpleName == "WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint") {
+            ctClass.getMethod("sendText", "(Ljava/lang/String;)V")
                 .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
             ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;)V")
                 .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
             ctClass.getMethod("sendObject", "(Ljava/lang/Object;)V")
                 .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
-            ctClass.getMethod("sendText", "(Ljava/lang.String;Z)V").insertCatching(
+            ctClass.getMethod("sendText", "(Ljava/lang/String;Z)V").insertCatching(
                 CtBehavior::insertBefore,
                 """
                 if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
                         && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
-                        && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.undertowSession.getHandshakeHeaders())) {
+                        && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this$0.getUndertowSession().getHandshakeHeaders())) {
                     $1 = ${this::class.java.name}.INSTANCE.storeDrillHeaders($1);
                 }
                 """.trimIndent()
@@ -157,7 +180,7 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
                 """
                 if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
                         && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
-                        && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.undertowSession.getHandshakeHeaders())) {
+                        && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this$0.getUndertowSession().getHandshakeHeaders())) {
                     byte[] modified = ${this::class.java.name}.INSTANCE.storeDrillHeaders(org.xnio.Buffers.take($1));
                     $1.clear();
                     $1 = java.nio.ByteBuffer.wrap(modified);
