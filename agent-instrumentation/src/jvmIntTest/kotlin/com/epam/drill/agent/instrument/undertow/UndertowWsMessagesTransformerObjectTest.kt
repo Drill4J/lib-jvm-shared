@@ -252,6 +252,23 @@ class UndertowWsMessagesTransformerObjectTest {
         }
         val incomingMessages: MutableList<String>
         val incomingContexts: MutableList<DrillRequest?>
+        fun processIncoming(message: String, session: Session?) {
+            incomingMessages.add(message)
+            incomingContexts.add(TestRequestHolder.retrieve())
+            if (session != null) {
+                TestRequestHolder.store(DrillRequest("$message-response-session", mapOf("drill-data" to "$message-response-data")))
+                session.basicRemote.sendText("$message-response")
+            }
+        }
+        fun processIncoming(message: ByteBuffer, session: Session?) {
+            val text = ByteArray(message.limit()).also(message::get).decodeToString()
+            incomingMessages.add(text)
+            incomingContexts.add(TestRequestHolder.retrieve())
+            if (session != null) {
+                TestRequestHolder.store(DrillRequest("$text-response-session", mapOf("drill-data" to "$text-response-data")))
+                session.basicRemote.sendBinary(ByteBuffer.wrap("$text-response".encodeToByteArray()))
+            }
+        }
     }
 
     @Suppress("unused")
@@ -260,39 +277,17 @@ class UndertowWsMessagesTransformerObjectTest {
         override val incomingMessages = TestRequestEndpoint.incomingMessages
         override val incomingContexts = TestRequestEndpoint.incomingContexts
         @OnMessage
-        fun onTextMessage(message: String, session: Session) {
-            incomingMessages.add(message)
-            incomingContexts.add(TestRequestHolder.retrieve())
-            TestRequestHolder.store(DrillRequest("$message-response-session", mapOf("drill-data" to "$message-response-data")))
-            session.basicRemote.sendText("$message-response")
-        }
+        fun onTextMessage(message: String, session: Session) = processIncoming(message, session)
         @OnMessage
-        fun onBinaryMessage(message: ByteBuffer, session: Session) {
-            val text = ByteArray(message.limit()).also(message::get).decodeToString()
-            incomingMessages.add(text)
-            incomingContexts.add(TestRequestHolder.retrieve())
-            TestRequestHolder.store(DrillRequest("$text-response-session", mapOf("drill-data" to "$text-response-data")))
-            session.basicRemote.sendBinary(ByteBuffer.wrap("$text-response".encodeToByteArray()))
-        }
+        fun onBinaryMessage(message: ByteBuffer, session: Session) = processIncoming(message, session)
     }
 
     class TestRequestServerInterfaceEndpoint : Endpoint(), TestRequestEndpoint {
         override val incomingMessages = TestRequestEndpoint.incomingMessages
         override val incomingContexts = TestRequestEndpoint.incomingContexts
         override fun onOpen(session: Session, config: EndpointConfig) = try {
-            session.addMessageHandler(String::class.java) { message ->
-                incomingMessages.add(message)
-                incomingContexts.add(TestRequestHolder.retrieve())
-                TestRequestHolder.store(DrillRequest("$message-response-session", mapOf("drill-data" to "$message-response-data")))
-                session.basicRemote.sendText("$message-response")
-            }
-            session.addMessageHandler(ByteBuffer::class.java) { message ->
-                val text = ByteArray(message.limit()).also(message::get).decodeToString()
-                incomingMessages.add(text)
-                incomingContexts.add(TestRequestHolder.retrieve())
-                TestRequestHolder.store(DrillRequest("$text-response-session", mapOf("drill-data" to "$text-response-data")))
-                session.basicRemote.sendBinary(ByteBuffer.wrap("$text-response".encodeToByteArray()))
-            }
+            session.addMessageHandler(String::class.java) { message -> processIncoming(message, session) }
+            session.addMessageHandler(ByteBuffer::class.java) { message -> processIncoming(message, session) }
         } catch (e: AbstractMethodError) {
             session.addMessageHandler(ServerTextMessageHandler(session, incomingMessages, incomingContexts))
             session.addMessageHandler(ServerBinaryMessageHandler(session, incomingMessages, incomingContexts))
@@ -305,29 +300,17 @@ class UndertowWsMessagesTransformerObjectTest {
         override val incomingMessages = mutableListOf<String>()
         override val incomingContexts = mutableListOf<DrillRequest?>()
         @OnMessage
-        fun onTextMessage(message: String) {
-            incomingMessages.add(message)
-            incomingContexts.add(TestRequestHolder.retrieve())
-        }
+        fun onTextMessage(message: String) = processIncoming(message, null)
         @OnMessage
-        fun onBinaryMessage(message: ByteBuffer) {
-            incomingMessages.add(ByteArray(message.limit()).also(message::get).decodeToString())
-            incomingContexts.add(TestRequestHolder.retrieve())
-        }
+        fun onBinaryMessage(message: ByteBuffer) = processIncoming(message, null)
     }
 
     class TestRequestClientInterfaceEndpoint : Endpoint(), TestRequestEndpoint {
         override val incomingMessages = mutableListOf<String>()
         override val incomingContexts = mutableListOf<DrillRequest?>()
         override fun onOpen(session: Session, config: EndpointConfig) = try {
-            session.addMessageHandler(String::class.java) { message ->
-                incomingMessages.add(message)
-                incomingContexts.add(TestRequestHolder.retrieve())
-            }
-            session.addMessageHandler(ByteBuffer::class.java) { message ->
-                incomingMessages.add(ByteArray(message.limit()).also(message::get).decodeToString())
-                incomingContexts.add(TestRequestHolder.retrieve())
-            }
+            session.addMessageHandler(String::class.java) { message -> processIncoming(message, null) }
+            session.addMessageHandler(ByteBuffer::class.java) { message -> processIncoming(message, null) }
         } catch (e: AbstractMethodError) {
             session.addMessageHandler(ClientTextMessageHandler(incomingMessages, incomingContexts))
             session.addMessageHandler(ClientBinaryMessageHandler(incomingMessages, incomingContexts))
@@ -336,49 +319,32 @@ class UndertowWsMessagesTransformerObjectTest {
 
     private class ServerTextMessageHandler(
         private val session: Session,
-        private val incomingMessages: MutableList<String>,
-        private val incomingContexts: MutableList<DrillRequest?>
-    ) : MessageHandler.Whole<String> {
-        override fun onMessage(message: String) {
-            incomingMessages.add(message)
-            incomingContexts.add(TestRequestHolder.retrieve())
-            TestRequestHolder.store(DrillRequest("$message-response-session", mapOf("drill-data" to "$message-response-data")))
-            session.basicRemote.sendText("$message-response")
-        }
+        override val incomingMessages: MutableList<String>,
+        override val incomingContexts: MutableList<DrillRequest?>
+    ) : MessageHandler.Whole<String>, TestRequestEndpoint {
+        override fun onMessage(message: String) = processIncoming(message, session)
     }
 
     private class ServerBinaryMessageHandler(
         private val session: Session,
-        private val incomingMessages: MutableList<String>,
-        private val incomingContexts: MutableList<DrillRequest?>
-    ) : MessageHandler.Whole<ByteBuffer> {
-        override fun onMessage(message: ByteBuffer) {
-            val text = ByteArray(message.limit()).also(message::get).decodeToString()
-            incomingMessages.add(text)
-            incomingContexts.add(TestRequestHolder.retrieve())
-            TestRequestHolder.store(DrillRequest("$text-response-session", mapOf("drill-data" to "$text-response-data")))
-            session.basicRemote.sendBinary(ByteBuffer.wrap("$text-response".encodeToByteArray()))
-        }
+        override val incomingMessages: MutableList<String>,
+        override val incomingContexts: MutableList<DrillRequest?>
+    ) : MessageHandler.Whole<ByteBuffer>, TestRequestEndpoint {
+        override fun onMessage(message: ByteBuffer) = processIncoming(message, session)
     }
 
     private class ClientTextMessageHandler(
-        private val incomingMessages: MutableList<String>,
-        private val incomingContexts: MutableList<DrillRequest?>
-    ) : MessageHandler.Whole<String> {
-        override fun onMessage(message: String) {
-            incomingMessages.add(message)
-            incomingContexts.add(TestRequestHolder.retrieve())
-        }
+        override val incomingMessages: MutableList<String>,
+        override val incomingContexts: MutableList<DrillRequest?>
+    ) : MessageHandler.Whole<String>, TestRequestEndpoint {
+        override fun onMessage(message: String) = processIncoming(message, null)
     }
 
     private class ClientBinaryMessageHandler(
-        private val incomingMessages: MutableList<String>,
-        private val incomingContexts: MutableList<DrillRequest?>
-    ) : MessageHandler.Whole<ByteBuffer> {
-        override fun onMessage(message: ByteBuffer) {
-            incomingMessages.add(ByteArray(message.limit()).also(message::get).decodeToString())
-            incomingContexts.add(TestRequestHolder.retrieve())
-        }
+        override val incomingMessages: MutableList<String>,
+        override val incomingContexts: MutableList<DrillRequest?>
+    ) : MessageHandler.Whole<ByteBuffer>, TestRequestEndpoint {
+        override fun onMessage(message: ByteBuffer) = processIncoming(message, null)
     }
 
     private class TestUndertowContainerProvider : UndertowContainerProvider() {
