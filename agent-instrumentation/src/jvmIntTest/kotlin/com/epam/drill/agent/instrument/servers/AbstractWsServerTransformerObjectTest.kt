@@ -195,7 +195,7 @@ abstract class AbstractWsServerTransformerObjectTest {
         private val drillHeaders: Map<String, String>
     ) : ClientEndpointConfig.Configurator() {
         override fun beforeRequest(headers: MutableMap<String, MutableList<String>>) =
-            drillHeaders.forEach { key, value -> headers[key] = mutableListOf(value) }
+            drillHeaders.forEach { (key, value) -> headers[key] = mutableListOf(value) }
     }
 
 }
