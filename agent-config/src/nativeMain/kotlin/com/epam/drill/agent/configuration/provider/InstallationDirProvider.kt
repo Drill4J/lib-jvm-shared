@@ -27,7 +27,7 @@ class InstallationDirProvider(
     agentLibName: String = "drill-agent"
 ) : AgentConfigurationProvider {
 
-    private val agentLibNamePattern = "(lib)?${agentLibName.replace("-", "_")}(\\.so|\\.dll)"
+    private val agentLibNamePattern = "(lib)?${agentLibName.replace("-", "_")}(\\.so|\\.dll|\\.dylib)"
     private val agentLibPathRegex = Regex("[\"]?(.*[/\\\\])?$agentLibNamePattern([ =\"].*)?")
 
     override val configuration = mapOf(Pair(DefaultParameterDefinitions.INSTALLATION_DIR.name, installationDir()))
