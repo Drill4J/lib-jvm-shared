@@ -19,7 +19,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import java.net.InetSocketAddress
 import java.net.URI
 import java.nio.ByteBuffer
 import javax.websocket.ClientEndpoint
@@ -31,14 +30,7 @@ import javax.websocket.OnMessage
 import javax.websocket.Session
 import javax.websocket.WebSocketContainer
 import javax.websocket.server.ServerEndpoint
-import javax.websocket.server.ServerEndpointConfig
-import org.xnio.OptionMap
-import org.xnio.Xnio
-import io.undertow.Undertow
-import io.undertow.servlet.Servlets
-import io.undertow.servlet.api.DeploymentManager
 import io.undertow.websockets.jsr.UndertowContainerProvider
-import io.undertow.websockets.jsr.WebSocketDeploymentInfo
 import com.epam.drill.agent.instrument.TestPayloadProcessor
 import com.epam.drill.agent.instrument.TestRequestHolder
 import com.epam.drill.common.agent.request.DrillRequest
@@ -158,38 +150,11 @@ class UndertowWsMessagesTransformerObjectTest {
         true, "binary", "async"
     )
 
-    private fun withWebSocketServerAnnotatedEndpoint(block: (String) -> Unit) = WebSocketDeploymentInfo()
-        .addEndpoint(TestRequestServerAnnotatedEndpoint::class.java)
-        .let { withWebSocketServer(it, block) }
+    private fun withWebSocketServerAnnotatedEndpoint(block: (String) -> Unit) =
+        UndertowWsTestServer.withWebSocketAnnotatedEndpoint(TestRequestServerAnnotatedEndpoint::class.java, block)
 
-    private fun withWebSocketServerInterfaceEndpoint(block: (String) -> Unit) = WebSocketDeploymentInfo()
-        .addEndpoint(ServerEndpointConfig.Builder.create(TestRequestServerInterfaceEndpoint::class.java, "/").build())
-        .let { withWebSocketServer(it, block) }
-
-    private fun withWebSocketServer(info: WebSocketDeploymentInfo, block: (String) -> Unit) = Undertow.builder().run {
-        val wsDeploymentManager = webSocketDeploymentManager(info)
-        this.addHttpListener(0, "localhost")
-        this.setHandler(wsDeploymentManager.also(DeploymentManager::deploy).let(DeploymentManager::start))
-        val server = this.build()
-        try {
-            server.start()
-            block("ws://localhost:${(server.listenerInfo[0].address as InetSocketAddress).port}")
-        } finally {
-            wsDeploymentManager.stop()
-            wsDeploymentManager.undeploy()
-            server.stop()
-        }
-    }
-
-    private fun webSocketDeploymentManager(info: WebSocketDeploymentInfo) = Servlets.defaultContainer().run {
-        val worker = Xnio.getInstance().createWorker(OptionMap.EMPTY)
-        val deployment = Servlets.deployment()
-            .setClassLoader(this::class.java.classLoader)
-            .setContextPath("/")
-            .setDeploymentName("test-websockets")
-            .addServletContextAttribute(WebSocketDeploymentInfo.ATTRIBUTE_NAME, info.setWorker(worker))
-        this.addDeployment(deployment)
-    }
+    private fun withWebSocketServerInterfaceEndpoint(block: (String) -> Unit) =
+        UndertowWsTestServer.withWebSocketInterfaceEndpoint(TestRequestServerInterfaceEndpoint::class.java, block)
 
     private fun connectToWebsocketAnnotatedEndpoint(address: String) = TestRequestClientAnnotatedEndpoint().run {
         val session = TestUndertowContainerProvider().container.connectToServer(this, URI(address))
