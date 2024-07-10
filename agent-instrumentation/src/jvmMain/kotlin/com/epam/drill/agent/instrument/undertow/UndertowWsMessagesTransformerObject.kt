@@ -23,6 +23,7 @@ import javassist.ClassPool
 import javassist.CtBehavior
 import javassist.CtClass
 import javassist.CtMethod
+import javassist.NotFoundException
 import mu.KotlinLogging
 import net.bytebuddy.ByteBuddy
 import net.bytebuddy.TypeCache
@@ -109,13 +110,23 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
         )
     }
 
-    private fun transformWebSocketFilter(ctClass: CtClass) {
+    private fun transformWebSocketFilter(ctClass: CtClass) = try {
         ctClass.getMethod("doFilter", "(Ljavax/servlet/ServletRequest;Ljavax/servlet/ServletResponse;Ljavax/servlet/FilterChain;)V")
             .insertCatching(
                 CtBehavior::insertBefore,
                 """
                 if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
                     ((javax.servlet.http.HttpServletResponse)$2).setHeader("drill-ws-per-message", "true");
+                }
+                """.trimIndent()
+            )
+    } catch (e: NotFoundException) {
+        ctClass.getMethod("doFilter", "(Ljakarta/servlet/ServletRequest;Ljakarta/servlet/ServletResponse;Ljakarta/servlet/FilterChain;)V")
+            .insertCatching(
+                CtBehavior::insertBefore,
+                """
+                if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
+                    ((jakarta.servlet.http.HttpServletResponse)$2).setHeader("drill-ws-per-message", "true");
                 }
                 """.trimIndent()
             )
@@ -145,15 +156,24 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             """.trimIndent()
         ctClass.declaringClass.defrost()
         if (ctClass.simpleName == "WebSocketSessionRemoteEndpoint\$AsyncWebSocketSessionRemoteEndpoint") {
-            ctClass.getMethod("sendText", "(Ljava/lang/String;Ljavax/websocket/SendHandler;)V")
-                .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+            try {
+                ctClass.getMethod("sendText", "(Ljava/lang/String;Ljavax/websocket/SendHandler;)V")
+                    .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+                ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Ljavax/websocket/SendHandler;)V")
+                    .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+                ctClass.getMethod("sendObject", "(Ljava/lang/Object;Ljavax/websocket/SendHandler;)V")
+                    .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+            } catch (e: NotFoundException) {
+                ctClass.getMethod("sendText", "(Ljava/lang/String;Ljakarta/websocket/SendHandler;)V")
+                    .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+                ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Ljakarta/websocket/SendHandler;)V")
+                    .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+                ctClass.getMethod("sendObject", "(Ljava/lang/Object;Ljakarta/websocket/SendHandler;)V")
+                    .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+            }
             ctClass.getMethod("sendText", "(Ljava/lang/String;)Ljava/util/concurrent/Future;")
                 .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
-            ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Ljavax/websocket/SendHandler;)V")
-                .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
             ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;)Ljava/util/concurrent/Future;")
-                .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
-            ctClass.getMethod("sendObject", "(Ljava/lang/Object;Ljavax/websocket/SendHandler;)V")
                 .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
             ctClass.getMethod("sendObject", "(Ljava/lang/Object;)Ljava/util/concurrent/Future;")
                 .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
