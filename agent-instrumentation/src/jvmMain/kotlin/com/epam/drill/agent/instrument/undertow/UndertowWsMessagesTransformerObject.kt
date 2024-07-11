@@ -57,7 +57,8 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
         "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint",
         "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$AsyncWebSocketSessionRemoteEndpoint",
         "io/undertow/websockets/core/WebSockets",
-        "org/springframework/web/reactive/socket/adapter/UndertowWebSocketHandlerAdapter"
+        "org/springframework/web/reactive/socket/adapter/UndertowWebSocketHandlerAdapter",
+        "org/springframework/web/reactive/socket/adapter/UndertowWebSocketSession"
     ).contains(className) || "io/undertow/websockets/client/WebSocketClientHandshake" == superName
 
     override fun transform(className: String, ctClass: CtClass) {
@@ -70,6 +71,7 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$AsyncWebSocketSessionRemoteEndpoint" -> transformSessionRemoteEndpoint(ctClass)
             "io/undertow/websockets/core/WebSockets" -> transformWebSockets(ctClass)
             "org/springframework/web/reactive/socket/adapter/UndertowWebSocketHandlerAdapter" -> transformSpringWebSocketHandlerAdapter(ctClass)
+            "org/springframework/web/reactive/socket/adapter/UndertowWebSocketSession" -> transformSpringWebSocketSession(ctClass)
         }
         when (ctClass.superclass.name) {
             "io.undertow.websockets.client.WebSocketClientHandshake" -> transformClientHandshake(ctClass)
@@ -239,6 +241,21 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
                 """.trimIndent()
             )
         }
+    }
+
+    private fun transformSpringWebSocketSession(ctClass: CtClass) {
+        ctClass.getMethod("sendMessage", "(Lorg/springframework/web/reactive/socket/WebSocketMessage;)Z").insertCatching(
+            CtBehavior::insertBefore,
+            """
+            if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
+                    && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
+                    && this.getHandshakeInfo().getHeaders().get("${PayloadProcessor.HEADER_WS_PER_MESSAGE}") != null) {
+                java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
+                drillHeaders.put("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", this.getHandshakeInfo().getHeaders().get("${PayloadProcessor.HEADER_WS_PER_MESSAGE}").get(0));
+                ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
+            }
+            """.trimIndent()
+        )
     }
 
     private fun transformWebSockets(ctClass: CtClass) {
