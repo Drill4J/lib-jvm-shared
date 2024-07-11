@@ -47,6 +47,7 @@ open class DrillRequestPayloadProcessor(
     override fun isPayloadProcessingEnabled() = enabled
 
     override fun isPayloadProcessingSupported(headers: Map<String, String>) =
-        headers.containsKey("drill-ws-per-message") && headers["drill-ws-per-message"].toBoolean()
+        headers.containsKey(PayloadProcessor.HEADER_WS_PER_MESSAGE)
+                && headers[PayloadProcessor.HEADER_WS_PER_MESSAGE].toBoolean()
 
 }

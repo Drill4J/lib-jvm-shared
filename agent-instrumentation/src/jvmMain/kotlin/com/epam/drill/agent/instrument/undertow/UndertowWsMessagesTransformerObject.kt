@@ -135,7 +135,7 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             CtBehavior::insertAfter,
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
-                ${'$'}_.put("drill-ws-per-message", "true");
+                ${'$'}_.put("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
             }
             """.trimIndent()
         )
@@ -147,7 +147,7 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
                 CtBehavior::insertBefore,
                 """
                 if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
-                    ((javax.servlet.http.HttpServletResponse)$2).setHeader("drill-ws-per-message", "true");
+                    ((javax.servlet.http.HttpServletResponse)$2).setHeader("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
                 }
                 """.trimIndent()
             )
@@ -157,7 +157,7 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
                 CtBehavior::insertBefore,
                 """
                 if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
-                    ((jakarta.servlet.http.HttpServletResponse)$2).setHeader("drill-ws-per-message", "true");
+                    ((jakarta.servlet.http.HttpServletResponse)$2).setHeader("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
                 }
                 """.trimIndent()
             )
@@ -181,7 +181,7 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
                     && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
                     && this$0.getUndertowSession().getHandshakeHeaders() != null) {
                 java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
-                drillHeaders.put("drill-ws-per-message", this$0.getUndertowSession().getHandshakeHeaders().get("drill-ws-per-message"));
+                drillHeaders.put("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", this$0.getUndertowSession().getHandshakeHeaders().get("${PayloadProcessor.HEADER_WS_PER_MESSAGE}"));
                 ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
             }
             """.trimIndent()

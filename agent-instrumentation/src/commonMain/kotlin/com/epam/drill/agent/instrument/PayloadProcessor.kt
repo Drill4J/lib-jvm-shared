@@ -16,6 +16,9 @@
 package com.epam.drill.agent.instrument
 
 interface PayloadProcessor {
+    companion object {
+        const val HEADER_WS_PER_MESSAGE = "drill-ws-per-message"
+    }
     fun retrieveDrillHeaders(message: String): String
     fun retrieveDrillHeaders(message: ByteArray): ByteArray
     fun storeDrillHeaders(message: String?): String?
