@@ -23,6 +23,7 @@ import javassist.NotFoundException
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.common.agent.request.HeadersRetriever
 
 /**
  * Transformer for Undertow-based websockets
@@ -30,7 +31,9 @@ import com.epam.drill.agent.instrument.HeadersProcessor
  * Tested with:
  *      io.undertow:undertow-websockets-jsr:2.0.29.Final
  */
-abstract class UndertowWsServerTransformerObject : HeadersProcessor, AbstractTransformerObject() {
+abstract class UndertowWsServerTransformerObject(
+    private val headersRetriever: HeadersRetriever
+) : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
     private var openingSession: ThreadLocal<Map<String, String>?> = ThreadLocal()
@@ -38,7 +41,8 @@ abstract class UndertowWsServerTransformerObject : HeadersProcessor, AbstractTra
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) = listOf(
         "io/undertow/websockets/jsr/UndertowSession",
         "io/undertow/websockets/jsr/EndpointSessionHandler",
-        "io/undertow/websockets/jsr/FrameHandler"
+        "io/undertow/websockets/jsr/FrameHandler",
+        "org/springframework/web/reactive/socket/adapter/UndertowWebSocketHandlerAdapter"
     ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
@@ -47,6 +51,7 @@ abstract class UndertowWsServerTransformerObject : HeadersProcessor, AbstractTra
             "io/undertow/websockets/jsr/UndertowSession" -> transformSession(ctClass)
             "io/undertow/websockets/jsr/EndpointSessionHandler" -> transformSessionHandler(ctClass)
             "io/undertow/websockets/jsr/FrameHandler" -> transformFrameHandler(ctClass)
+            "org/springframework/web/reactive/socket/adapter/UndertowWebSocketHandlerAdapter" -> transformSpringWebSocketHandlerAdapter(ctClass)
         }
     }
 
@@ -114,6 +119,27 @@ abstract class UndertowWsServerTransformerObject : HeadersProcessor, AbstractTra
         val removeHeadersCode =
             """
             if (this.session.getHandshakeHeaders() != null) {
+                ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
+            }
+            """.trimIndent()
+        onTextMethod.insertCatching(CtBehavior::insertBefore, storeHeadersCode)
+        onTextMethod.insertCatching(CtBehavior::insertAfter, removeHeadersCode)
+        onBinaryMethod.insertCatching(CtBehavior::insertBefore, storeHeadersCode)
+        onBinaryMethod.insertCatching(CtBehavior::insertAfter, removeHeadersCode)
+    }
+
+    private fun transformSpringWebSocketHandlerAdapter(ctClass: CtClass) {
+        val onTextMethod = ctClass.getMethod("onFullTextMessage", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/BufferedTextMessage;)V")
+        val onBinaryMethod = ctClass.getMethod("onFullBinaryMessage", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/BufferedBinaryMessage;)V")
+        val storeHeadersCode =
+            """
+            if (this.session.getHandshakeInfo().getHeaders().get("${headersRetriever.sessionHeader()}") != null) {
+                ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(this.session.getHandshakeInfo().getHeaders().toSingleValueMap());
+            }
+            """.trimIndent()
+        val removeHeadersCode =
+            """
+            if (this.session.getHandshakeInfo().getHeaders().get("${headersRetriever.sessionHeader()}") != null) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
             """.trimIndent()

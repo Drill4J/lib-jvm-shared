@@ -46,7 +46,9 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
     override val logger = KotlinLogging.logger {}
     private val byteBuddy by lazy(::ByteBuddy)
     private val proxyClassCache = TypeCache<String>()
-    private lateinit var pooledProxyClass: Class<*>
+    private var pooledProxyClass: Class<*>? = null
+    private var textMessageProxyClass: Class<*>? = null
+    private var binaryMessageProxyClass: Class<*>? = null
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) = listOf(
         "io/undertow/websockets/jsr/FrameHandler",
@@ -54,7 +56,8 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
         "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint",
         "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint",
         "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$AsyncWebSocketSessionRemoteEndpoint",
-        "io/undertow/websockets/core/WebSockets"
+        "io/undertow/websockets/core/WebSockets",
+        "org/springframework/web/reactive/socket/adapter/UndertowWebSocketHandlerAdapter"
     ).contains(className) || "io/undertow/websockets/client/WebSocketClientHandshake" == superName
 
     override fun transform(className: String, ctClass: CtClass) {
@@ -66,6 +69,7 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$BasicWebSocketSessionRemoteEndpoint" -> transformSessionRemoteEndpoint(ctClass)
             "io/undertow/websockets/jsr/WebSocketSessionRemoteEndpoint\$AsyncWebSocketSessionRemoteEndpoint" -> transformSessionRemoteEndpoint(ctClass)
             "io/undertow/websockets/core/WebSockets" -> transformWebSockets(ctClass)
+            "org/springframework/web/reactive/socket/adapter/UndertowWebSocketHandlerAdapter" -> transformSpringWebSocketHandlerAdapter(ctClass)
         }
         when (ctClass.superclass.name) {
             "io.undertow.websockets.client.WebSocketClientHandshake" -> transformClientHandshake(ctClass)
@@ -73,9 +77,9 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
     }
 
     private fun transformFrameHandler(ctClass: CtClass) {
-        pooledProxyClass = createPooledProxy(ctClass.classPool)
-        val textMessageProxy = createTextMessageProxy(ctClass.classPool).name
-        val binaryMessageProxy = createBinaryMessageProxy(ctClass.classPool).name
+        pooledProxyClass = pooledProxyClass ?: createPooledProxy(ctClass.classPool)
+        textMessageProxyClass = textMessageProxyClass ?: createTextMessageProxy(ctClass.classPool)
+        binaryMessageProxyClass = binaryMessageProxyClass ?: createBinaryMessageProxy(ctClass.classPool)
         val createProxyCode: (String) -> String = { proxy ->
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
@@ -92,10 +96,37 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             }
             """.trimIndent()
         ctClass.getMethod("invokeTextHandler", "(Lio/undertow/websockets/core/BufferedTextMessage;Lio/undertow/websockets/jsr/FrameHandler\$HandlerWrapper;Z)V")
-            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxy)) }
+            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxyClass!!.name)) }
             .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
         ctClass.getMethod("invokeBinaryHandler", "(Lio/undertow/websockets/core/BufferedBinaryMessage;Lio/undertow/websockets/jsr/FrameHandler\$HandlerWrapper;Z)V")
-            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxy)) }
+            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxyClass!!.name)) }
+            .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
+    }
+
+    private fun transformSpringWebSocketHandlerAdapter(ctClass: CtClass) {
+        pooledProxyClass = pooledProxyClass ?: createPooledProxy(ctClass.classPool)
+        textMessageProxyClass = textMessageProxyClass ?: createTextMessageProxy(ctClass.classPool)
+        binaryMessageProxyClass = binaryMessageProxyClass ?: createBinaryMessageProxy(ctClass.classPool)
+        val createProxyCode: (String) -> String = { proxy ->
+            """
+            if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.session.getHandshakeInfo().getHeaders().toSingleValueMap())) {
+                $2 = new $proxy($2);
+            }
+            """.trimIndent()
+        }
+        val removeHeadersCode =
+            """
+            if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.session.getHandshakeInfo().getHeaders().toSingleValueMap())) {
+                ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
+            }
+            """.trimIndent()
+        ctClass.getMethod("onFullTextMessage", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/BufferedTextMessage;)V")
+            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxyClass!!.name)) }
+            .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
+        ctClass.getMethod("onFullBinaryMessage", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/BufferedBinaryMessage;)V")
+            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxyClass!!.name)) }
             .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
     }
 
@@ -239,7 +270,7 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
     fun delegatedBinaryMessageData(
         @Origin method: Method,
         @FieldValue("target") target: Any
-    ) = method.invoke(target).let { pooledProxyClass.constructors[0].newInstance(it)!! }
+    ) = method.invoke(target).let { pooledProxyClass!!.constructors[0].newInstance(it)!! }
 
     @RuntimeType
     @Suppress("unchecked_cast")

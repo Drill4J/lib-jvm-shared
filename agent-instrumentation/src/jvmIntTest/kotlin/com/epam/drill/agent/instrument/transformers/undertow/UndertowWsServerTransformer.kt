@@ -19,11 +19,12 @@ import com.epam.drill.agent.instrument.ClassPathProvider
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.instrument.TestClassPathProvider
 import com.epam.drill.agent.instrument.TestHeadersProcessor
+import com.epam.drill.agent.instrument.TestHeadersRetriever
 import com.epam.drill.agent.instrument.TransformerObject
 import com.epam.drill.agent.instrument.undertow.UndertowWsServerTransformerObject
 
 actual object UndertowWsServerTransformer :
     TransformerObject,
-    UndertowWsServerTransformerObject(),
+    UndertowWsServerTransformerObject(TestHeadersRetriever),
     HeadersProcessor by TestHeadersProcessor,
     ClassPathProvider by TestClassPathProvider
