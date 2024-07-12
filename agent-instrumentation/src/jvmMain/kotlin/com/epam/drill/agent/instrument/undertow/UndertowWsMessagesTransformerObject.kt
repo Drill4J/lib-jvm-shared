@@ -15,28 +15,11 @@
  */
 package com.epam.drill.agent.instrument.undertow
 
-import kotlin.reflect.KCallable
-import java.lang.reflect.Method
-import java.nio.ByteBuffer
-import javassist.ByteArrayClassPath
-import javassist.ClassPool
 import javassist.CtBehavior
 import javassist.CtClass
 import javassist.CtMethod
 import javassist.NotFoundException
 import mu.KotlinLogging
-import net.bytebuddy.ByteBuddy
-import net.bytebuddy.TypeCache
-import net.bytebuddy.description.method.MethodDescription
-import net.bytebuddy.description.modifier.Visibility
-import net.bytebuddy.dynamic.loading.ClassLoadingStrategy
-import net.bytebuddy.implementation.FieldAccessor
-import net.bytebuddy.implementation.MethodCall
-import net.bytebuddy.implementation.MethodDelegation
-import net.bytebuddy.implementation.bind.annotation.FieldValue
-import net.bytebuddy.implementation.bind.annotation.Origin
-import net.bytebuddy.implementation.bind.annotation.RuntimeType
-import net.bytebuddy.matcher.ElementMatchers
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.instrument.PayloadProcessor
@@ -44,11 +27,8 @@ import com.epam.drill.agent.instrument.PayloadProcessor
 abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
-    private val byteBuddy by lazy(::ByteBuddy)
-    private val proxyClassCache = TypeCache<String>()
-    private var pooledProxyClass: Class<*>? = null
-    private var textMessageProxyClass: Class<*>? = null
-    private var binaryMessageProxyClass: Class<*>? = null
+
+    private val proxyDelegate = UndertowWsMessagesProxyDelegate(this)
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) = listOf(
         "io/undertow/websockets/jsr/FrameHandler",
@@ -79,9 +59,8 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
     }
 
     private fun transformFrameHandler(ctClass: CtClass) {
-        pooledProxyClass = pooledProxyClass ?: createPooledProxy(ctClass.classPool)
-        textMessageProxyClass = textMessageProxyClass ?: createTextMessageProxy(ctClass.classPool)
-        binaryMessageProxyClass = binaryMessageProxyClass ?: createBinaryMessageProxy(ctClass.classPool)
+        val textMessageProxyClass = proxyDelegate.getTextMessageProxy(ctClass.classPool).name
+        val binaryMessageProxyClass = proxyDelegate.getBinaryMessageProxy(ctClass.classPool).name
         val createProxyCode: (String) -> String = { proxy ->
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
@@ -98,17 +77,16 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             }
             """.trimIndent()
         ctClass.getMethod("invokeTextHandler", "(Lio/undertow/websockets/core/BufferedTextMessage;Lio/undertow/websockets/jsr/FrameHandler\$HandlerWrapper;Z)V")
-            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxyClass!!.name)) }
+            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxyClass)) }
             .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
         ctClass.getMethod("invokeBinaryHandler", "(Lio/undertow/websockets/core/BufferedBinaryMessage;Lio/undertow/websockets/jsr/FrameHandler\$HandlerWrapper;Z)V")
-            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxyClass!!.name)) }
+            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxyClass)) }
             .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
     }
 
     private fun transformSpringWebSocketHandlerAdapter(ctClass: CtClass) {
-        pooledProxyClass = pooledProxyClass ?: createPooledProxy(ctClass.classPool)
-        textMessageProxyClass = textMessageProxyClass ?: createTextMessageProxy(ctClass.classPool)
-        binaryMessageProxyClass = binaryMessageProxyClass ?: createBinaryMessageProxy(ctClass.classPool)
+        val textMessageProxyClass = proxyDelegate.getTextMessageProxy(ctClass.classPool).name
+        val binaryMessageProxyClass = proxyDelegate.getBinaryMessageProxy(ctClass.classPool).name
         val createProxyCode: (String) -> String = { proxy ->
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
@@ -125,10 +103,10 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             }
             """.trimIndent()
         ctClass.getMethod("onFullTextMessage", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/BufferedTextMessage;)V")
-            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxyClass!!.name)) }
+            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxyClass)) }
             .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
         ctClass.getMethod("onFullBinaryMessage", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/BufferedBinaryMessage;)V")
-            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxyClass!!.name)) }
+            .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxyClass)) }
             .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
     }
 
@@ -273,99 +251,6 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             .insertCatching(CtBehavior::insertBefore, wrapByteBufferCode)
         ctClass.getMethod("sendInternal", "(Ljava/nio/ByteBuffer;Lio/undertow/websockets/core/WebSocketFrameType;Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/WebSocketCallback;Ljava/lang/Object;J)V")
             .insertCatching(CtBehavior::insertBefore, wrapByteBufferCode)
-    }
-
-    @RuntimeType
-    fun delegatedTextMessageData(
-        @Origin method: Method,
-        @FieldValue("target") target: Any
-    ) = (method.invoke(target) as String)
-        .also { logger.trace { "delegatedTextMessageData: Payload received: $it" } }
-        .let(::retrieveDrillHeaders)
-
-    @RuntimeType
-    fun delegatedBinaryMessageData(
-        @Origin method: Method,
-        @FieldValue("target") target: Any
-    ) = method.invoke(target).let { pooledProxyClass!!.constructors[0].newInstance(it)!! }
-
-    @RuntimeType
-    @Suppress("unchecked_cast")
-    fun delegatedPooledResource(
-        @Origin method: Method,
-        @FieldValue("target") target: Any
-    ) = (method.invoke(target) as Array<ByteBuffer>).let { buffers ->
-        val isSimpleArray = buffers.size == 1 &&
-                buffers[0].hasArray() &&
-                buffers[0].arrayOffset() == 0 &&
-                buffers[0].position() == 0 &&
-                buffers[0].array().size == buffers[0].remaining()
-        val array: ByteArray = if (isSimpleArray) {
-            buffers[0].array()
-        }
-        else {
-            Class.forName("org.xnio.Buffers", true, target::class.java.classLoader)
-                .getMethod("take", Array<ByteBuffer>::class.java, Int::class.java, Int::class.java)
-                .invoke(null, buffers, 0, buffers.size) as ByteArray
-        }
-        array.also { logger.trace { "delegatedPooledResource: Payload received: ${it.decodeToString()}" } }
-            .let(::retrieveDrillHeaders)
-            .let(ByteBuffer::wrap)
-            .let { arrayOf(it) }
-    }
-
-    private fun createTextMessageProxy(classPool: ClassPool) = createDelegatedGetterProxy(
-        "io.undertow.websockets.core.BufferedTextMessage",
-        "getData",
-        ::delegatedTextMessageData,
-        classPool
-    ) { MethodCall.invoke(it.getConstructor(Boolean::class.java)).with(false) }
-
-    private fun createBinaryMessageProxy(classPool: ClassPool) = createDelegatedGetterProxy(
-        "io.undertow.websockets.core.BufferedBinaryMessage",
-        "getData",
-        ::delegatedBinaryMessageData,
-        classPool
-    ) { MethodCall.invoke(it.getConstructor(Boolean::class.java)).with(false) }
-
-    private fun createPooledProxy(classPool: ClassPool) = createDelegatedGetterProxy(
-        "org.xnio.Pooled",
-        "getResource",
-        ::delegatedPooledResource,
-        classPool,
-    ) { MethodCall.invoke(Any::class.java.getConstructor()) }
-
-    private fun createDelegatedGetterProxy(
-        className: String,
-        delegatedMethod: String,
-        delegateMethod: KCallable<*>,
-        classPool: ClassPool,
-        proxyName: String = "${className}Proxy",
-        targetField: String = "target",
-        constructorCall: (Class<*>) -> MethodCall
-    ) = Class.forName(className, true, classPool.classLoader).let { clazz ->
-        proxyClassCache.findOrInsert(clazz.classLoader, proxyName) {
-            byteBuddy.subclass(clazz)
-                .name(proxyName)
-                .modifiers(Visibility.PUBLIC)
-                .defineField(targetField, clazz, Visibility.PRIVATE)
-                .defineConstructor(Visibility.PUBLIC)
-                .withParameter(clazz)
-                .intercept(constructorCall(clazz)
-                    .andThen(FieldAccessor.ofField(targetField).setsArgumentAt(0)))
-                .method(ElementMatchers.isPublic<MethodDescription>()
-                    .and(ElementMatchers.isDeclaredBy(clazz)))
-                .intercept(MethodCall.invokeSelf().onField(targetField).withAllArguments())
-                .method(ElementMatchers.named<MethodDescription>(delegatedMethod)
-                    .and(ElementMatchers.takesNoArguments()))
-                .intercept(MethodDelegation.withDefaultConfiguration()
-                    .filter(ElementMatchers.named(delegateMethod.name))
-                    .to(this@UndertowWsMessagesTransformerObject))
-                .make()
-                .load(clazz.classLoader, ClassLoadingStrategy.Default.INJECTION)
-                .also { classPool.appendClassPath(ByteArrayClassPath(proxyName, it.bytes)) }
-                .loaded
-        }
     }
 
 }
