@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.tomcat
 
 import java.util.logging.LogManager
 import javax.servlet.ServletContextEvent
@@ -24,8 +24,9 @@ import org.apache.catalina.startup.Tomcat
 import org.apache.tomcat.websocket.server.Constants
 import org.apache.tomcat.websocket.server.WsContextListener
 import mu.KotlinLogging
+import com.epam.drill.agent.instrument.servers.AbstractWsServerTransformerObjectTest
 
-class TomcatWsTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
+class TomcatWsServerTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 

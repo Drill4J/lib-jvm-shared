@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.tomcat
 
 import javassist.CtBehavior
 import javassist.CtClass
@@ -30,7 +30,7 @@ import com.epam.drill.common.agent.request.HeadersRetriever
  *     org.apache.tomcat.embed:tomcat-embed-core:9.0.83
  *     org.apache.tomcat.embed:tomcat-embed-core:10.0.27
  */
-abstract class TomcatTransformerObject(
+abstract class TomcatHttpServerTransformerObject(
     protected val headersRetriever: HeadersRetriever
 ) : HeadersProcessor, AbstractTransformerObject() {
 

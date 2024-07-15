@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.tomcat
 
 import javassist.CtBehavior
 import javassist.CtClass
@@ -27,7 +27,7 @@ import com.epam.drill.agent.instrument.HeadersProcessor
  * Tested with:
  *     org.apache.tomcat.embed:tomcat-embed-websocket:9.0.83
  */
-abstract class TomcatWsTransformerObject : HeadersProcessor, AbstractTransformerObject() {
+abstract class TomcatWsServerTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 

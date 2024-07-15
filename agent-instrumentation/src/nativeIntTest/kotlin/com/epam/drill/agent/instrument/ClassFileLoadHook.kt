@@ -22,6 +22,7 @@ import io.ktor.utils.io.bits.loadByteArray
 import io.ktor.utils.io.bits.of
 import com.epam.drill.agent.instrument.transformers.clients.*
 import com.epam.drill.agent.instrument.transformers.servers.*
+import com.epam.drill.agent.instrument.transformers.tomcat.*
 import com.epam.drill.agent.instrument.transformers.undertow.*
 import com.epam.drill.jvmapi.gen.Allocate
 import com.epam.drill.jvmapi.gen.jint
@@ -36,9 +37,6 @@ object ClassFileLoadHook {
         OkHttp3ClientTransformer,
         JettyWsClientTransformer,
         NettyWsClientTransformer,
-        TomcatWsClientTransformer,
-        TomcatTransformer,
-        TomcatWsTransformer,
         NettyTransformer,
         NettyWsTransformer,
         SSLEngineTransformer,
@@ -50,7 +48,10 @@ object ClassFileLoadHook {
         UndertowHttpServerTransformer,
         UndertowWsServerTransformer,
         UndertowWsClientTransformer,
-        UndertowWsMessagesTransformer
+        UndertowWsMessagesTransformer,
+        TomcatHttpServerTransformer,
+        TomcatWsServerTransformer,
+        TomcatWsClientTransformer
     )
 
     operator fun invoke(

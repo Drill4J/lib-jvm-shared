@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.tomcat
 
 import java.util.logging.LogManager
 import javax.servlet.http.HttpServlet
@@ -21,8 +21,9 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import org.apache.catalina.startup.Tomcat
 import mu.KotlinLogging
+import com.epam.drill.agent.instrument.servers.AbstractHttpServerTransformerObjectTest
 
-class TomcatTransformerObjectTest : AbstractHttpServerTransformerObjectTest() {
+class TomcatHttpServerTransformerObjectTest : AbstractHttpServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 

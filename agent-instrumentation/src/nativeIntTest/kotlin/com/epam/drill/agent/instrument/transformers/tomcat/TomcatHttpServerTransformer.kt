@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.transformers.clients
+package com.epam.drill.agent.instrument.transformers.tomcat
 
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.TransformerObject
 
-actual object TomcatWsClientTransformer : TransformerObject, AbstractTransformerObject()
+actual object TomcatHttpServerTransformer : TransformerObject, AbstractTransformerObject()
