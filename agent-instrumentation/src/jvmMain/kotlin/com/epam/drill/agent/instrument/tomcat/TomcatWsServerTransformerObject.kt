@@ -54,7 +54,7 @@ abstract class TomcatWsServerTransformerObject : HeadersProcessor, AbstractTrans
             """.trimIndent()
         )
         method.insertCatching(
-            CtBehavior::insertAfter,
+            { insertAfter(it, true) },
             """
             if ($1 == org.apache.tomcat.util.net.SocketEvent.OPEN_READ && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();

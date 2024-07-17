@@ -78,10 +78,10 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             """.trimIndent()
         ctClass.getMethod("invokeTextHandler", "(Lio/undertow/websockets/core/BufferedTextMessage;Lio/undertow/websockets/jsr/FrameHandler\$HandlerWrapper;Z)V")
             .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxyClass)) }
-            .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
+            .also { it.insertCatching({ insertAfter(it, true) }, removeHeadersCode) }
         ctClass.getMethod("invokeBinaryHandler", "(Lio/undertow/websockets/core/BufferedBinaryMessage;Lio/undertow/websockets/jsr/FrameHandler\$HandlerWrapper;Z)V")
             .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxyClass)) }
-            .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
+            .also { it.insertCatching({ insertAfter(it, true) }, removeHeadersCode) }
     }
 
     private fun transformSpringWebSocketHandlerAdapter(ctClass: CtClass) {
@@ -104,10 +104,10 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
             """.trimIndent()
         ctClass.getMethod("onFullTextMessage", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/BufferedTextMessage;)V")
             .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(textMessageProxyClass)) }
-            .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
+            .also { it.insertCatching({ insertAfter(it, true) }, removeHeadersCode) }
         ctClass.getMethod("onFullBinaryMessage", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/BufferedBinaryMessage;)V")
             .also { it.insertCatching(CtBehavior::insertBefore, createProxyCode(binaryMessageProxyClass)) }
-            .also { it.insertCatching(CtBehavior::insertAfter, removeHeadersCode) }
+            .also { it.insertCatching({ insertAfter(it, true) }, removeHeadersCode) }
     }
 
     private fun transformClientHandshake(ctClass: CtClass) {
@@ -122,22 +122,22 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
     }
 
     private fun transformWebSocketFilter(ctClass: CtClass) = try {
-        ctClass.getMethod("doFilter", "(Ljavax/servlet/ServletRequest;Ljavax/servlet/ServletResponse;Ljavax/servlet/FilterChain;)V")
-            .insertCatching(
-                CtBehavior::insertBefore,
-                """
-                if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
-                    ((javax.servlet.http.HttpServletResponse)$2).setHeader("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
-                }
-                """.trimIndent()
-            )
-    } catch (e: NotFoundException) {
         ctClass.getMethod("doFilter", "(Ljakarta/servlet/ServletRequest;Ljakarta/servlet/ServletResponse;Ljakarta/servlet/FilterChain;)V")
             .insertCatching(
                 CtBehavior::insertBefore,
                 """
                 if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
                     ((jakarta.servlet.http.HttpServletResponse)$2).setHeader("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
+                }
+                """.trimIndent()
+            )
+    } catch (e: NotFoundException) {
+        ctClass.getMethod("doFilter", "(Ljavax/servlet/ServletRequest;Ljavax/servlet/ServletResponse;Ljavax/servlet/FilterChain;)V")
+            .insertCatching(
+                CtBehavior::insertBefore,
+                """
+                if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
+                    ((javax.servlet.http.HttpServletResponse)$2).setHeader("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
                 }
                 """.trimIndent()
             )
@@ -168,18 +168,18 @@ abstract class UndertowWsMessagesTransformerObject : HeadersProcessor, PayloadPr
         ctClass.declaringClass.defrost()
         if (ctClass.simpleName == "WebSocketSessionRemoteEndpoint\$AsyncWebSocketSessionRemoteEndpoint") {
             try {
-                ctClass.getMethod("sendText", "(Ljava/lang/String;Ljavax/websocket/SendHandler;)V")
-                    .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
-                ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Ljavax/websocket/SendHandler;)V")
-                    .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
-                ctClass.getMethod("sendObject", "(Ljava/lang/Object;Ljavax/websocket/SendHandler;)V")
-                    .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
-            } catch (e: NotFoundException) {
                 ctClass.getMethod("sendText", "(Ljava/lang/String;Ljakarta/websocket/SendHandler;)V")
                     .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
                 ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Ljakarta/websocket/SendHandler;)V")
                     .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
                 ctClass.getMethod("sendObject", "(Ljava/lang/Object;Ljakarta/websocket/SendHandler;)V")
+                    .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+            } catch (e: NotFoundException) {
+                ctClass.getMethod("sendText", "(Ljava/lang/String;Ljavax/websocket/SendHandler;)V")
+                    .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+                ctClass.getMethod("sendBinary", "(Ljava/nio/ByteBuffer;Ljavax/websocket/SendHandler;)V")
+                    .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
+                ctClass.getMethod("sendObject", "(Ljava/lang/Object;Ljavax/websocket/SendHandler;)V")
                     .insertCatching(CtBehavior::insertBefore, propagateHandshakeHeaderCode)
             }
             ctClass.getMethod("sendText", "(Ljava/lang/String;)Ljava/util/concurrent/Future;")

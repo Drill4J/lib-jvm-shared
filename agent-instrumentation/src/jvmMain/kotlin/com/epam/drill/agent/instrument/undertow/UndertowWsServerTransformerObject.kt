@@ -36,7 +36,7 @@ abstract class UndertowWsServerTransformerObject(
 ) : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
-    private var openingSession: ThreadLocal<Map<String, String>?> = ThreadLocal()
+    private var openingSessionHeaders: ThreadLocal<Map<String, String>?> = ThreadLocal()
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) = listOf(
         "io/undertow/websockets/jsr/UndertowSession",
@@ -56,10 +56,10 @@ abstract class UndertowWsServerTransformerObject(
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
-    fun setHandshakeHeaders(session: Map<String, String>?) = openingSession.set(session)
+    fun setHandshakeHeaders(headers: Map<String, String>?) = openingSessionHeaders.set(headers)
 
     @Suppress("MemberVisibilityCanBePrivate")
-    fun getHandshakeHeaders() = openingSession.get()
+    fun getHandshakeHeaders() = openingSessionHeaders.get()
 
     private fun transformSession(ctClass: CtClass) {
         try {
@@ -123,9 +123,9 @@ abstract class UndertowWsServerTransformerObject(
             }
             """.trimIndent()
         onTextMethod.insertCatching(CtBehavior::insertBefore, storeHeadersCode)
-        onTextMethod.insertCatching(CtBehavior::insertAfter, removeHeadersCode)
+        onTextMethod.insertCatching({ insertAfter(it, true) }, removeHeadersCode)
         onBinaryMethod.insertCatching(CtBehavior::insertBefore, storeHeadersCode)
-        onBinaryMethod.insertCatching(CtBehavior::insertAfter, removeHeadersCode)
+        onBinaryMethod.insertCatching({ insertAfter(it, true) }, removeHeadersCode)
     }
 
     private fun transformSpringWebSocketHandlerAdapter(ctClass: CtClass) {
@@ -144,9 +144,9 @@ abstract class UndertowWsServerTransformerObject(
             }
             """.trimIndent()
         onTextMethod.insertCatching(CtBehavior::insertBefore, storeHeadersCode)
-        onTextMethod.insertCatching(CtBehavior::insertAfter, removeHeadersCode)
+        onTextMethod.insertCatching({ insertAfter(it, true) }, removeHeadersCode)
         onBinaryMethod.insertCatching(CtBehavior::insertBefore, storeHeadersCode)
-        onBinaryMethod.insertCatching(CtBehavior::insertAfter, removeHeadersCode)
+        onBinaryMethod.insertCatching({ insertAfter(it, true) }, removeHeadersCode)
     }
 
 }
