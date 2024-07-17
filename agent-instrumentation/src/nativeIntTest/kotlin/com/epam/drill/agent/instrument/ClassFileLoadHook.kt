@@ -51,7 +51,8 @@ object ClassFileLoadHook {
         UndertowWsMessagesTransformer,
         TomcatHttpServerTransformer,
         TomcatWsServerTransformer,
-        TomcatWsClientTransformer
+        TomcatWsClientTransformer,
+        TomcatWsMessagesTransformer
     )
 
     operator fun invoke(

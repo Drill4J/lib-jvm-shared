@@ -15,23 +15,34 @@
  */
 package com.epam.drill.agent.instrument.tomcat
 
+import java.net.URI
 import javax.servlet.ServletContextEvent
+import javax.websocket.ClientEndpointConfig
 import javax.websocket.server.ServerContainer
 import javax.websocket.server.ServerEndpointConfig
+import org.apache.tomcat.websocket.WsWebSocketContainer
 import org.apache.tomcat.websocket.server.Constants
 import org.apache.tomcat.websocket.server.WsContextListener
-import mu.KotlinLogging
-import com.epam.drill.agent.instrument.servers.AbstractWsServerTransformerObjectTest
+import com.epam.drill.agent.instrument.servers.AbstractWsMessagesTransformerObjectTest
 
-class TomcatWsServerTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
+class TomcatWsMessagesTransformerObjectTest : AbstractWsMessagesTransformerObjectTest() {
 
-    override val logger = KotlinLogging.logger {}
-
-    override fun withWebSocketAnnotatedEndpoint(block: (String) -> Unit) =
+    override fun withWebSocketServerAnnotatedEndpoint(block: (String) -> Unit) =
         TomcatWsTestServer.withWebSocketEndpoint(AnnotatedEndpointApplicationListener::class.java, block)
 
-    override fun withWebSocketInterfaceEndpoint(block: (String) -> Unit) =
+    override fun withWebSocketServerInterfaceEndpoint(block: (String) -> Unit) =
         TomcatWsTestServer.withWebSocketEndpoint(InterfaceEndpointApplicationListener::class.java, block)
+
+    override fun connectToWebsocketAnnotatedEndpoint(address: String) = TestRequestClientAnnotatedEndpoint().run {
+        val session = WsWebSocketContainer().connectToServer(this, URI(address))
+        this to session
+    }
+
+    override fun connectToWebsocketInterfaceEndpoint(address: String) = TestRequestClientInterfaceEndpoint().run {
+        val session = WsWebSocketContainer()
+            .connectToServer(this, ClientEndpointConfig.Builder.create().build(), URI(address))
+        this to session
+    }
 
     class AnnotatedEndpointApplicationListener : WsContextListener() {
         override fun contextInitialized(sce: ServletContextEvent) {

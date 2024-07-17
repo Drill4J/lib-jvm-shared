@@ -1,3 +1,18 @@
+/**
+ * Copyright 2020 - 2022 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.epam.drill.agent.instrument.tomcat
 
 import javassist.CtBehavior
@@ -10,7 +25,7 @@ import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.instrument.PayloadProcessor
 
-abstract class TomcatWsMessageTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
+abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
     private var openingSessionHeaders: ThreadLocal<Map<String, String>?> = ThreadLocal()
@@ -25,7 +40,7 @@ abstract class TomcatWsMessageTransformerObject : HeadersProcessor, PayloadProce
     ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting TomcatWsMessageTransformer for $className..." }
+        logger.info { "transform: Starting TomcatWsMessagesTransformer for $className..." }
         when (className) {
             "org/apache/tomcat/websocket/WsSession" -> transformWsSession(ctClass)
             "org/apache/tomcat/websocket/WsFrameBase" -> transformWsFrameBase(ctClass)
@@ -144,7 +159,7 @@ abstract class TomcatWsMessageTransformerObject : HeadersProcessor, PayloadProce
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
                     && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
-                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders()) {
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders())) {
                 $1 = ${this::class.java.name}.INSTANCE.storeDrillHeaders($1);
             }
             """.trimIndent()
@@ -152,7 +167,7 @@ abstract class TomcatWsMessageTransformerObject : HeadersProcessor, PayloadProce
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
                     && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
-                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders()) {
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders())) {
                 byte[] bytes = new bytes[$1.limit()];
                 $1.get(bytes);
                 $1.clear();
@@ -211,7 +226,7 @@ abstract class TomcatWsMessageTransformerObject : HeadersProcessor, PayloadProce
         connectToServerRecursiveMethodSignatures.mapNotNull(getConnectToServerRecursiveMethod).first().insertCatching(
             CtBehavior::insertAfter,
             """
-            ${'$'}_.setHandshakeHeaders(${this::class.java.name}.INSTANCE.${this::getHandshakeHeaders.name}());
+            ((org.apache.tomcat.websocket.WsSession)${'$'}_).setHandshakeHeaders(${this::class.java.name}.INSTANCE.${this::getHandshakeHeaders.name}());
             """.trimIndent()
         )
     }

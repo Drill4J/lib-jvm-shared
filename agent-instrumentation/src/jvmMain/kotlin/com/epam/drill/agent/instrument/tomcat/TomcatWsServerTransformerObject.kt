@@ -35,7 +35,7 @@ abstract class TomcatWsServerTransformerObject : HeadersProcessor, AbstractTrans
         "org/apache/tomcat/websocket/server/WsHttpUpgradeHandler" == className
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting TomcatWsTransformer..." }
+        logger.info { "transform: Starting TomcatWsServerTransformer..." }
         val method = ctClass.getMethod("upgradeDispatch", "(Lorg/apache/tomcat/util/net/SocketEvent;)Lorg/apache/tomcat/util/net/AbstractEndpoint\$Handler\$SocketState;")
         method.insertCatching(
             CtBehavior::insertBefore,
