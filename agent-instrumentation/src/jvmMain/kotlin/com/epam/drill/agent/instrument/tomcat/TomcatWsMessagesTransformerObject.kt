@@ -35,6 +35,7 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
         "org/apache/tomcat/websocket/WsFrameBase",
         "org/apache/tomcat/websocket/WsRemoteEndpointImplBase",
         "org/apache/tomcat/websocket/WsWebSocketContainer",
+        "org/apache/tomcat/websocket/WsWebSocketContainer\$HttpResponse",
         "org/apache/tomcat/websocket/server/WsHttpUpgradeHandler",
         "org/apache/tomcat/websocket/server/UpgradeUtil"
     ).contains(className)
@@ -240,11 +241,11 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
             java.util.Iterator/*<java.lang.String>*/ headerNames = this.handshakeResponse.getHeaders().keySet().iterator();
             while (headerNames.hasNext()) {
                 java.lang.String headerName = headerNames.next();
-                java.util.List/*<java.lang.String>*/ headerValues = this.handshakeRequest.getHeaders().get(headerName);
+                java.util.List/*<java.lang.String>*/ headerValues = this.handshakeResponse.getHeaders().get(headerName);
                 java.lang.String header = java.lang.String.join(",", headerValues);
                 allHeaders.put(headerName, header);
             }
-            ${this::class.java.name}.INSTANCE.${this::setHandshakeHeaders.name}(allHeaders)
+            ${this::class.java.name}.INSTANCE.${this::setHandshakeHeaders.name}(allHeaders);
             """.trimIndent()
         try {
             ctClass.getMethod("getHandshakeResponse", "()Ljakarta/websocket/HandshakeResponse;")
