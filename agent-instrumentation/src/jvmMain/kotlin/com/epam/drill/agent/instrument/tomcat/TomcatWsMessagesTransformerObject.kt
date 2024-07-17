@@ -41,6 +41,8 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
 
     override fun transform(className: String, ctClass: CtClass) {
         logger.info { "transform: Starting TomcatWsMessagesTransformer for $className..." }
+        if(className != "org/apache/tomcat/websocket/WsSession")
+            ctClass.classPool.classLoader.loadClass("org.apache.tomcat.websocket.WsSession")
         when (className) {
             "org/apache/tomcat/websocket/WsSession" -> transformWsSession(ctClass)
             "org/apache/tomcat/websocket/WsFrameBase" -> transformWsFrameBase(ctClass)
@@ -105,7 +107,7 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
 
     private fun transformWsFrameBase(ctClass: CtClass) {
         val sendTextMethod = ctClass.getMethod("sendMessageText", "(Z)V")
-        val sendBinaryMethod = ctClass.getMethod("sendMessageBinary", "(Ljava/nio/ByteBuffer;Z)")
+        val sendBinaryMethod = ctClass.getMethod("sendMessageBinary", "(Ljava/nio/ByteBuffer;Z)V")
         CtField.make(
             "private java.nio.CharBuffer messageBufferTextTmp = null;",
             ctClass
@@ -114,8 +116,8 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
             CtBehavior::insertBefore,
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
-                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders()) {
-                java.lang.String retrieved = ${this::class.java.name}.INSTANCE.retrieveDrillHeaders(this.messageBufferText.toString);
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders())) {
+                java.lang.String retrieved = ${this::class.java.name}.INSTANCE.retrieveDrillHeaders(this.messageBufferText.toString());
                 this.messageBufferTextTmp = messageBufferText;
                 this.messageBufferText = java.nio.CharBuffer.wrap(retrieved);
             }
@@ -125,8 +127,8 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
             CtBehavior::insertBefore,
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
-                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders()) {
-                byte[] bytes = new bytes[$1.limit()];
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders())) {
+                byte[] bytes = new byte[$1.limit()];
                 $1.get(bytes);
                 $1 = java.nio.ByteBuffer.wrap(${this::class.java.name}.INSTANCE.retrieveDrillHeaders(bytes));
             }
@@ -136,7 +138,7 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
             { insertAfter(it, true) },
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
-                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders()) {
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders())) {
                 this.messageBufferText = messageBufferTextTmp;
                 this.messageBufferText.clear();
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
@@ -147,7 +149,7 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
             { insertAfter(it, true) },
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
-                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders()) {
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders())) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
             """.trimIndent()
@@ -168,7 +170,7 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
                     && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
                     && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.wsSession.getHandshakeHeaders())) {
-                byte[] bytes = new bytes[$1.limit()];
+                byte[] bytes = new byte[$1.limit()];
                 $1.get(bytes);
                 $1.clear();
                 $1 = java.nio.ByteBuffer.wrap(${this::class.java.name}.INSTANCE.storeDrillHeaders(bytes));
@@ -184,14 +186,14 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
             .insertCatching(CtBehavior::insertBefore, wrapBinaryCode)
         try {
             ctClass.getMethod("sendStringByCompletion", "(Ljava/lang/String;Ljakarta/websocket/SendHandler;)V")
-                .insertCatching(CtBehavior::insertBefore, wrapBinaryCode)
+                .insertCatching(CtBehavior::insertBefore, wrapStringCode)
             ctClass.getMethod("sendBytesByCompletion", "(Ljava/nio/ByteBuffer;Ljakarta/websocket/SendHandler;)V")
                 .insertCatching(CtBehavior::insertBefore, wrapBinaryCode)
         } catch (e: NotFoundException) {
             ctClass.getMethod("sendStringByCompletion", "(Ljava/lang/String;Ljavax/websocket/SendHandler;)V")
                 .insertCatching(CtBehavior::insertBefore, wrapStringCode)
             ctClass.getMethod("sendBytesByCompletion", "(Ljava/nio/ByteBuffer;Ljavax/websocket/SendHandler;)V")
-                .insertCatching(CtBehavior::insertBefore, wrapStringCode)
+                .insertCatching(CtBehavior::insertBefore, wrapBinaryCode)
         }
     }
 
