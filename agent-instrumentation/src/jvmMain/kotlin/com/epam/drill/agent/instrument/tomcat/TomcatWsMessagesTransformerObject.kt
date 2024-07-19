@@ -35,7 +35,6 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
         "org/apache/tomcat/websocket/WsFrameBase",
         "org/apache/tomcat/websocket/WsRemoteEndpointImplBase",
         "org/apache/tomcat/websocket/WsWebSocketContainer",
-        "org/apache/tomcat/websocket/WsWebSocketContainer\$HttpResponse",
         "org/apache/tomcat/websocket/server/WsHttpUpgradeHandler",
         "org/apache/tomcat/websocket/server/UpgradeUtil"
     ).contains(className)
@@ -49,7 +48,6 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
             "org/apache/tomcat/websocket/WsFrameBase" -> transformWsFrameBase(ctClass)
             "org/apache/tomcat/websocket/WsRemoteEndpointImplBase" -> transformRemoteEndpointImplBase(ctClass)
             "org/apache/tomcat/websocket/WsWebSocketContainer" -> transformWebSocketContainer(ctClass)
-            "org/apache/tomcat/websocket/WsWebSocketContainer\$HttpResponse" -> transformWebSocketHttpResponse(ctClass)
             "org/apache/tomcat/websocket/server/WsHttpUpgradeHandler" -> transformUpgradeHandler(ctClass)
             "org/apache/tomcat/websocket/server/UpgradeUtil" -> transformUpgradeUtil(ctClass)
         }
@@ -230,30 +228,24 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
             CtBehavior::insertAfter,
             """
             ((org.apache.tomcat.websocket.WsSession)${'$'}_).setHandshakeHeaders(${this::class.java.name}.INSTANCE.${this::getHandshakeHeaders.name}());
+            ${this::class.java.name}.INSTANCE.${this::setHandshakeHeaders.name}(null);
             """.trimIndent()
         )
-    }
-
-    private fun transformWebSocketHttpResponse(ctClass: CtClass) {
-        val saveHeadersCode =
-            """
-            java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
-            java.util.Iterator/*<java.lang.String>*/ headerNames = this.handshakeResponse.getHeaders().keySet().iterator();
-            while (headerNames.hasNext()) {
-                java.lang.String headerName = headerNames.next();
-                java.util.List/*<java.lang.String>*/ headerValues = this.handshakeResponse.getHeaders().get(headerName);
-                java.lang.String header = java.lang.String.join(",", headerValues);
-                allHeaders.put(headerName, header);
-            }
-            ${this::class.java.name}.INSTANCE.${this::setHandshakeHeaders.name}(allHeaders);
-            """.trimIndent()
-        try {
-            ctClass.getMethod("getHandshakeResponse", "()Ljakarta/websocket/HandshakeResponse;")
-                .insertCatching(CtBehavior::insertAfter, saveHeadersCode)
-        } catch (e: NotFoundException) {
-            ctClass.getMethod("getHandshakeResponse", "()Ljavax/websocket/HandshakeResponse;")
-                .insertCatching(CtBehavior::insertAfter, saveHeadersCode)
-        }
+        ctClass.getMethod("processResponse", "(Ljava/nio/ByteBuffer;Lorg/apache/tomcat/websocket/AsyncChannelWrapper;J)Lorg/apache/tomcat/websocket/WsWebSocketContainer\$HttpResponse;")
+            .insertCatching(
+                CtBehavior::insertAfter,
+                """
+                java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
+                java.util.Iterator/*<java.lang.String>*/ headerNames = ${'$'}_.getHandshakeResponse().getHeaders().keySet().iterator();
+                while (headerNames.hasNext()) {
+                    java.lang.String headerName = headerNames.next();
+                    java.util.List/*<java.lang.String>*/ headerValues = ${'$'}_.getHandshakeResponse().getHeaders().get(headerName);
+                    java.lang.String header = java.lang.String.join(",", headerValues);
+                    allHeaders.put(headerName, header);
+                }
+                ${this::class.java.name}.INSTANCE.${this::setHandshakeHeaders.name}(allHeaders);
+                """.trimIndent()
+            )
     }
 
     private fun transformUpgradeUtil(ctClass: CtClass) {
