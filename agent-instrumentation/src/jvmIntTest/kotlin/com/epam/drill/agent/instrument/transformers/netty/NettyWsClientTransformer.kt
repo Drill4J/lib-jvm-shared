@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.transformers.servers
+package com.epam.drill.agent.instrument.transformers.netty
 
-import com.epam.drill.agent.instrument.AbstractTransformerObject
-import com.epam.drill.agent.instrument.TransformerObject
+import com.epam.drill.agent.instrument.*
+import com.epam.drill.agent.instrument.netty.NettyWsClientTransformerObject
 
-actual object NettyWsTransformer : TransformerObject, AbstractTransformerObject()
+actual object NettyWsClientTransformer:
+    TransformerObject,
+    NettyWsClientTransformerObject(),
+    HeadersProcessor by TestHeadersProcessor,
+    ClassPathProvider by TestClassPathProvider

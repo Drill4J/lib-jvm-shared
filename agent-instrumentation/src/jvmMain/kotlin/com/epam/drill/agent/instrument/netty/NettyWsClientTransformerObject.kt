@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.clients
+package com.epam.drill.agent.instrument.netty
 
 import javassist.CtBehavior
 import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
-import com.epam.drill.agent.instrument.servers.NettyTransformerObject
 
 abstract class NettyWsClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
@@ -49,7 +48,7 @@ abstract class NettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
             """
             if(${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
                 java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
-                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("${NettyTransformerObject.DRILL_CONTEXT_KEY}");
+                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("${NettyHttpServerTransformerObject.DRILL_CONTEXT_KEY}");
                 ${'$'}_.channel().attr(drillContextKey).set(drillHeaders);
             }
             """.trimIndent()
@@ -60,7 +59,7 @@ abstract class NettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
         .insertCatching(
             CtBehavior::insertBefore,
             """
-            io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("${NettyTransformerObject.DRILL_CONTEXT_KEY}");                                            
+            io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("${NettyHttpServerTransformerObject.DRILL_CONTEXT_KEY}");                                            
             io.netty.util.Attribute drillContextAttr = $1.attr(drillContextKey);
             java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
             if (drillHeaders != null) {

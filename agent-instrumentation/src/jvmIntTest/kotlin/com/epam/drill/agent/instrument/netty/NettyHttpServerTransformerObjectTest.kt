@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.netty
 
 import java.net.InetSocketAddress
 import io.netty.bootstrap.ServerBootstrap
@@ -31,8 +31,9 @@ import io.netty.handler.codec.http.HttpServerCodec
 import io.netty.handler.codec.http.HttpVersion
 import io.netty.handler.codec.http.LastHttpContent
 import mu.KotlinLogging
+import com.epam.drill.agent.instrument.servers.AbstractHttpServerTransformerObjectTest
 
-class NettyTransformerObjectTest : AbstractHttpServerTransformerObjectTest() {
+class NettyHttpServerTransformerObjectTest : AbstractHttpServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 

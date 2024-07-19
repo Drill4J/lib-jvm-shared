@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.clients
+package com.epam.drill.agent.instrument.netty
 
 import java.net.URI
 import java.nio.ByteBuffer
@@ -42,6 +42,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketClientProtocolHandler
 import io.netty.handler.codec.http.websocketx.WebSocketClientProtocolHandler.ClientHandshakeStateEvent
 import io.netty.handler.codec.http.websocketx.WebSocketHandshakeException
 import io.netty.handler.codec.http.websocketx.WebSocketVersion
+import com.epam.drill.agent.instrument.clients.AbstractWsClientTransformerObjectTest
 
 class NettyWsClientTransformerObjectTest : AbstractWsClientTransformerObjectTest() {
 

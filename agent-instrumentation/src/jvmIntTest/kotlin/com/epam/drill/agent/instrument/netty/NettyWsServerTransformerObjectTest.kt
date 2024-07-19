@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.netty
 
 import java.net.InetSocketAddress
 import io.netty.bootstrap.ServerBootstrap
@@ -34,8 +34,9 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler
 import mu.KotlinLogging
+import com.epam.drill.agent.instrument.servers.AbstractWsServerTransformerObjectTest
 
-class NettyWsTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
+class NettyWsServerTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 

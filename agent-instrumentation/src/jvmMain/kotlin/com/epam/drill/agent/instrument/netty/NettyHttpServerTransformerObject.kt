@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.netty
 
 import javassist.CtBehavior
 import javassist.CtClass
@@ -29,7 +29,7 @@ import com.epam.drill.common.agent.request.HeadersRetriever
  * Tested with:
  *     io.netty:netty-codec-http:4.1.106.Final
  */
-abstract class NettyTransformerObject(
+abstract class NettyHttpServerTransformerObject(
     protected val headersRetriever: HeadersRetriever
 ) : HeadersProcessor, AbstractTransformerObject() {
 

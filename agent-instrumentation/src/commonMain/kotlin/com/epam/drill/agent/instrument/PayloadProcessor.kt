@@ -24,5 +24,5 @@ interface PayloadProcessor {
     fun storeDrillHeaders(message: String?): String?
     fun storeDrillHeaders(message: ByteArray?): ByteArray?
     fun isPayloadProcessingEnabled(): Boolean
-    fun isPayloadProcessingSupported(headers: Map<String, String>): Boolean
+    fun isPayloadProcessingSupported(headers: Map<String, String>?): Boolean
 }

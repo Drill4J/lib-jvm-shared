@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.netty
 
 import javassist.CtBehavior
 import javassist.CtClass
@@ -27,7 +27,7 @@ import com.epam.drill.agent.instrument.HeadersProcessor
  * Tested with:
  *     io.netty:netty-codec-http:4.1.106.Final
  */
-abstract class NettyWsTransformerObject : HeadersProcessor, AbstractTransformerObject() {
+abstract class NettyWsServerTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     companion object {
         private const val WEBSOCKET_FRAME_TEXT = "io.netty.handler.codec.http.websocketx.TextWebSocketFrame"
@@ -56,7 +56,7 @@ abstract class NettyWsTransformerObject : HeadersProcessor, AbstractTransformerO
             CtBehavior::insertBefore,
             """
             if($1 instanceof $WEBSOCKET_FRAME_BINARY || $1 instanceof $WEBSOCKET_FRAME_TEXT) {
-                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("${NettyTransformerObject.DRILL_CONTEXT_KEY}");                                            
+                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("${NettyHttpServerTransformerObject.DRILL_CONTEXT_KEY}");                                            
                 io.netty.util.Attribute drillContextAttr = this.channel().attr(drillContextKey);
                 java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
                 if (drillHeaders != null) {
@@ -78,7 +78,7 @@ abstract class NettyWsTransformerObject : HeadersProcessor, AbstractTransformerO
             CtBehavior::insertBefore,
             """
             if($1 instanceof $WEBSOCKET_FRAME_BINARY || ${'$'}1 instanceof $WEBSOCKET_FRAME_TEXT) {
-                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("${NettyTransformerObject.DRILL_CONTEXT_KEY}");                                            
+                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("${NettyHttpServerTransformerObject.DRILL_CONTEXT_KEY}");                                            
                 io.netty.util.Attribute drillContextAttr = this.channel().attr(drillContextKey);
                 java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
                 if (drillHeaders != null) {
