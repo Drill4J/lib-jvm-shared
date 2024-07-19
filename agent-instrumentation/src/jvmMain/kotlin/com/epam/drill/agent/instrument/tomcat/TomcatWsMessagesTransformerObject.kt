@@ -204,7 +204,8 @@ abstract class TomcatWsMessagesTransformerObject : HeadersProcessor, PayloadProc
         )
         val connectToServerRecursiveMethodSignatures = sequenceOf(
             "(Lorg/apache/tomcat/websocket/ClientEndpointHolder;Ljakarta/websocket/ClientEndpointConfig;Ljava/net/URI;Ljava/util/Set;)Ljakarta/websocket/Session;",
-            "(Lorg/apache/tomcat/websocket/ClientEndpointHolder;Ljavax/websocket/ClientEndpointConfig;Ljava/net/URI;Ljava/util/Set;)Ljavax/websocket/Session;"
+            "(Lorg/apache/tomcat/websocket/ClientEndpointHolder;Ljavax/websocket/ClientEndpointConfig;Ljava/net/URI;Ljava/util/Set;)Ljavax/websocket/Session;",
+            "(Ljavax/websocket/Endpoint;Ljavax/websocket/ClientEndpointConfig;Ljava/net/URI;Ljava/util/Set;)Ljavax/websocket/Session;"
         )
         val getCreateRequestHeadersMethod: (String) -> CtMethod? = {
             ctClass
