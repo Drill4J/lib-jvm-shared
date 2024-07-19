@@ -21,10 +21,8 @@ import io.ktor.utils.io.bits.Memory
 import io.ktor.utils.io.bits.loadByteArray
 import io.ktor.utils.io.bits.of
 import com.epam.drill.agent.instrument.transformers.clients.*
-import com.epam.drill.agent.instrument.transformers.netty.NettyHttpServerTransformer
-import com.epam.drill.agent.instrument.transformers.netty.NettyWsClientTransformer
-import com.epam.drill.agent.instrument.transformers.netty.NettyWsServerTransformer
 import com.epam.drill.agent.instrument.transformers.servers.*
+import com.epam.drill.agent.instrument.transformers.netty.*
 import com.epam.drill.agent.instrument.transformers.tomcat.*
 import com.epam.drill.agent.instrument.transformers.undertow.*
 import com.epam.drill.jvmapi.gen.Allocate

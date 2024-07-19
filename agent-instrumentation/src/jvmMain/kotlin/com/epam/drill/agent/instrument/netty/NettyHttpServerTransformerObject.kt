@@ -22,7 +22,6 @@ import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.common.agent.request.HeadersRetriever
 
-
 /**
  * Transformer for simple Netty-based web servers
  *
@@ -61,7 +60,6 @@ abstract class NettyHttpServerTransformerObject(
                     allHeaders.put(headerName, headerValue);
                 }
                 ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
-
                 java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
                 if (drillHeaders != null) {
                     io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");
@@ -83,8 +81,7 @@ abstract class NettyHttpServerTransformerObject(
         val adminUrl = headersRetriever.adminAddressValue()
         val agentIdHeader = headersRetriever.agentIdHeader()
         val agentIdValue = headersRetriever.agentIdHeaderValue()
-        val writeMethod = ctClass.getMethod("write", "(Ljava/lang/Object;ZLio/netty/channel/ChannelPromise;)V")
-        writeMethod.insertCatching(
+        ctClass.getMethod("write", "(Ljava/lang/Object;ZLio/netty/channel/ChannelPromise;)V").insertCatching(
             CtBehavior::insertBefore,
             """
             if ($1 instanceof $HTTP_RESPONSE) {
@@ -96,7 +93,6 @@ abstract class NettyHttpServerTransformerObject(
                 if(wsHandshakerAttr.get() == null) {
                     drillContextAttr.compareAndSet(drillHeaders, null);
                 }
-
                 $HTTP_RESPONSE nettyResponse = ($HTTP_RESPONSE) $1;
                 if (!"$adminUrl".equals(nettyResponse.headers().get("$adminHeader"))) {
                     nettyResponse.headers().add("$adminHeader", "$adminUrl");
@@ -112,16 +108,7 @@ abstract class NettyHttpServerTransformerObject(
                              nettyResponse.headers().add(headerName, headerValue);
                          }
                     }                    
-                    ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
                 }
-            }
-            """.trimIndent()
-        )
-        writeMethod.insertCatching(
-            { insertAfter(it, true) },
-            """
-            if ($1 instanceof $HTTP_RESPONSE) {
-                ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
             """.trimIndent()
         )

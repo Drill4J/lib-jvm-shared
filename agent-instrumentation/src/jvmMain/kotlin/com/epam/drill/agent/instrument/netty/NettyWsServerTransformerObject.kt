@@ -73,28 +73,6 @@ abstract class NettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
             }
             """.trimIndent()
         )
-        val writeMethod = ctClass.getMethod("write", "(Ljava/lang/Object;ZLio/netty/channel/ChannelPromise;)V")
-        writeMethod.insertCatching(
-            CtBehavior::insertBefore,
-            """
-            if($1 instanceof $WEBSOCKET_FRAME_BINARY || ${'$'}1 instanceof $WEBSOCKET_FRAME_TEXT) {
-                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("${NettyHttpServerTransformerObject.DRILL_CONTEXT_KEY}");                                            
-                io.netty.util.Attribute drillContextAttr = this.channel().attr(drillContextKey);
-                java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
-                if (drillHeaders != null) {
-                    ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
-                }
-            }
-            """.trimIndent()
-        )
-        writeMethod.insertCatching(
-            { insertAfter(it, true) },
-            """
-            if ($1 instanceof $WEBSOCKET_FRAME_BINARY || $1 instanceof $WEBSOCKET_FRAME_TEXT) {
-                ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
-            }
-            """.trimIndent()
-        )
     }
 
     private fun transformServerHandshaker(ctClass: CtClass) {
