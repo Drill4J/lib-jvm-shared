@@ -55,7 +55,7 @@ abstract class NettyHttpServerTransformerObject(
                 ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(allHeaders);
                 java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
                 if (drillHeaders != null) {
-                    io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");
+                    io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_HTTP_CONTEXT_KEY");
                     this.channel().attr(drillContextKey).set(drillHeaders);
                 }
             }
@@ -78,14 +78,10 @@ abstract class NettyHttpServerTransformerObject(
             CtBehavior::insertBefore,
             """
             if ($1 instanceof $HTTP_RESPONSE) {
-                io.netty.util.AttributeKey wsHandshakerKey = io.netty.util.AttributeKey.valueOf("$WEB_SOCKET_SERVER_HANDSHAKER_KEY");                                            
-                io.netty.util.Attribute wsHandshakerAttr = this.channel().attr(wsHandshakerKey);
-                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");                                            
+                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_HTTP_CONTEXT_KEY");                                            
                 io.netty.util.Attribute drillContextAttr = this.channel().attr(drillContextKey);
                 java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
-                if(wsHandshakerAttr.get() == null) {
-                    drillContextAttr.compareAndSet(drillHeaders, null);
-                }
+                drillContextAttr.compareAndSet(drillHeaders, null);
                 $HTTP_RESPONSE nettyResponse = ($HTTP_RESPONSE) $1;
                 if (!"$adminUrl".equals(nettyResponse.headers().get("$adminHeader"))) {
                     nettyResponse.headers().add("$adminHeader", "$adminUrl");

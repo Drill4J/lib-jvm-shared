@@ -33,14 +33,19 @@ abstract class NettyWsMessagesTransformerObject : HeadersProcessor, PayloadProce
             CtBehavior::insertBefore,
             """
             if(($1 instanceof $WEBSOCKET_FRAME_BINARY || $1 instanceof $WEBSOCKET_FRAME_TEXT) && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
-                
+                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_WS_CONTEXT_KEY");                                            
+                io.netty.util.Attribute drillContextAttr = this.channel().attr(drillContextKey);
+                java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
+                if(${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(drillHeaders)) {
+                    
+                }
             }
             """.trimIndent()
         )
         invokeChannelReadMethod.insertCatching(
             { insertAfter(it, true) },
             """
-            if ($1 instanceof $WEBSOCKET_FRAME_BINARY || $1 instanceof $WEBSOCKET_FRAME_TEXT) {
+            if ($1 instanceof $WEBSOCKET_FRAME_BINARY || $1 instanceof $WEBSOCKET_FRAME_TEXT && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
             """.trimIndent()

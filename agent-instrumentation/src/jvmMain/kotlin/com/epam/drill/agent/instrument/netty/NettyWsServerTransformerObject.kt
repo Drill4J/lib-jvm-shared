@@ -38,7 +38,7 @@ abstract class NettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
         ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting NettyWsTransformerObject for $className..." }
+        logger.info { "transform: Starting NettyWsServerTransformerObject for $className..." }
         when (className) {
             "io/netty/channel/AbstractChannelHandlerContext" -> transformChannelHandlerContext(ctClass)
             "io/netty/handler/codec/http/websocketx/WebSocketServerHandshaker" -> transformServerHandshaker(ctClass)
@@ -51,7 +51,7 @@ abstract class NettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
             CtBehavior::insertBefore,
             """
             if($1 instanceof $WEBSOCKET_FRAME_BINARY || $1 instanceof $WEBSOCKET_FRAME_TEXT) {
-                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");                                            
+                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_WS_CONTEXT_KEY");                                            
                 io.netty.util.Attribute drillContextAttr = this.channel().attr(drillContextKey);
                 java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
                 if (drillHeaders != null) {
@@ -71,8 +71,17 @@ abstract class NettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
     }
 
     private fun transformServerHandshaker(ctClass: CtClass) {
-        val storeHandshakerCode =
+        val storeHandshakerAndHeadersCode =
             """
+            java.util.Iterator headerNames = $2.headers().names().iterator();
+            java.util.Map allHeaders = new java.util.HashMap();
+            while(headerNames.hasNext()){
+                java.lang.String headerName = (String) headerNames.next();
+                java.lang.String headerValue = $2.headers().get(headerName);
+                allHeaders.put(headerName, headerValue);
+            }
+            io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_WS_CONTEXT_KEY");
+            $1.attr(drillContextKey).set(allHeaders);
             if(io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler.getHandshaker($1) == null) {
                 io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler.setHandshaker($1, this);
             }
@@ -80,11 +89,11 @@ abstract class NettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
         ctClass.getMethod(
             "handshake",
             "(Lio/netty/channel/Channel;Lio/netty/handler/codec/http/HttpRequest;Lio/netty/handler/codec/http/HttpHeaders;Lio/netty/channel/ChannelPromise;)Lio/netty/channel/ChannelFuture;"
-        ).insertCatching(CtBehavior::insertBefore, storeHandshakerCode)
+        ).insertCatching(CtBehavior::insertBefore, storeHandshakerAndHeadersCode)
         ctClass.getMethod(
             "handshake",
             "(Lio/netty/channel/Channel;Lio/netty/handler/codec/http/FullHttpRequest;Lio/netty/handler/codec/http/HttpHeaders;Lio/netty/channel/ChannelPromise;)Lio/netty/channel/ChannelFuture;"
-        ).insertCatching(CtBehavior::insertBefore, storeHandshakerCode)
+        ).insertCatching(CtBehavior::insertBefore, storeHandshakerAndHeadersCode)
     }
 
 }
