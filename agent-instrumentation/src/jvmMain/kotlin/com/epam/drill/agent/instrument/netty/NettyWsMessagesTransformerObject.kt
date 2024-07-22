@@ -1,18 +1,3 @@
-/**
- * Copyright 2020 - 2022 EPAM Systems
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.epam.drill.agent.instrument.netty
 
 import javassist.CtBehavior
@@ -20,28 +5,25 @@ import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.agent.instrument.PayloadProcessor
 
-/**
- * Transformer for simple Netty-based web servers
- *
- * Tested with:
- *     io.netty:netty-codec-http:4.1.106.Final
- */
-abstract class NettyWsServerTransformerObject : HeadersProcessor, AbstractTransformerObject() {
+abstract class NettyWsMessagesTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
         listOf(
             "io/netty/channel/AbstractChannelHandlerContext",
-            "io/netty/handler/codec/http/websocketx/WebSocketServerHandshaker"
+            "io/netty/handler/codec/http/websocketx/WebSocketServerHandshaker",
+            "io/netty/handler/codec/http/websocketx/WebSocketClientHandshaker"
         ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting NettyWsTransformerObject for $className..." }
+        logger.info { "transform: Starting NettyWsMessagesTransformer for $className..." }
         when (className) {
             "io/netty/channel/AbstractChannelHandlerContext" -> transformChannelHandlerContext(ctClass)
             "io/netty/handler/codec/http/websocketx/WebSocketServerHandshaker" -> transformServerHandshaker(ctClass)
+            "io/netty/handler/codec/http/websocketx/WebSocketClientHandshaker" -> transformClientHandshaker(ctClass)
         }
     }
 
@@ -50,13 +32,8 @@ abstract class NettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
         invokeChannelReadMethod.insertCatching(
             CtBehavior::insertBefore,
             """
-            if($1 instanceof $WEBSOCKET_FRAME_BINARY || $1 instanceof $WEBSOCKET_FRAME_TEXT) {
-                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");                                            
-                io.netty.util.Attribute drillContextAttr = this.channel().attr(drillContextKey);
-                java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
-                if (drillHeaders != null) {
-                    ${this::class.java.name}.INSTANCE.${this::storeHeaders.name}(drillHeaders);
-                }
+            if(($1 instanceof $WEBSOCKET_FRAME_BINARY || $1 instanceof $WEBSOCKET_FRAME_TEXT) && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
+                
             }
             """.trimIndent()
         )
@@ -71,20 +48,31 @@ abstract class NettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
     }
 
     private fun transformServerHandshaker(ctClass: CtClass) {
-        val storeHandshakerCode =
+        val sendPerMessageHeaderCode =
             """
-            if(io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler.getHandshaker($1) == null) {
-                io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler.setHandshaker($1, this);
+            if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
+                $3.add("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
             }
             """.trimIndent()
         ctClass.getMethod(
             "handshake",
             "(Lio/netty/channel/Channel;Lio/netty/handler/codec/http/HttpRequest;Lio/netty/handler/codec/http/HttpHeaders;Lio/netty/channel/ChannelPromise;)Lio/netty/channel/ChannelFuture;"
-        ).insertCatching(CtBehavior::insertBefore, storeHandshakerCode)
+        ).insertCatching(CtBehavior::insertBefore, sendPerMessageHeaderCode)
         ctClass.getMethod(
             "handshake",
             "(Lio/netty/channel/Channel;Lio/netty/handler/codec/http/FullHttpRequest;Lio/netty/handler/codec/http/HttpHeaders;Lio/netty/channel/ChannelPromise;)Lio/netty/channel/ChannelFuture;"
-        ).insertCatching(CtBehavior::insertBefore, storeHandshakerCode)
+        ).insertCatching(CtBehavior::insertBefore, sendPerMessageHeaderCode)
     }
+
+    private fun transformClientHandshaker(ctClass: CtClass) = ctClass
+        .getMethod("handshake", "(Lio/netty/channel/Channel;Lio/netty/channel/ChannelPromise;)Lio/netty/channel/ChannelFuture;")
+        .insertCatching(
+            CtBehavior::insertBefore,
+            """
+            if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
+                this.customHeaders.add("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
+            }
+            """.trimIndent()
+        )
 
 }

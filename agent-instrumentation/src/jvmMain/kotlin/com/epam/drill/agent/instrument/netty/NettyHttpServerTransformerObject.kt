@@ -29,15 +29,8 @@ import com.epam.drill.common.agent.request.HeadersRetriever
  *     io.netty:netty-codec-http:4.1.106.Final
  */
 abstract class NettyHttpServerTransformerObject(
-    protected val headersRetriever: HeadersRetriever
+    private val headersRetriever: HeadersRetriever
 ) : HeadersProcessor, AbstractTransformerObject() {
-
-    companion object {
-        private const val HTTP_REQUEST = "io.netty.handler.codec.http.HttpRequest"
-        private const val HTTP_RESPONSE = "io.netty.handler.codec.http.HttpResponse"
-        const val DRILL_CONTEXT_KEY = "com.epam.drill.common.agent.request.DrillRequest#DRILL_REQUEST"
-        const val WEB_SOCKET_SERVER_HANDSHAKER_KEY = "io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker#HANDSHAKER"
-    }
 
     override val logger = KotlinLogging.logger {}
 

@@ -48,7 +48,7 @@ abstract class NettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
             """
             if(${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
                 java.util.Map drillHeaders = ${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}();
-                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("${NettyHttpServerTransformerObject.DRILL_CONTEXT_KEY}");
+                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");
                 ${'$'}_.channel().attr(drillContextKey).set(drillHeaders);
             }
             """.trimIndent()
@@ -59,7 +59,7 @@ abstract class NettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
         .insertCatching(
             CtBehavior::insertBefore,
             """
-            io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("${NettyHttpServerTransformerObject.DRILL_CONTEXT_KEY}");                                            
+            io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_CONTEXT_KEY");                                            
             io.netty.util.Attribute drillContextAttr = $1.attr(drillContextKey);
             java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
             if (drillHeaders != null) {
