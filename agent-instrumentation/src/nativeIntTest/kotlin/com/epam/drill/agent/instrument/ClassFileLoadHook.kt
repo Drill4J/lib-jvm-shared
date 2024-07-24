@@ -40,6 +40,7 @@ object ClassFileLoadHook {
         NettyHttpServerTransformer,
         NettyWsServerTransformer,
         NettyWsClientTransformer,
+        NettyWsMessagesTransformer,
         SSLEngineTransformer,
         KafkaTransformer,
         JettyTransformer,

@@ -15,33 +15,22 @@
  */
 package com.epam.drill.agent.instrument.undertow
 
-import kotlin.reflect.KCallable
 import java.lang.reflect.Method
 import java.nio.ByteBuffer
-import javassist.ByteArrayClassPath
 import javassist.ClassPool
 import mu.KotlinLogging
-import net.bytebuddy.ByteBuddy
-import net.bytebuddy.TypeCache
-import net.bytebuddy.description.method.MethodDescription
-import net.bytebuddy.description.modifier.Visibility
-import net.bytebuddy.dynamic.loading.ClassLoadingStrategy
-import net.bytebuddy.implementation.FieldAccessor
 import net.bytebuddy.implementation.MethodCall
-import net.bytebuddy.implementation.MethodDelegation
 import net.bytebuddy.implementation.bind.annotation.FieldValue
 import net.bytebuddy.implementation.bind.annotation.Origin
 import net.bytebuddy.implementation.bind.annotation.RuntimeType
-import net.bytebuddy.matcher.ElementMatchers
+import com.epam.drill.agent.instrument.AbstractWsMessagesProxyDelegate
 import com.epam.drill.agent.instrument.PayloadProcessor
 
 class UndertowWsMessagesProxyDelegate(
     private val payloadProcessor: PayloadProcessor
-) {
+) : AbstractWsMessagesProxyDelegate() {
 
     private val logger = KotlinLogging.logger {}
-    private val byteBuddy by lazy(::ByteBuddy)
-    private val proxyClassCache = TypeCache<String>()
     private var pooledProxyClass: Class<*>? = null
     private var textMessageProxyClass: Class<*>? = null
     private var binaryMessageProxyClass: Class<*>? = null
@@ -114,41 +103,5 @@ class UndertowWsMessagesProxyDelegate(
         ::delegatedPooledResource,
         classPool,
     ) { MethodCall.invoke(Any::class.java.getConstructor()) }
-
-    private fun createDelegatedGetterProxy(
-        className: String,
-        delegatedMethod: String,
-        delegateMethod: KCallable<*>,
-        classPool: ClassPool,
-        proxyName: String = "${className}Proxy",
-        targetField: String = "target",
-        constructorCall: (Class<*>) -> MethodCall
-    ): Class<*> = Class.forName(className, true, classPool.classLoader).let { clazz ->
-        proxyClassCache.findOrInsert(clazz.classLoader, proxyName) {
-            byteBuddy.subclass(clazz)
-                .name(proxyName)
-                .modifiers(Visibility.PUBLIC)
-                .defineField(targetField, clazz, Visibility.PRIVATE)
-                .defineConstructor(Visibility.PUBLIC)
-                .withParameter(clazz)
-                .intercept(constructorCall(clazz)
-                    .andThen(FieldAccessor.ofField(targetField).setsArgumentAt(0)))
-                .method(
-                    ElementMatchers.isPublic<MethodDescription>()
-                    .and(ElementMatchers.isDeclaredBy(clazz)))
-                .intercept(MethodCall.invokeSelf().onField(targetField).withAllArguments())
-                .method(
-                    ElementMatchers.named<MethodDescription>(delegatedMethod)
-                    .and(ElementMatchers.takesNoArguments()))
-                .intercept(
-                    MethodDelegation.withDefaultConfiguration()
-                    .filter(ElementMatchers.named(delegateMethod.name))
-                    .to(this@UndertowWsMessagesProxyDelegate))
-                .make()
-                .load(clazz.classLoader, ClassLoadingStrategy.Default.INJECTION)
-                .also { classPool.appendClassPath(ByteArrayClassPath(proxyName, it.bytes)) }
-                .loaded
-        }
-    }
 
 }
