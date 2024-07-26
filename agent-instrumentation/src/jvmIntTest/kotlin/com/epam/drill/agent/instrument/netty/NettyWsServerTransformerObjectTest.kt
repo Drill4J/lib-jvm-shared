@@ -15,88 +15,29 @@
  */
 package com.epam.drill.agent.instrument.netty
 
-import java.net.InetSocketAddress
-import io.netty.bootstrap.ServerBootstrap
 import io.netty.buffer.Unpooled
-import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.ChannelInitializer
 import io.netty.channel.SimpleChannelInboundHandler
-import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.socket.SocketChannel
-import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.handler.codec.http.HttpHeaderNames
-import io.netty.handler.codec.http.HttpHeaderValues
-import io.netty.handler.codec.http.HttpRequest
-import io.netty.handler.codec.http.HttpServerCodec
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame
-import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory
-import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler
 import mu.KotlinLogging
+import com.epam.drill.agent.instrument.netty.NettyWsTestServer.CustomProtocolHandlerChannelInitializer
+import com.epam.drill.agent.instrument.netty.NettyWsTestServer.DefaultProtocolHandlerChannelInitializer
 import com.epam.drill.agent.instrument.servers.AbstractWsServerTransformerObjectTest
 
 class NettyWsServerTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun withWebSocketAnnotatedEndpoint(block: (String) -> Unit) =
-        withWebSocketServer(DefaultProtocolHandlerChannelInitializer(), block)
+    override fun withWebSocketAnnotatedEndpoint(block: (String) -> Unit) = NettyWsTestServer.withWebSocketServer(
+        DefaultProtocolHandlerChannelInitializer(TextFrameChannelHandler(),BinaryFrameChannelHandler()),
+        block
+    )
 
-    override fun withWebSocketInterfaceEndpoint(block: (String) -> Unit) =
-        withWebSocketServer(CustomProtocolHandlerChannelInitializer(), block)
-
-    private fun withWebSocketServer(initializer: ChannelInitializer<SocketChannel>, block: (String) -> Unit) {
-        val bossGroup = NioEventLoopGroup()
-        val workerGroup = NioEventLoopGroup()
-        lateinit var serverChannel: Channel
-        try {
-            serverChannel = ServerBootstrap()
-                .group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel::class.java)
-                .childHandler(initializer)
-                .bind(InetSocketAddress(0))
-                .sync()
-                .channel()
-            val address = serverChannel.localAddress() as InetSocketAddress
-            block("ws://localhost:${address.port}")
-        } finally {
-            serverChannel.close().sync()
-            workerGroup.shutdownGracefully().sync()
-            bossGroup.shutdownGracefully().sync()
-        }
-    }
-
-    private class DefaultProtocolHandlerChannelInitializer : ChannelInitializer<SocketChannel>() {
-        override fun initChannel(ch: SocketChannel) {
-            ch.pipeline().addLast(HttpServerCodec())
-            ch.pipeline().addLast(WebSocketServerProtocolHandler("/"))
-            ch.pipeline().addLast(TextFrameChannelHandler())
-            ch.pipeline().addLast(BinaryFrameChannelHandler())
-        }
-    }
-
-    private class CustomProtocolHandlerChannelInitializer : ChannelInitializer<SocketChannel>() {
-        override fun initChannel(ch: SocketChannel) {
-            ch.pipeline().addLast(HttpServerCodec())
-            ch.pipeline().addLast(HttpWebSocketHandshakeHandler())
-        }
-    }
-
-    private class HttpWebSocketHandshakeHandler : SimpleChannelInboundHandler<HttpRequest>() {
-        override fun channelRead0(ctx: ChannelHandlerContext, msg: HttpRequest) {
-            if (HttpHeaderValues.UPGRADE.contentEqualsIgnoreCase(msg.headers().get(HttpHeaderNames.CONNECTION)) &&
-                HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(msg.headers().get(HttpHeaderNames.UPGRADE))) {
-                ctx.pipeline().remove(this)
-                ctx.pipeline().addLast(TextFrameChannelHandler())
-                ctx.pipeline().addLast(BinaryFrameChannelHandler())
-                val wsUrl = "ws://${msg.headers().get(HttpHeaderNames.HOST)}${msg.uri()}"
-                WebSocketServerHandshakerFactory(wsUrl, null, true).newHandshaker(msg)
-                    ?.handshake(ctx.channel(), msg)
-                    ?: WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel())
-            }
-        }
-    }
+    override fun withWebSocketInterfaceEndpoint(block: (String) -> Unit) = NettyWsTestServer.withWebSocketServer(
+        CustomProtocolHandlerChannelInitializer(TextFrameChannelHandler(), BinaryFrameChannelHandler()),
+        block
+    )
 
     private class TextFrameChannelHandler : SimpleChannelInboundHandler<TextWebSocketFrame>() {
         override fun channelRead0(ctx: ChannelHandlerContext, msg: TextWebSocketFrame) {

@@ -159,6 +159,7 @@ kotlin {
                 exclude("/com/epam/drill/agent/instrument/**/*Test.class")
                 exclude("/com/epam/drill/agent/instrument/**/*Test$*.class")
                 exclude("/com/epam/drill/agent/instrument/**/*TestServer.class")
+                exclude("/com/epam/drill/agent/instrument/**/*TestServer$*.class")
             }
         }
         register("integrationTest", Test::class) {

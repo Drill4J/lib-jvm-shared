@@ -85,7 +85,7 @@ class NettyWsClientTransformerObjectTest : AbstractWsClientTransformerObjectTest
     private abstract class TestChannelInitializer(endpoint: String) : ChannelInitializer<SocketChannel>() {
         lateinit var incomingMessages: MutableList<String>
         lateinit var handshakePromise: ChannelPromise
-        protected val handshaker = WebSocketClientHandshakerFactory.newHandshaker(
+        protected val handshaker: WebSocketClientHandshaker = WebSocketClientHandshakerFactory.newHandshaker(
             URI(endpoint), WebSocketVersion.V13, null, true, DefaultHttpHeaders()
         )
     }
