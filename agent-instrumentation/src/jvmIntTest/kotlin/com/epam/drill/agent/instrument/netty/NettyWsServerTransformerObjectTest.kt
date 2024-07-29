@@ -50,7 +50,7 @@ class NettyWsServerTransformerObjectTest : AbstractWsServerTransformerObjectTest
             val message = msg.retain().content()
             val text = ByteArray(message.readableBytes()).also(message::readBytes).decodeToString()
             val response = attachSessionHeaders(text).encodeToByteArray()
-            ctx.writeAndFlush(BinaryWebSocketFrame(Unpooled.copiedBuffer(response)))
+            ctx.writeAndFlush(BinaryWebSocketFrame(Unpooled.wrappedBuffer(response)))
         }
     }
 

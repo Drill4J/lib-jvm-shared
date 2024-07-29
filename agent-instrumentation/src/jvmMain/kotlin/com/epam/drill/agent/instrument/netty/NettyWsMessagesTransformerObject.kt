@@ -56,7 +56,7 @@ abstract class NettyWsMessagesTransformerObject : HeadersProcessor, PayloadProce
                     byte[] messageBytes = new byte[messageBuf.readableBytes()];
                     messageBuf.readBytes(messageBytes);
                     messageBytes = ${this::class.java.name}.INSTANCE.retrieveDrillHeaders(messageBytes);
-                    $1 = (($WEBSOCKET_FRAME_COMMON)$1).replace(io.netty.buffer.Unpooled.copiedBuffer(messageBytes));
+                    $1 = (($WEBSOCKET_FRAME_COMMON)$1).replace(io.netty.buffer.Unpooled.wrappedBuffer(messageBytes));
                 }
             }
             """.trimIndent()
@@ -74,13 +74,17 @@ abstract class NettyWsMessagesTransformerObject : HeadersProcessor, PayloadProce
             """
             if (($1 instanceof $WEBSOCKET_FRAME_BINARY || $1 instanceof $WEBSOCKET_FRAME_TEXT)
                     && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
-                    && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
-                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(${this::class.java.name}.INSTANCE.${this::retrieveHeaders.name}())) {
-                io.netty.buffer.ByteBuf messageBuf = (($WEBSOCKET_FRAME_COMMON)$1).retain().content();
-                byte[] messageBytes = new byte[messageBuf.readableBytes()];
-                messageBuf.readBytes(messageBytes);
-                messageBytes = ${this::class.java.name}.INSTANCE.storeDrillHeaders(messageBytes);
-                $1 = (($WEBSOCKET_FRAME_COMMON)$1).replace(io.netty.buffer.Unpooled.copiedBuffer(messageBytes));
+                    && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_WS_CONTEXT_KEY");                                            
+                io.netty.util.Attribute drillContextAttr = this.channel().attr(drillContextKey);
+                java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
+                if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(drillHeaders)) {
+                    io.netty.buffer.ByteBuf messageBuf = (($WEBSOCKET_FRAME_COMMON)$1).retain().content();
+                    byte[] messageBytes = new byte[messageBuf.readableBytes()];
+                    messageBuf.readBytes(messageBytes);
+                    messageBytes = ${this::class.java.name}.INSTANCE.storeDrillHeaders(messageBytes);
+                    $1 = (($WEBSOCKET_FRAME_COMMON)$1).replace(io.netty.buffer.Unpooled.wrappedBuffer(messageBytes));
+                }
             }
             """.trimIndent()
         )

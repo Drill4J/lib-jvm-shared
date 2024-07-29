@@ -74,7 +74,7 @@ class NettyWsMessagesTransformerObjectTest : AbstractWsMessagesTransformerObject
             val text = ByteArray(message.readableBytes()).also(message::readBytes).decodeToString()
             processIncoming(text, null)
             TestRequestHolder.store(DrillRequest("$text-response-session", mapOf("drill-data" to "$text-response-data")))
-            ctx.writeAndFlush(BinaryWebSocketFrame(Unpooled.copiedBuffer("$text-response".encodeToByteArray())))
+            ctx.writeAndFlush(BinaryWebSocketFrame(Unpooled.wrappedBuffer("$text-response".encodeToByteArray())))
             TestRequestHolder.remove()
         }
     }

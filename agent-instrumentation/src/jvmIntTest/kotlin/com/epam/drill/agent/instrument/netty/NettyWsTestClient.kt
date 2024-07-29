@@ -55,13 +55,13 @@ object NettyWsTestClient {
             channel.writeAndFlush(TextWebSocketFrame(it.arguments[0] as String)).sync()
         }
         Mockito.`when`(basicRemote.sendBinary(Mockito.any(ByteBuffer::class.java))).then {
-            channel.writeAndFlush(BinaryWebSocketFrame(Unpooled.copiedBuffer(it.arguments[0] as ByteBuffer))).sync()
+            channel.writeAndFlush(BinaryWebSocketFrame(Unpooled.wrappedBuffer(it.arguments[0] as ByteBuffer))).sync()
         }
         Mockito.`when`(asyncRemote.sendText(Mockito.anyString())).then {
             channel.writeAndFlush(TextWebSocketFrame(it.arguments[0] as String))
         }
         Mockito.`when`(asyncRemote.sendBinary(Mockito.any(ByteBuffer::class.java))).then {
-            channel.writeAndFlush(BinaryWebSocketFrame(Unpooled.copiedBuffer(it.arguments[0] as ByteBuffer)))
+            channel.writeAndFlush(BinaryWebSocketFrame(Unpooled.wrappedBuffer(it.arguments[0] as ByteBuffer)))
         }
         initializer.handshakePromise.sync()
         return session
