@@ -29,10 +29,8 @@ kotlin {
             includeDirs("src/nativeInterop/cinterop/$targetName")
         }
     }
-    targets {
-        linuxX64(configure = configureCInterop)
-        mingwX64(configure = configureCInterop)
-    }
+    linuxX64(configure = configureCInterop)
+    mingwX64(configure = configureCInterop)
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
         all {

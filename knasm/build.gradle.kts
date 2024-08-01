@@ -29,6 +29,13 @@ kotlin {
                 }
             }
         }
+        macosArm64().apply {
+            if (macosLd64.toBoolean()) {
+                binaries.all {
+                    linkerOpts("-ld64")
+                }
+            }
+        }
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {

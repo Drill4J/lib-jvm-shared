@@ -21,14 +21,19 @@ repositories {
 }
 
 kotlin {
-    targets {
-        linuxX64()
-        mingwX64()
-        macosX64().apply {
-            if(macosLd64.toBoolean()){
-                binaries.all {
-                    linkerOpts("-ld64")
-                }
+    linuxX64()
+    mingwX64()
+    macosX64().apply {
+        if(macosLd64.toBoolean()){
+            binaries.all {
+                linkerOpts("-ld64")
+            }
+        }
+    }
+    macosArm64().apply {
+        if (macosLd64.toBoolean()) {
+            binaries.all {
+                linkerOpts("-ld64")
             }
         }
     }
@@ -48,6 +53,9 @@ kotlin {
             dependsOn(nativeMain)
         }
         val macosX64Main by getting{
+            dependsOn(nativeMain)
+        }
+        val macosArm64Main by getting{
             dependsOn(nativeMain)
         }
     }
