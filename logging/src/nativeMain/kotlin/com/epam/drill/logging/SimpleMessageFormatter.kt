@@ -15,12 +15,13 @@
  */
 package com.epam.drill.logging
 
-import kotlin.native.concurrent.AtomicInt
+import kotlin.concurrent.AtomicInt
 import io.ktor.util.date.GMTDate
 import mu.Formatter
 import mu.KotlinLoggingLevel
 import mu.Marker
 import mu.internal.ErrorMessageProducer
+import kotlin.experimental.ExperimentalNativeApi
 
 object SimpleMessageFormatter : Formatter {
 
@@ -29,16 +30,17 @@ object SimpleMessageFormatter : Formatter {
         get() = _messageLimit.value
         set(value) { _messageLimit.value = value }
 
-    override fun formatMessage(level: KotlinLoggingLevel, loggerName: String, msg: () -> Any?) =
+    override fun formatMessage(includePrefix: Boolean, level: KotlinLoggingLevel, loggerName: String, msg: () -> Any?) =
         "${formatPrefix(level, loggerName)} ${msg.toStringSafe()}"
 
-    override fun formatMessage(level: KotlinLoggingLevel, loggerName: String, t: Throwable?, msg: () -> Any?) =
+    override fun formatMessage(includePrefix: Boolean, level: KotlinLoggingLevel, loggerName: String, t: Throwable?, msg: () -> Any?) =
         "${formatPrefix(level, loggerName)} ${msg.toStringSafe()}${t.throwableToString()}"
 
-    override fun formatMessage(level: KotlinLoggingLevel, loggerName: String, marker: Marker?, msg: () -> Any?) =
+    override fun formatMessage(includePrefix: Boolean, level: KotlinLoggingLevel, loggerName: String, marker: Marker?, msg: () -> Any?) =
         "${formatPrefix(level, loggerName)} ${marker.wrapToString()}${msg.toStringSafe()}"
 
     override fun formatMessage(
+        includePrefix: Boolean,
         level: KotlinLoggingLevel,
         loggerName: String,
         marker: Marker?,
@@ -68,6 +70,7 @@ object SimpleMessageFormatter : Formatter {
         }
     }
 
+    @OptIn(ExperimentalNativeApi::class)
     private fun Throwable?.throwableToString(): String {
         if (this == null) return ""
         var msg = "\n"

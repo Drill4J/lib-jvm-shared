@@ -17,7 +17,9 @@ package com.epam.drill.jvmapi
 
 import mu.KotlinLogging
 import com.epam.drill.jvmapi.gen.*
+import kotlinx.cinterop.ExperimentalForeignApi
 
+@OptIn(ExperimentalForeignApi::class)
 fun checkEx(errCode: UInt, funName: String): UInt {
     if (errCode == 0.toUInt()) {
         return 0.toUInt()
@@ -31,6 +33,7 @@ fun checkEx(errCode: UInt, funName: String): UInt {
 @SharedImmutable
 private val logger = KotlinLogging.logger("com.epam.drill.jvmapi.CheckEx")
 
+@OptIn(ExperimentalForeignApi::class)
 @SharedImmutable
 private val errorMapping = mapOf(
     JVMTI_ERROR_NULL_POINTER to "Pointer is unexpectedly NULL.",

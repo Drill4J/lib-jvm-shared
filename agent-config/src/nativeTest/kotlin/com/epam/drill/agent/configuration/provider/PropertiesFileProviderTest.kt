@@ -21,12 +21,17 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import com.epam.drill.agent.configuration.AgentConfigurationProvider
 import com.epam.drill.agent.configuration.DefaultParameterDefinitions
+import kotlin.experimental.ExperimentalNativeApi
 
 class PropertiesFileProviderTest {
 
+    @OptIn(ExperimentalNativeApi::class)
     private val separator = if (Platform.osFamily == OsFamily.WINDOWS) "\\" else "/"
+    @OptIn(ExperimentalNativeApi::class)
     private val fullPath = if (Platform.osFamily == OsFamily.WINDOWS) "C:\\data\\agent" else "/data/agent"
+    @OptIn(ExperimentalNativeApi::class)
     private val testPath1 = if (Platform.osFamily == OsFamily.WINDOWS) "C:\\data1" else "/data1"
+    @OptIn(ExperimentalNativeApi::class)
     private val testPath2 = if (Platform.osFamily == OsFamily.WINDOWS) "C:\\data2" else "/data2"
 
     @Test

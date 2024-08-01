@@ -15,7 +15,7 @@
  */
 package com.epam.drill.agent.configuration
 
-import kotlin.native.concurrent.AtomicReference
+import kotlin.concurrent.AtomicReference
 import kotlin.native.concurrent.freeze
 import kotlin.reflect.KProperty
 import com.epam.drill.common.agent.configuration.AgentParameterDefinition

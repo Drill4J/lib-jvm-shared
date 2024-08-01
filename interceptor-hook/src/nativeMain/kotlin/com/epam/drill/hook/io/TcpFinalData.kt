@@ -17,5 +17,6 @@ package com.epam.drill.hook.io
 
 import kotlinx.cinterop.ByteVarOf
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
 
-data class TcpFinalData(val buf: CPointer<ByteVarOf<Byte>>?, val size: Int, val dif: Int = 0)
+data class TcpFinalData @OptIn(ExperimentalForeignApi::class) constructor(val buf: CPointer<ByteVarOf<Byte>>?, val size: Int, val dif: Int = 0)

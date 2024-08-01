@@ -4,11 +4,11 @@ package mu.internal
 internal inline fun (() -> Any?).toStringSafe(): String {
     return try {
         invoke().toString()
-    } catch (e: Throwable) {
+    } catch (e: Exception) {
         ErrorMessageProducer.getErrorLog(e)
     }
 }
 
 public expect object ErrorMessageProducer {
-    public fun getErrorLog(e: Throwable): String
+    public fun getErrorLog(e: Exception): String
 }

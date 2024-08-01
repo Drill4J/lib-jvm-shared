@@ -23,9 +23,11 @@ import com.epam.drill.jvmapi.gen.jobject
 import com.epam.drill.jvmapi.getObjectMethod
 import com.epam.drill.jvmapi.toByteArray
 import com.epam.drill.jvmapi.toJByteArray
+import kotlinx.cinterop.ExperimentalForeignApi
 
 abstract class AbstractTransformerObject : TransformerObject {
 
+    @OptIn(ExperimentalForeignApi::class)
     @Suppress("unchecked_cast")
     override fun transform(
         className: String,
@@ -55,6 +57,7 @@ abstract class AbstractTransformerObject : TransformerObject {
             interfaces.filterNotNull().filter(String::isNotBlank).takeIf(List<String>::isNotEmpty)?.joinToString(";")
         )
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun permit(
         className: String?,
         superName: String?,

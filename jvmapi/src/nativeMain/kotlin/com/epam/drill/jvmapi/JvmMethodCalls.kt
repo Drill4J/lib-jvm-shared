@@ -23,7 +23,9 @@ import com.epam.drill.jvmapi.gen.CallObjectMethod
 import com.epam.drill.jvmapi.gen.CallVoidMethod
 import com.epam.drill.jvmapi.gen.GetStringUTFChars
 import com.epam.drill.jvmapi.gen.NewStringUTF
+import kotlinx.cinterop.ExperimentalForeignApi
 
+@OptIn(ExperimentalForeignApi::class)
 fun callObjectVoidMethod(clazz: KClass<out Any>, method: String) =
     getObjectVoidMethod(clazz, method).run {
         CallVoidMethod(this.first, this.second)
@@ -32,6 +34,7 @@ fun callObjectVoidMethod(clazz: KClass<out Any>, method: String) =
 fun callObjectVoidMethod(clazz: KClass<out Any>, method: KCallable<Unit>) =
     callObjectVoidMethod(clazz, method.name)
 
+@OptIn(ExperimentalForeignApi::class)
 fun callObjectVoidMethodWithBoolean(clazz: KClass<out Any>, method: String, bool: Boolean) =
     getObjectVoidMethodWithBoolean(clazz, method).run {
         CallVoidMethod(this.first, this.second, bool)
@@ -40,6 +43,7 @@ fun callObjectVoidMethodWithBoolean(clazz: KClass<out Any>, method: String, bool
 fun callObjectVoidMethodWithBoolean(clazz: KClass<out Any>, method: KCallable<Unit>, bool: Boolean) =
     callObjectVoidMethodWithBoolean(clazz, method.name, bool)
 
+@OptIn(ExperimentalForeignApi::class)
 fun callObjectVoidMethodWithInt(clazz: KClass<out Any>, method: String, int: Int) =
     getObjectVoidMethodWithInt(clazz, method).run {
         CallVoidMethod(this.first, this.second, int)
@@ -48,6 +52,7 @@ fun callObjectVoidMethodWithInt(clazz: KClass<out Any>, method: String, int: Int
 fun callObjectVoidMethodWithInt(clazz: KClass<out Any>, method: KCallable<Unit>, int: Int) =
     callObjectVoidMethodWithInt(clazz, method.name, int)
 
+@OptIn(ExperimentalForeignApi::class)
 fun callObjectVoidMethodWithString(clazz: KClass<out Any>, method: String, string: String?) =
     getObjectVoidMethodWithString(clazz, method).run {
         CallVoidMethod(this.first, this.second, string?.let(::NewStringUTF))
@@ -56,6 +61,7 @@ fun callObjectVoidMethodWithString(clazz: KClass<out Any>, method: String, strin
 fun callObjectVoidMethodWithString(clazz: KClass<out Any>, method: KCallable<Unit>, string: String?) =
     callObjectVoidMethodWithString(clazz, method.name, string)
 
+@OptIn(ExperimentalForeignApi::class)
 fun callObjectVoidMethodWithByteArray(clazz: KClass<out Any>, method: String, bytes: ByteArray) =
     getObjectVoidMethodWithByteArray(clazz, method).run {
         CallVoidMethod(this.first, this.second, toJByteArray(bytes))
@@ -64,6 +70,7 @@ fun callObjectVoidMethodWithByteArray(clazz: KClass<out Any>, method: String, by
 fun callObjectVoidMethodWithByteArray(clazz: KClass<out Any>, method: KCallable<Unit>, bytes: ByteArray) =
     callObjectVoidMethodWithByteArray(clazz, method.name, bytes)
 
+@OptIn(ExperimentalForeignApi::class)
 fun callObjectIntMethod(clazz: KClass<out Any>, method: String) =
     getObjectIntMethod(clazz, method).run {
         CallIntMethod(this.first, this.second)
@@ -72,15 +79,18 @@ fun callObjectIntMethod(clazz: KClass<out Any>, method: String) =
 fun callObjectIntMethod(clazz: KClass<out Any>, method: KCallable<Int>) =
     callObjectIntMethod(clazz, method.name)
 
+@OptIn(ExperimentalForeignApi::class)
 fun callObjectObjectMethodWithString(clazz: KClass<out Any>, method: String, string: String?) =
     getObjectObjectMethodWithString(clazz, method).run {
         CallObjectMethod(this.first, this.second, string?.let(::NewStringUTF))
     }
 
+@OptIn(ExperimentalForeignApi::class)
 @Suppress("unused")
 fun callObjectObjectMethodWithString(clazz: KClass<out Any>, method: KCallable<Any?>, string: String?) =
     callObjectObjectMethodWithString(clazz, method.name, string)
 
+@OptIn(ExperimentalForeignApi::class)
 fun callObjectStringMethod(clazz: KClass<out Any>, method: String) =
     getObjectStringMethod(clazz, method).run {
         CallObjectMethod(this.first, this.second)?.let { GetStringUTFChars(it, null)?.toKString() }
@@ -89,6 +99,7 @@ fun callObjectStringMethod(clazz: KClass<out Any>, method: String) =
 fun callObjectStringMethod(clazz: KClass<out Any>, method: KCallable<String?>) =
     callObjectStringMethod(clazz, method.name)
 
+@OptIn(ExperimentalForeignApi::class)
 fun callObjectByteArrayMethod(clazz: KClass<out Any>, method: String) =
     getObjectByteArrayMethod(clazz, method).run {
         CallObjectMethod(this.first, this.second)?.let(::toByteArray)

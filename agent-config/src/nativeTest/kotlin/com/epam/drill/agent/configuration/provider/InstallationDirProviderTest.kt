@@ -20,13 +20,19 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import com.epam.drill.agent.configuration.AgentConfigurationProvider
 import com.epam.drill.agent.configuration.DefaultParameterDefinitions
+import kotlin.experimental.ExperimentalNativeApi
 
 class InstallationDirProviderTest {
 
+    @OptIn(ExperimentalNativeApi::class)
     private val separator = if (Platform.osFamily == OsFamily.WINDOWS) "\\" else "/"
+    @OptIn(ExperimentalNativeApi::class)
     private val libName = if (Platform.osFamily == OsFamily.WINDOWS) "drill_agent.dll" else "libdrill_agent.so"
+    @OptIn(ExperimentalNativeApi::class)
     private val fullPath = if (Platform.osFamily == OsFamily.WINDOWS) "C:\\data\\agent" else "/data/agent"
+    @OptIn(ExperimentalNativeApi::class)
     private val rootPath = if (Platform.osFamily == OsFamily.WINDOWS) "C:" else "/"
+    @OptIn(ExperimentalNativeApi::class)
     private val rootLibPath = if (Platform.osFamily == OsFamily.WINDOWS) "C:\\drill_agent.dll" else "/libdrill_agent.so"
 
     @Test

@@ -26,6 +26,7 @@ import platform.posix.*
 import platform.windows.LPDWORD
 import platform.windows._OVERLAPPED
 
+@OptIn(ExperimentalForeignApi::class)
 actual val tcpInitializer = run {
     val socketHook = funchook_create()
     funchook_prepare(socketHook, close_func_point, staticCFunction(::drillClose)).check("prepare close_func_point")
@@ -38,6 +39,7 @@ actual val tcpInitializer = run {
     funchook_install(socketHook, 0).check("funchook_install")
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun drillRead(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: size_t): ssize_t {
     initRuntimeIfNeeded()
     val read = nativeRead(fd.convert(), buf, size.convert())
@@ -46,6 +48,7 @@ actual fun drillRead(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: si
     return read.convert()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun drillWrite(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: size_t): ssize_t {
     initRuntimeIfNeeded()
 
@@ -59,6 +62,7 @@ actual fun drillWrite(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: s
 }
 
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun drillSend(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: Int, flags: Int): Int {
     initRuntimeIfNeeded()
     return memScoped {
@@ -67,6 +71,7 @@ actual fun drillSend(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: In
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun drillRecv(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: Int, flags: Int): Int {
     initRuntimeIfNeeded()
     val read = nativeRecv(fd, buf, size.convert(), flags)
@@ -74,6 +79,7 @@ actual fun drillRecv(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: In
     return read.convert()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 fun drillAccept(
     fd: DRILL_SOCKET,
     addr: CPointer<sockaddr>?,
@@ -86,6 +92,7 @@ fun drillAccept(
     return socket
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun configureTcpHooks() {
     configureTcpHooksBuild {
         println("Configuration for mingw")
@@ -94,6 +101,7 @@ actual fun configureTcpHooks() {
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 private fun drillWsaSend(
     fd: SOCKET,
     buff: CPointer<_WSABUF>?,
@@ -117,6 +125,7 @@ private fun drillWsaSend(
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 private fun drillWsaRecv(
     fd: SOCKET,
     buff: CPointer<_WSABUF>?,

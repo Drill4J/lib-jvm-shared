@@ -1,6 +1,6 @@
 package mu
 
-import kotlin.native.concurrent.AtomicReference
+import kotlin.concurrent.AtomicReference
 
 @Suppress("ObjectPropertyName")
 public object KotlinLoggingConfiguration {
