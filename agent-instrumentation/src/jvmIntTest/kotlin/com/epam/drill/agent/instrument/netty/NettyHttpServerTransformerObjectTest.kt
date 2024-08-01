@@ -65,9 +65,9 @@ class NettyHttpServerTransformerObjectTest : AbstractHttpServerTransformerObject
         }
     }
 
-    private class TestRequestChannelHandler : SimpleChannelInboundHandler<LastHttpContent>() {
+    private class TestRequestChannelHandler : SimpleChannelInboundHandler<LastHttpContent>(false) {
         override fun channelRead0(ctx: ChannelHandlerContext, msg: LastHttpContent) {
-            val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, msg.retain().content())
+            val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, msg.content())
             ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
         }
     }

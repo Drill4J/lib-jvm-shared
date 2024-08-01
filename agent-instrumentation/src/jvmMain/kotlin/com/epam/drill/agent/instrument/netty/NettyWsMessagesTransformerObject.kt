@@ -25,6 +25,7 @@ import com.epam.drill.agent.instrument.PayloadProcessor
 abstract class NettyWsMessagesTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
+    private val payloadPrefixBytes = PayloadProcessor.PAYLOAD_PREFIX.encodeToByteArray()
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
         listOf(
@@ -42,6 +43,26 @@ abstract class NettyWsMessagesTransformerObject : HeadersProcessor, PayloadProce
         }
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun retrieveDrillHeadersIndex(message: ByteArray) = message.decodeToString()
+        .takeIf { it.endsWith(PayloadProcessor.PAYLOAD_SUFFIX) }
+        ?.removeSuffix(PayloadProcessor.PAYLOAD_SUFFIX)
+        ?.substringAfter(PayloadProcessor.PAYLOAD_PREFIX)
+        ?.split("\n")
+        ?.associate { it.substringBefore("=") to it.substringAfter("=", "") }
+        ?.also(this::storeHeaders)
+        ?.let { drillPayloadBytesIndex(message) }
+
+    private fun drillPayloadBytesIndex(bytes: ByteArray): Int {
+        for (currentIndex in IntRange(0, bytes.lastIndex - payloadPrefixBytes.lastIndex)) {
+            val regionMatches = payloadPrefixBytes.foldIndexed(true) { index, acc, byte ->
+                acc && bytes[currentIndex + index] == byte
+            }
+            if (regionMatches) return currentIndex
+        }
+        return -1
+    }
+
     private fun transformChannelHandlerContext(ctClass: CtClass) {
         val invokeChannelReadMethod = ctClass.getMethod("invokeChannelRead", "(Ljava/lang/Object;)V")
         invokeChannelReadMethod.insertCatching(
@@ -52,11 +73,15 @@ abstract class NettyWsMessagesTransformerObject : HeadersProcessor, PayloadProce
                 io.netty.util.Attribute drillContextAttr = this.channel().attr(drillContextKey);
                 java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
                 if(${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(drillHeaders)) {
-                    io.netty.buffer.ByteBuf messageBuf = (($WEBSOCKET_FRAME_COMMON)$1).retain().content();
+                    io.netty.buffer.ByteBuf messageBuf = (($WEBSOCKET_FRAME_COMMON)$1).content();
                     byte[] messageBytes = new byte[messageBuf.readableBytes()];
+                    int readerIndex = messageBuf.readerIndex();
                     messageBuf.readBytes(messageBytes);
-                    messageBytes = ${this::class.java.name}.INSTANCE.retrieveDrillHeaders(messageBytes);
-                    $1 = (($WEBSOCKET_FRAME_COMMON)$1).replace(io.netty.buffer.Unpooled.wrappedBuffer(messageBytes));
+                    messageBuf.readerIndex(readerIndex);
+                    java.lang.Integer drillIndex = ${this::class.java.name}.INSTANCE.${this::retrieveDrillHeadersIndex.name}(messageBytes);
+                    if (drillIndex != null) {
+                        $1 = (($WEBSOCKET_FRAME_COMMON)$1).replace(messageBuf.slice(0, drillIndex.intValue()));
+                    }
                 }
             }
             """.trimIndent()
@@ -79,10 +104,11 @@ abstract class NettyWsMessagesTransformerObject : HeadersProcessor, PayloadProce
                 io.netty.util.Attribute drillContextAttr = this.channel().attr(drillContextKey);
                 java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
                 if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(drillHeaders)) {
-                    io.netty.buffer.ByteBuf messageBuf = (($WEBSOCKET_FRAME_COMMON)$1).retain().content();
+                    io.netty.buffer.ByteBuf messageBuf = (($WEBSOCKET_FRAME_COMMON)$1).content();
                     byte[] messageBytes = new byte[messageBuf.readableBytes()];
                     messageBuf.readBytes(messageBytes);
                     messageBytes = ${this::class.java.name}.INSTANCE.storeDrillHeaders(messageBytes);
+                    (($WEBSOCKET_FRAME_COMMON)$1).release();
                     $1 = (($WEBSOCKET_FRAME_COMMON)$1).replace(io.netty.buffer.Unpooled.wrappedBuffer(messageBytes));
                 }
             }

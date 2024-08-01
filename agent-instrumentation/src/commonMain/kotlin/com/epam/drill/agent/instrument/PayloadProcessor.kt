@@ -18,6 +18,8 @@ package com.epam.drill.agent.instrument
 interface PayloadProcessor {
     companion object {
         const val HEADER_WS_PER_MESSAGE = "drill-ws-per-message"
+        const val PAYLOAD_PREFIX = "\n\ndrill-payload-begin\n"
+        const val PAYLOAD_SUFFIX = "\ndrill-payload-end"
     }
     fun retrieveDrillHeaders(message: String): String
     fun retrieveDrillHeaders(message: ByteArray): ByteArray

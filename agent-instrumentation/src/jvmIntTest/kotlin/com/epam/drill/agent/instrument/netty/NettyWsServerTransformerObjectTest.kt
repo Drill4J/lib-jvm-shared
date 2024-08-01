@@ -41,13 +41,13 @@ class NettyWsServerTransformerObjectTest : AbstractWsServerTransformerObjectTest
 
     private class TextFrameChannelHandler : SimpleChannelInboundHandler<TextWebSocketFrame>() {
         override fun channelRead0(ctx: ChannelHandlerContext, msg: TextWebSocketFrame) {
-            ctx.writeAndFlush(TextWebSocketFrame(attachSessionHeaders(msg.retain().text())))
+            ctx.writeAndFlush(TextWebSocketFrame(attachSessionHeaders(msg.text())))
         }
     }
 
     private class BinaryFrameChannelHandler : SimpleChannelInboundHandler<BinaryWebSocketFrame>() {
         override fun channelRead0(ctx: ChannelHandlerContext, msg: BinaryWebSocketFrame) {
-            val message = msg.retain().content()
+            val message = msg.content()
             val text = ByteArray(message.readableBytes()).also(message::readBytes).decodeToString()
             val response = attachSessionHeaders(text).encodeToByteArray()
             ctx.writeAndFlush(BinaryWebSocketFrame(Unpooled.wrappedBuffer(response)))

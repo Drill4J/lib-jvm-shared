@@ -57,7 +57,7 @@ class NettyWsClientTransformerObjectTest : AbstractWsClientTransformerObjectTest
         private val incomingMessages: MutableList<String>
     ) : SimpleChannelInboundHandler<TextWebSocketFrame>() {
         override fun channelRead0(ctx: ChannelHandlerContext, msg: TextWebSocketFrame) {
-            incomingMessages.add(msg.retain().text())
+            incomingMessages.add(msg.text())
         }
     }
 
@@ -65,7 +65,7 @@ class NettyWsClientTransformerObjectTest : AbstractWsClientTransformerObjectTest
         private val incomingMessages: MutableList<String>
     ) : SimpleChannelInboundHandler<BinaryWebSocketFrame>() {
         override fun channelRead0(ctx: ChannelHandlerContext, msg: BinaryWebSocketFrame) {
-            val message = msg.retain().content()
+            val message = msg.content()
             incomingMessages.add(ByteArray(message.readableBytes()).also(message::readBytes).decodeToString())
         }
     }

@@ -58,7 +58,7 @@ class NettyWsMessagesTransformerObjectTest : AbstractWsMessagesTransformerObject
         override val incomingMessages = TestRequestEndpoint.incomingMessages
         override val incomingContexts = TestRequestEndpoint.incomingContexts
         override fun channelRead0(ctx: ChannelHandlerContext, msg: TextWebSocketFrame) {
-            val text = msg.retain().text()
+            val text = msg.text()
             processIncoming(text, null)
             TestRequestHolder.store(DrillRequest("$text-response-session", mapOf("drill-data" to "$text-response-data")))
             ctx.writeAndFlush(TextWebSocketFrame("$text-response"))
@@ -70,7 +70,7 @@ class NettyWsMessagesTransformerObjectTest : AbstractWsMessagesTransformerObject
         override val incomingMessages = TestRequestEndpoint.incomingMessages
         override val incomingContexts = TestRequestEndpoint.incomingContexts
         override fun channelRead0(ctx: ChannelHandlerContext, msg: BinaryWebSocketFrame) {
-            val message = msg.retain().content()
+            val message = msg.content()
             val text = ByteArray(message.readableBytes()).also(message::readBytes).decodeToString()
             processIncoming(text, null)
             TestRequestHolder.store(DrillRequest("$text-response-session", mapOf("drill-data" to "$text-response-data")))
@@ -84,14 +84,14 @@ class NettyWsMessagesTransformerObjectTest : AbstractWsMessagesTransformerObject
         override val incomingContexts: MutableList<DrillRequest?>
     ) : SimpleChannelInboundHandler<TextWebSocketFrame>(), TestRequestEndpoint {
         override fun channelRead0(ctx: ChannelHandlerContext, msg: TextWebSocketFrame) =
-            processIncoming(msg.retain().text(), null)
+            processIncoming(msg.text(), null)
     }
 
     private class BinaryFrameClientChannelHandler(
         override val incomingMessages: MutableList<String>,
         override val incomingContexts: MutableList<DrillRequest?>
     ) : SimpleChannelInboundHandler<BinaryWebSocketFrame>(), TestRequestEndpoint {
-        override fun channelRead0(ctx: ChannelHandlerContext, msg: BinaryWebSocketFrame) = msg.retain().content()
+        override fun channelRead0(ctx: ChannelHandlerContext, msg: BinaryWebSocketFrame) = msg.content()
             .let { ByteArray(it.readableBytes()).also(it::readBytes).decodeToString() }
             .let { processIncoming(it, null) }
     }

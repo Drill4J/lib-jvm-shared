@@ -15,21 +15,18 @@
  */
 package com.epam.drill.agent.instrument
 
-private const val PAYLOAD_PREFIX = "\n\ndrill-payload-begin\n"
-private const val PAYLOAD_SUFFIX = "\ndrill-payload-end"
-
 open class DrillRequestPayloadProcessor(
     private val enabled: Boolean = true,
     private val headersProcessor: HeadersProcessor
 ) : PayloadProcessor {
 
-    override fun retrieveDrillHeaders(message: String) = message.takeIf { it.endsWith(PAYLOAD_SUFFIX) }
-        ?.removeSuffix(PAYLOAD_SUFFIX)
-        ?.substringAfter(PAYLOAD_PREFIX)
+    override fun retrieveDrillHeaders(message: String) = message.takeIf { it.endsWith(PayloadProcessor.PAYLOAD_SUFFIX) }
+        ?.removeSuffix(PayloadProcessor.PAYLOAD_SUFFIX)
+        ?.substringAfter(PayloadProcessor.PAYLOAD_PREFIX)
         ?.split("\n")
         ?.associate { it.substringBefore("=") to it.substringAfter("=", "") }
         ?.also(headersProcessor::storeHeaders)
-        ?.let { message.substringBefore(PAYLOAD_PREFIX) }
+        ?.let { message.substringBefore(PayloadProcessor.PAYLOAD_PREFIX) }
         ?: message
 
     override fun retrieveDrillHeaders(message: ByteArray) =
@@ -38,7 +35,7 @@ open class DrillRequestPayloadProcessor(
     override fun storeDrillHeaders(message: String?) = message
         ?.let { headersProcessor.retrieveHeaders() }
         ?.map { (k, v) -> "$k=$v" }
-        ?.joinToString("\n", PAYLOAD_PREFIX, PAYLOAD_SUFFIX)
+        ?.joinToString("\n", PayloadProcessor.PAYLOAD_PREFIX, PayloadProcessor.PAYLOAD_SUFFIX)
         ?.let(message::plus)
 
     override fun storeDrillHeaders(message: ByteArray?) = message
