@@ -20,7 +20,9 @@ import kotlin.jvm.JvmOverloads
 
 @Serializable
 data class TestInfo(
+    val groupId: String,
     val id: String,
+    val testDefinitionId: String,
     val result: TestResult,
     val startedAt: Long,
     val finishedAt: Long,
