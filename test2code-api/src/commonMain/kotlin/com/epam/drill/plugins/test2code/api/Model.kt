@@ -27,6 +27,7 @@ data class TestInfo(
     val startedAt: Long,
     val finishedAt: Long,
     val details: TestDetails,
+    val testTaskId: String
 )
 
 @Serializable
