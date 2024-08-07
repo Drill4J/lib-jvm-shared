@@ -16,7 +16,6 @@ version = Properties().run {
 }
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 

@@ -16,7 +16,6 @@ version = Properties().run {
 val macosLd64: String by parent!!.extra
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
