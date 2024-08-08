@@ -16,7 +16,6 @@ version = rootProject.version
 val kotlinxSerializationVersion: String by parent!!.extra
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 

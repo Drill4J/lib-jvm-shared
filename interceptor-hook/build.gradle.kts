@@ -19,7 +19,6 @@ val kotlinxCollectionsVersion: String by extra
 val atomicfuVersion: String by extra
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 

@@ -15,6 +15,5 @@ plugins {
 group = "com.epam.drill"
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }

@@ -31,7 +31,6 @@ val nativeAgentLibName: String by parent!!.extra
 val macosLd64: String by parent!!.extra
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
