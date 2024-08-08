@@ -31,7 +31,7 @@ abstract class TomcatWsServerTransformerObject : HeadersProcessor, AbstractTrans
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         "org/apache/tomcat/websocket/server/WsHttpUpgradeHandler" == className
 
     override fun transform(className: String, ctClass: CtClass) {

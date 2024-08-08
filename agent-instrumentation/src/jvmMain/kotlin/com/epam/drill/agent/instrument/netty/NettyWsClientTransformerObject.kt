@@ -54,26 +54,42 @@ abstract class NettyWsClientTransformerObject : HeadersProcessor, AbstractTransf
             """.trimIndent()
         )
 
-    private fun transformClientHandshaker(ctClass: CtClass) = ctClass
-        .getMethod("handshake", "(Lio/netty/channel/Channel;Lio/netty/channel/ChannelPromise;)Lio/netty/channel/ChannelFuture;")
-        .insertCatching(
-            CtBehavior::insertBefore,
-            """
-            io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_WS_CONTEXT_KEY");                                            
-            io.netty.util.Attribute drillContextAttr = $1.attr(drillContextKey);
-            java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
-            if (drillHeaders != null) {
-                java.util.Iterator iterator = drillHeaders.entrySet().iterator();
-                while (iterator.hasNext()) {
-                     java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
-                     if (!customHeaders.contains((String) entry.getKey())) {
-                         customHeaders.add((String) entry.getKey(), entry.getValue());
-                     }
+    private fun transformClientHandshaker(ctClass: CtClass) {
+        ctClass.getMethod("handshake", "(Lio/netty/channel/Channel;Lio/netty/channel/ChannelPromise;)Lio/netty/channel/ChannelFuture;")
+            .insertCatching(
+                CtBehavior::insertBefore,
+                """
+                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_WS_CONTEXT_KEY");                                            
+                io.netty.util.Attribute drillContextAttr = $1.attr(drillContextKey);
+                java.util.Map drillHeaders = (java.util.Map) drillContextAttr.get();
+                if (drillHeaders != null) {
+                    java.util.Iterator iterator = drillHeaders.entrySet().iterator();
+                    while (iterator.hasNext()) {
+                         java.util.Map.Entry entry = (java.util.Map.Entry) iterator.next();
+                         if (!customHeaders.contains((String) entry.getKey())) {
+                             customHeaders.add((String) entry.getKey(), entry.getValue());
+                         }
+                    }
+                    ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(drillHeaders);
                 }
-                ${this::class.java.name}.INSTANCE.${this::logInjectingHeaders.name}(drillHeaders);
-            }
-            """.trimIndent()
-        )
+                """.trimIndent()
+            )
+        ctClass.getMethod("finishHandshake", "(Lio/netty/channel/Channel;Lio/netty/handler/codec/http/FullHttpResponse;)V")
+            .insertCatching(
+                CtBehavior::insertBefore,
+                """
+                java.util.Iterator headerNames = $2.headers().names().iterator();
+                java.util.Map allHeaders = new java.util.HashMap();
+                while (headerNames.hasNext()) {
+                    java.lang.String headerName = (String) headerNames.next();
+                    java.lang.String headerValue = $2.headers().get(headerName);
+                    allHeaders.put(headerName, headerValue);
+                }
+                io.netty.util.AttributeKey drillContextKey = io.netty.util.AttributeKey.valueOf("$DRILL_WS_CONTEXT_KEY");
+                $1.attr(drillContextKey).set(allHeaders);
+                """.trimIndent()
+            )
+    }
 
     private fun transformReactorNettyWebSocketClient(ctClass: CtClass) = ctClass
         .getMethod("setNettyHeaders", "(Lorg/springframework/http/HttpHeaders;Lio/netty/handler/codec/http/HttpHeaders;)V")

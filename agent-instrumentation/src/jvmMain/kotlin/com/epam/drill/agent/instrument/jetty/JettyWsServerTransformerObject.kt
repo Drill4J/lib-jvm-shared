@@ -32,7 +32,7 @@ abstract class JettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         listOf(
             "org/eclipse/jetty/websocket/common/events/AbstractEventDriver",
             "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler",
@@ -43,7 +43,7 @@ abstract class JettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
         ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting JettyWsTransformerObject for $className..." }
+        logger.info { "transform: Starting JettyWsServerTransformerObject for $className..." }
         when (className) {
             "org/eclipse/jetty/websocket/common/events/AbstractEventDriver" -> transformAbstractEventDriver(ctClass)
             "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler" -> transformJettyWebSocketFrameHandler(ctClass)

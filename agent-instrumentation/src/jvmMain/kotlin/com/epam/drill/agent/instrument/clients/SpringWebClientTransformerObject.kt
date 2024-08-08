@@ -27,7 +27,7 @@ import mu.KotlinLogging
 abstract class SpringWebClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         interfaces.any("org/springframework/web/reactive/function/client/ClientRequest"::equals)
 
     override fun transform(className: String, ctClass: CtClass) {

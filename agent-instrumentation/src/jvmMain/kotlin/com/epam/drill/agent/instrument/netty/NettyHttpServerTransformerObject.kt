@@ -34,7 +34,7 @@ abstract class NettyHttpServerTransformerObject(
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         "io/netty/channel/AbstractChannelHandlerContext" == className
 
     override fun transform(className: String, ctClass: CtClass) {

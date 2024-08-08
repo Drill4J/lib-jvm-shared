@@ -31,7 +31,7 @@ abstract class NettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         listOf(
             "io/netty/channel/AbstractChannelHandlerContext",
             "io/netty/handler/codec/http/websocketx/WebSocketServerHandshaker"

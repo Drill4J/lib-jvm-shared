@@ -36,7 +36,7 @@ abstract class TomcatHttpServerTransformerObject(
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         "org/apache/catalina/core/ApplicationFilterChain" == className
 
     override fun transform(className: String, ctClass: CtClass) {

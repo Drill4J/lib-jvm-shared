@@ -34,7 +34,7 @@ abstract class UndertowHttpServerTransformerObject(
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         "io/undertow/server/Connectors" == className
 
     override fun transform(className: String, ctClass: CtClass) {

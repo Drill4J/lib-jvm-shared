@@ -29,7 +29,7 @@ abstract class JettyHttpServerTransformerObject(
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         "org/eclipse/jetty/server/handler/HandlerWrapper" == className
 
     override fun transform(className: String, ctClass: CtClass) {
@@ -37,7 +37,7 @@ abstract class JettyHttpServerTransformerObject(
         val adminUrl = headersRetriever.adminAddressValue()
         val agentIdHeader = headersRetriever.agentIdHeader()
         val agentIdValue = headersRetriever.agentIdHeaderValue()
-        logger.info { "transform: Starting JettyTransformer with admin host $adminUrl..." }
+        logger.info { "transform: Starting JettyHttpServerTransformer with admin host $adminUrl..." }
         val method = ctClass.getDeclaredMethod("handle")
         method.insertCatching(
             CtBehavior::insertBefore,
