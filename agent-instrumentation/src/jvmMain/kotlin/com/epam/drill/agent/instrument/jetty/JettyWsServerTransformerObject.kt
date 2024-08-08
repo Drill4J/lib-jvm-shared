@@ -59,7 +59,8 @@ abstract class JettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
         method.insertCatching(
             CtBehavior::insertBefore,
             """
-            if ($1.getOpCode() == org.eclipse.jetty.websocket.common.OpCode.TEXT || $1.getOpCode() == org.eclipse.jetty.websocket.common.OpCode.BINARY) {
+            if (($1.getOpCode() == org.eclipse.jetty.websocket.common.OpCode.TEXT || $1.getOpCode() == org.eclipse.jetty.websocket.common.OpCode.BINARY)
+                    && this.session.getUpgradeRequest() instanceof org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest) {
                 java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
                 java.util.Iterator/*<java.lang.String>*/ headerNames = this.session.getUpgradeRequest().getHeaders().keySet().iterator();
                 while (headerNames.hasNext()) {
@@ -75,7 +76,9 @@ abstract class JettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
         method.insertCatching(
             CtBehavior::insertAfter,
             """
-            if (($1.getOpCode() == org.eclipse.jetty.websocket.common.OpCode.TEXT || $1.getOpCode() == org.eclipse.jetty.websocket.common.OpCode.BINARY) && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+            if (($1.getOpCode() == org.eclipse.jetty.websocket.common.OpCode.TEXT || $1.getOpCode() == org.eclipse.jetty.websocket.common.OpCode.BINARY)
+                    && this.session.getUpgradeRequest() instanceof org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
+                    && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
             """.trimIndent()
@@ -116,7 +119,7 @@ abstract class JettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
         method.insertCatching(
             CtBehavior::insertBefore,
             """
-            if ($1.isDataFrame()) {
+            if ($1.isDataFrame() && this.upgradeRequest.getHeadersMap() != null ) {
                 java.util.Map/*<java.lang.String, java.lang.String>*/ allHeaders = new java.util.HashMap();
                 java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ upgradeHeaders = this.upgradeRequest.getHeadersMap();
                 java.util.Iterator/*<java.lang.String>*/ headerNames = upgradeHeaders.keySet().iterator();
@@ -133,7 +136,7 @@ abstract class JettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
         method.insertCatching(
             CtBehavior::insertAfter,
             """
-            if ($1.isDataFrame() && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
+            if ($1.isDataFrame() && this.upgradeRequest.getHeadersMap() != null && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
             }
             """.trimIndent()
@@ -154,13 +157,7 @@ abstract class JettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
         CtNewMethod.make(
             """
             public java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ getHeadersMap() {
-                java.util.Iterator/*<java.lang.String>*/ headerNames = this.getHeaders().getFieldNamesCollection().iterator();
-                java.util.Map/*<java.lang.String, java.util.List<java.lang.String>>*/ result = new java.util.HashMap();
-                while (headerNames.hasNext()) {
-                    java.lang.String headerName = (java.lang.String)headerNames.next();
-                    result.put(headerName, this.getHeaders().getValuesList(headerName));
-                }
-                return result;
+                return null;
             }
             """.trimIndent(),
             ctClass
