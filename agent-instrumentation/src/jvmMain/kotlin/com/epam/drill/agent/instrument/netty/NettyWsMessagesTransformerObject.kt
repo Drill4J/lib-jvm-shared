@@ -121,7 +121,7 @@ abstract class NettyWsMessagesTransformerObject : HeadersProcessor, PayloadProce
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
                 if ($3 == null) $3 = new io.netty.handler.codec.http.DefaultHttpHeaders();
-                $3.add("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
+                $3.set("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
             }
             """.trimIndent()
         ctClass.getMethod(
