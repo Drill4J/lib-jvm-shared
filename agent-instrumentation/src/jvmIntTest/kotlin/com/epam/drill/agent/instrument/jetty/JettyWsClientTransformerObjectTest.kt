@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.clients
+package com.epam.drill.agent.instrument.jetty
 
 import java.net.URI
 import javax.websocket.ClientEndpointConfig
 import org.eclipse.jetty.websocket.jsr356.ClientContainer
+import com.epam.drill.agent.instrument.clients.AbstractWsClientTransformerObjectTest
 
 class JettyWsClientTransformerObjectTest : AbstractWsClientTransformerObjectTest() {
 

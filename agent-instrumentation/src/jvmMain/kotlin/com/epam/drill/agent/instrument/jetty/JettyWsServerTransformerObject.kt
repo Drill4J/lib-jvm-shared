@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.jetty
 
 import javassist.CtBehavior
 import javassist.CtClass
@@ -28,7 +28,7 @@ import com.epam.drill.agent.instrument.HeadersProcessor
  * Tested with:
  *     org.eclipse.jetty.websocket:javax-websocket-server-impl:9.4.26.v20200117
  */
-abstract class JettyWsTransformerObject : HeadersProcessor, AbstractTransformerObject() {
+abstract class JettyWsServerTransformerObject : HeadersProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.jetty
 
 import javax.servlet.ServletContext
 import javax.websocket.server.ServerEndpointConfig
@@ -23,8 +23,9 @@ import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.websocket.jsr356.server.ServerContainer
 import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer
 import mu.KotlinLogging
+import com.epam.drill.agent.instrument.servers.AbstractWsServerTransformerObjectTest
 
-class JettyWsTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
+class JettyWsServerTransformerObjectTest : AbstractWsServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 

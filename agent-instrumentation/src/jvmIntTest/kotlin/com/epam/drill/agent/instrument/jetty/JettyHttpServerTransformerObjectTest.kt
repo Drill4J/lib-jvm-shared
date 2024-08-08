@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.jetty
 
 import mu.KotlinLogging
 import org.eclipse.jetty.server.Request
@@ -22,8 +22,9 @@ import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.server.handler.AbstractHandler
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import com.epam.drill.agent.instrument.servers.AbstractHttpServerTransformerObjectTest
 
-class JettyTransformerObjectTest : AbstractHttpServerTransformerObjectTest() {
+class JettyHttpServerTransformerObjectTest : AbstractHttpServerTransformerObjectTest() {
 
     override val logger = KotlinLogging.logger {}
 

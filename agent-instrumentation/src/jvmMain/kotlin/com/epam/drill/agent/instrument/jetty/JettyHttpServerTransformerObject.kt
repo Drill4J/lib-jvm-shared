@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.servers
+package com.epam.drill.agent.instrument.jetty
 
 
 import javassist.CtBehavior
@@ -23,7 +23,7 @@ import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.common.agent.request.HeadersRetriever
 
-abstract class JettyTransformerObject(
+abstract class JettyHttpServerTransformerObject(
     protected val headersRetriever: HeadersRetriever
 ) : HeadersProcessor, AbstractTransformerObject() {
 
