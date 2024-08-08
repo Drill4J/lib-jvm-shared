@@ -17,22 +17,20 @@ repositories {
 }
 
 kotlin {
-    targets {
-        jvm()
-        mingwX64()
-        linuxX64()
-        macosX64().apply {
-            if(macosLd64.toBoolean()){
-                binaries.all {
-                    linkerOpts("-ld64")
-                }
+    jvm()
+    mingwX64()
+    linuxX64()
+    macosX64().apply {
+        if(macosLd64.toBoolean()){
+            binaries.all {
+                linkerOpts("-ld64")
             }
         }
-        macosArm64().apply {
-            if (macosLd64.toBoolean()) {
-                binaries.all {
-                    linkerOpts("-ld64")
-                }
+    }
+    macosArm64().apply {
+        if (macosLd64.toBoolean()) {
+            binaries.all {
+                linkerOpts("-ld64")
             }
         }
     }
