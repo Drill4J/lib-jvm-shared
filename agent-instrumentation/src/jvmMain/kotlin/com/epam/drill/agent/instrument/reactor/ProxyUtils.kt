@@ -93,7 +93,7 @@ inline fun <T> propagateDrillRequest(ctx: DrillRequest, requestHolder: RequestHo
     } finally {
         if (previous != ctx && previous != null) {
             requestHolder.store(previous)
-        } else {
+        } else if (previous == null) {
             requestHolder.remove()
         }
     }
