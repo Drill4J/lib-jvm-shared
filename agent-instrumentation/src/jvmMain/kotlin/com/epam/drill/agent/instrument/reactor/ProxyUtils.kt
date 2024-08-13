@@ -92,8 +92,10 @@ inline fun <T> propagateDrillRequest(ctx: DrillRequest, requestHolder: RequestHo
         return body()
     } finally {
         if (previous != ctx && previous != null) {
+            // If previous context is different from current one - restore previous
             requestHolder.store(previous)
-        } else {
+        } else if (previous == null) {
+            // If no previous context available - just cleanup the current one
             requestHolder.remove()
         }
     }
