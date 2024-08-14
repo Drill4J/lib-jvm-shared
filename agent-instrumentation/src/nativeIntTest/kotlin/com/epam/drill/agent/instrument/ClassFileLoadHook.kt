@@ -21,10 +21,8 @@ import io.ktor.utils.io.bits.Memory
 import io.ktor.utils.io.bits.loadByteArray
 import io.ktor.utils.io.bits.of
 import com.epam.drill.agent.instrument.transformers.clients.*
-import com.epam.drill.agent.instrument.transformers.jetty.JettyHttpServerTransformer
-import com.epam.drill.agent.instrument.transformers.jetty.JettyWsClientTransformer
-import com.epam.drill.agent.instrument.transformers.jetty.JettyWsServerTransformer
 import com.epam.drill.agent.instrument.transformers.servers.*
+import com.epam.drill.agent.instrument.transformers.jetty.*
 import com.epam.drill.agent.instrument.transformers.netty.*
 import com.epam.drill.agent.instrument.transformers.tomcat.*
 import com.epam.drill.agent.instrument.transformers.undertow.*
@@ -39,7 +37,6 @@ object ClassFileLoadHook {
         JavaHttpClientTransformer,
         ApacheHttpClientTransformer,
         OkHttp3ClientTransformer,
-        JettyWsClientTransformer,
         NettyHttpServerTransformer,
         NettyWsServerTransformer,
         NettyWsClientTransformer,
@@ -48,6 +45,8 @@ object ClassFileLoadHook {
         KafkaTransformer,
         JettyHttpServerTransformer,
         JettyWsServerTransformer,
+        JettyWsClientTransformer,
+        JettyWsMessagesTransformer,
         ReactorTransformer,
         SpringWebClientTransformer,
         UndertowHttpServerTransformer,

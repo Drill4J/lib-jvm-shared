@@ -74,7 +74,7 @@ abstract class JettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
             """.trimIndent()
         )
         method.insertCatching(
-            CtBehavior::insertAfter,
+            { insertAfter(it, true) },
             """
             if (($1.getOpCode() == org.eclipse.jetty.websocket.common.OpCode.TEXT || $1.getOpCode() == org.eclipse.jetty.websocket.common.OpCode.BINARY)
                     && this.session.getUpgradeRequest() instanceof org.eclipse.jetty.websocket.servlet.ServletUpgradeRequest
@@ -105,7 +105,7 @@ abstract class JettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
             """.trimIndent()
         )
         method.insertCatching(
-            CtBehavior::insertAfter,
+            { insertAfter(it, true) },
             """
             if ($1.isDataFrame() && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();
@@ -134,7 +134,7 @@ abstract class JettyWsServerTransformerObject : HeadersProcessor, AbstractTransf
             """.trimIndent()
         )
         method.insertCatching(
-            CtBehavior::insertAfter,
+            { insertAfter(it, true) },
             """
             if ($1.isDataFrame() && this.upgradeRequest.getHeadersMap() != null && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()) {
                 ${this::class.java.name}.INSTANCE.${this::removeHeaders.name}();

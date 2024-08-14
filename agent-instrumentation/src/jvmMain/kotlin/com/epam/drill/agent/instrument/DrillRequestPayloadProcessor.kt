@@ -20,6 +20,8 @@ open class DrillRequestPayloadProcessor(
     private val headersProcessor: HeadersProcessor
 ) : PayloadProcessor {
 
+    private val payloadPrefixBytes = PayloadProcessor.PAYLOAD_PREFIX.encodeToByteArray()
+
     override fun retrieveDrillHeaders(message: String) = message.takeIf { it.endsWith(PayloadProcessor.PAYLOAD_SUFFIX) }
         ?.removeSuffix(PayloadProcessor.PAYLOAD_SUFFIX)
         ?.substringAfter(PayloadProcessor.PAYLOAD_PREFIX)
@@ -31,6 +33,15 @@ open class DrillRequestPayloadProcessor(
 
     override fun retrieveDrillHeaders(message: ByteArray) =
         retrieveDrillHeaders(message.decodeToString()).encodeToByteArray()
+
+    override fun retrieveDrillHeadersIndex(message: ByteArray) = message.decodeToString()
+        .takeIf { it.endsWith(PayloadProcessor.PAYLOAD_SUFFIX) }
+        ?.removeSuffix(PayloadProcessor.PAYLOAD_SUFFIX)
+        ?.substringAfter(PayloadProcessor.PAYLOAD_PREFIX)
+        ?.split("\n")
+        ?.associate { it.substringBefore("=") to it.substringAfter("=", "") }
+        ?.also(headersProcessor::storeHeaders)
+        ?.let { drillPayloadBytesIndex(message) }
 
     override fun storeDrillHeaders(message: String?) = message
         ?.let { headersProcessor.retrieveHeaders() }
@@ -47,5 +58,15 @@ open class DrillRequestPayloadProcessor(
         headers != null
                 && headers.containsKey(PayloadProcessor.HEADER_WS_PER_MESSAGE)
                 && headers[PayloadProcessor.HEADER_WS_PER_MESSAGE].toBoolean()
+
+    private fun drillPayloadBytesIndex(bytes: ByteArray): Int {
+        for (currentIndex in IntRange(0, bytes.lastIndex - payloadPrefixBytes.lastIndex)) {
+            val regionMatches = payloadPrefixBytes.foldIndexed(true) { index, acc, byte ->
+                acc && bytes[currentIndex + index] == byte
+            }
+            if (regionMatches) return currentIndex
+        }
+        return -1
+    }
 
 }

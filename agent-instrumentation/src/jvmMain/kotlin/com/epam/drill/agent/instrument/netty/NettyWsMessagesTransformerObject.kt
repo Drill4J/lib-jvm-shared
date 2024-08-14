@@ -25,7 +25,6 @@ import com.epam.drill.agent.instrument.PayloadProcessor
 abstract class NettyWsMessagesTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
-    private val payloadPrefixBytes = PayloadProcessor.PAYLOAD_PREFIX.encodeToByteArray()
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         listOf(
@@ -41,26 +40,6 @@ abstract class NettyWsMessagesTransformerObject : HeadersProcessor, PayloadProce
             "io/netty/handler/codec/http/websocketx/WebSocketServerHandshaker" -> transformServerHandshaker(ctClass)
             "io/netty/handler/codec/http/websocketx/WebSocketClientHandshaker" -> transformClientHandshaker(ctClass)
         }
-    }
-
-    @Suppress("MemberVisibilityCanBePrivate")
-    fun retrieveDrillHeadersIndex(message: ByteArray) = message.decodeToString()
-        .takeIf { it.endsWith(PayloadProcessor.PAYLOAD_SUFFIX) }
-        ?.removeSuffix(PayloadProcessor.PAYLOAD_SUFFIX)
-        ?.substringAfter(PayloadProcessor.PAYLOAD_PREFIX)
-        ?.split("\n")
-        ?.associate { it.substringBefore("=") to it.substringAfter("=", "") }
-        ?.also(this::storeHeaders)
-        ?.let { drillPayloadBytesIndex(message) }
-
-    private fun drillPayloadBytesIndex(bytes: ByteArray): Int {
-        for (currentIndex in IntRange(0, bytes.lastIndex - payloadPrefixBytes.lastIndex)) {
-            val regionMatches = payloadPrefixBytes.foldIndexed(true) { index, acc, byte ->
-                acc && bytes[currentIndex + index] == byte
-            }
-            if (regionMatches) return currentIndex
-        }
-        return -1
     }
 
     private fun transformChannelHandlerContext(ctClass: CtClass) {

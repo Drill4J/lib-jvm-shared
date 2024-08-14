@@ -23,6 +23,7 @@ interface PayloadProcessor {
     }
     fun retrieveDrillHeaders(message: String): String
     fun retrieveDrillHeaders(message: ByteArray): ByteArray
+    fun retrieveDrillHeadersIndex(message: ByteArray): Int?
     fun storeDrillHeaders(message: String?): String?
     fun storeDrillHeaders(message: ByteArray?): ByteArray?
     fun isPayloadProcessingEnabled(): Boolean
