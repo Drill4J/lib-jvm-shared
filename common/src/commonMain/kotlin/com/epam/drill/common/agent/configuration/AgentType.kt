@@ -18,5 +18,5 @@ package com.epam.drill.common.agent.configuration
 enum class AgentType(val notation: String) {
     JAVA("Java"),
     DOTNET(".NET"),
-    NODEJS("Node.js")
+    JAVASCRIPT("JavaScript")
 }

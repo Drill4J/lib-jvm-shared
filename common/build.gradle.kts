@@ -16,9 +16,9 @@ version = Properties().run {
 }
 
 val kotlinxSerializationVersion: String by parent!!.extra
+val macosLd64: String by parent!!.extra
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
@@ -27,14 +27,18 @@ kotlin {
         jvm()
         linuxX64()
         mingwX64()
-        macosX64()
-        macosArm64()
+        macosX64().apply {
+            if(macosLd64.toBoolean()){
+                binaries.all {
+                    linkerOpts("-ld64")
+                }
+            }
+        }
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
         all {
-            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
-            languageSettings.optIn("kotlinx.serialization.InternalSerializationApi")
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
         }
         val commonMain by getting {
             dependencies {
@@ -43,14 +47,7 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-test-common")
-                implementation("org.jetbrains.kotlin:kotlin-test-annotations-common")
-            }
-        }
-        val jvmTest by getting {
-            dependencies {
-                implementation(kotlin("test-junit"))
-                implementation("org.junit.jupiter:junit-jupiter:5.5.2")
+                implementation(kotlin("test"))
             }
         }
     }

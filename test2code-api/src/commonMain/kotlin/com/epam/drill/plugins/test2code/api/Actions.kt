@@ -15,100 +15,17 @@
  */
 package com.epam.drill.plugins.test2code.api
 
-import kotlinx.serialization.*
+import com.epam.drill.common.agent.transport.AgentMessage
+import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class Action
-
-@SerialName("START")
-@Serializable
-data class StartNewSession(val payload: StartPayload) : Action()
-
-@SerialName("ADD_SESSION_DATA")
-@Serializable
-data class AddSessionData(val payload: SessionDataPayload) : Action()
-
-@SerialName("ADD_COVERAGE")
-@Serializable
-data class AddCoverage(val payload: CoverPayload) : Action()
-
-@SerialName("EXPORT_COVERAGE")
-@Serializable
-data class ExportCoverage(val payload: BuildPayload) : Action()
-
-@SerialName("IMPORT_COVERAGE")
-@Serializable
-object ImportCoverage : Action()
-
-@SerialName("CANCEL")
-@Serializable
-data class CancelSession(val payload: SessionPayload) : Action()
-
-@SerialName("CANCEL_ALL")
-@Serializable
-object CancelAllSessions : Action()
-
-@SerialName("STOP")
-@Serializable
-data class StopSession(val payload: StopSessionPayload) : Action()
-
-@SerialName("ADD_TESTS")
-@Serializable
-data class AddTests(val payload: AddTestsPayload) : Action()
-
-@SerialName("STOP_ALL")
-@Serializable
-object StopAllSessions : Action()
-
-@SerialName("SWITCH_ACTIVE_SCOPE")
-@Serializable
-data class SwitchActiveScope(val payload: ActiveScopeChangePayload) : Action()
-
-@SerialName("RENAME_SCOPE")
-@Serializable
-data class RenameScope(val payload: RenameScopePayload) : Action()
-
-@SerialName("TOGGLE_SCOPE")
-@Serializable
-data class ToggleScope(val payload: ScopePayload) : Action()
-
-@SerialName("CREATE_FILTER")
-@Serializable
-data class CreateFilter(val payload: FilterPayload) : Action()
-
-@SerialName("DUPLICATE_FILTER")
-@Serializable
-data class DuplicateFilter(val payload: DuplicatePayload) : Action()
-
-@SerialName("UPDATE_FILTER")
-@Serializable
-data class UpdateFilter(val payload: FilterPayload) : Action()
-
-@SerialName("APPLY_FILTER")
-@Serializable
-data class ApplyFilter(val payload: ApplyPayload) : Action()
-
-@SerialName("DELETE_FILTER")
-@Serializable
-data class DeleteFilter(val payload: DeleteFilterPayload) : Action()
-
-@SerialName("DROP_SCOPE")
-@Serializable
-data class DropScope(val payload: ScopePayload) : Action()
-
-@SerialName("REMOVE_BUILD")
-@Serializable
-data class RemoveBuild(val payload: BuildPayload) : Action()
-
-@SerialName("REMOVE_PLUGIN_DATA")
-@Serializable
-object RemovePluginData : Action()
+sealed class Action : AgentMessage()
 
 @Serializable
-@SerialName("UPDATE_SETTINGS")
-data class UpdateSettings(val payload: List<Setting>) : Action()
+data class AddSessionData(val sessionId: String, val data: String) : Action()
 
 @Serializable
-@SerialName("TOGGLE_BASELINE")
-object ToggleBaseline : Action()
-
+data class AddTestsPayload(
+    val sessionId: String,
+    val tests: List<TestInfo> = emptyList(),
+): Action()

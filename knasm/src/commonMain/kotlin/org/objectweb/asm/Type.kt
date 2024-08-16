@@ -658,7 +658,7 @@ class Type
                     descriptorBuffer,
                     descriptorBegin,
                     descriptorEnd)
-                else -> throw IllegalArgumentException()
+                else -> throw IllegalArgumentException("Invalid descriptor: $descriptorBuffer")
             }
         }
 

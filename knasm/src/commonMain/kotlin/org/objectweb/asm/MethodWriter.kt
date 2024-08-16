@@ -583,30 +583,31 @@ class MethodWriter(
         }
     }
 
-    override fun visitVarInsn(opcode: Int, `var`: Int) {
+    override fun visitVarInsn(opcode: Int, varIndex: Int) {
         lastBytecodeOffset = code.length
         // Add the instruction to the bytecode of the method.
-        if (`var` < 4 && opcode != Opcodes.RET) {
+        if (varIndex < 4 && opcode != Opcodes.RET) {
             val optimizedOpcode: Int
             optimizedOpcode = if (opcode < Opcodes.ISTORE) {
-                Constants.ILOAD_0 + (opcode - Opcodes.ILOAD shl 2) + `var`
+                Constants.ILOAD_0 + (opcode - Opcodes.ILOAD shl 2) + varIndex
             } else {
-                Constants.ISTORE_0 + (opcode - Opcodes.ISTORE shl 2) + `var`
+                Constants.ISTORE_0 + (opcode - Opcodes.ISTORE shl 2) + varIndex
             }
             code.putByte(optimizedOpcode)
-        } else if (`var` >= 256) {
-            code.putByte(Constants.WIDE).put12(opcode, `var`)
+        } else if (varIndex >= 256) {
+            code.putByte(Constants.WIDE).put12(opcode, varIndex)
         } else {
-            code.put11(opcode, `var`)
+            code.put11(opcode, varIndex)
         }
         // If needed, update the maximum stack size and number of locals, and stack map frames.
         if (currentBasicBlock != null) {
             if (compute == COMPUTE_ALL_FRAMES || compute == COMPUTE_INSERTED_FRAMES) {
-                currentBasicBlock!!.frame!!.execute(opcode, `var`, null, null)
+                currentBasicBlock!!.frame!!.execute(opcode, varIndex, null, null)
             } else {
                 if (opcode == Opcodes.RET) {
                     // No stack size delta.
-                    currentBasicBlock!!.flags = currentBasicBlock!!.flags or Label.FLAG_SUBROUTINE_END.toShort()
+                    currentBasicBlock!!.flags =
+                        (currentBasicBlock!!.flags.toInt() or Label.FLAG_SUBROUTINE_END).toShort()
                     currentBasicBlock!!.outputStackSize = relativeStackSize.toShort()
                     endCurrentBasicBlockWithNoSuccessor()
                 } else { // xLOAD or xSTORE
@@ -622,9 +623,9 @@ class MethodWriter(
             val currentMaxLocals: Int
             currentMaxLocals =
                 if (opcode == Opcodes.LLOAD || opcode == Opcodes.DLOAD || opcode == Opcodes.LSTORE || opcode == Opcodes.DSTORE) {
-                    `var` + 2
+                    varIndex + 2
                 } else {
-                    `var` + 1
+                    varIndex + 1
                 }
             if (currentMaxLocals > maxLocals) {
                 maxLocals = currentMaxLocals
@@ -967,22 +968,22 @@ class MethodWriter(
         }
     }
 
-    override fun visitIincInsn(`var`: Int, increment: Int) {
+    override fun visitIincInsn(varIndex: Int, increment: Int) {
         lastBytecodeOffset = code.length
         // Add the instruction to the bytecode of the method.
-        if (`var` > 255 || increment > 127 || increment < -128) {
-            code.putByte(Constants.WIDE).put12(Opcodes.IINC, `var`).putShort(increment)
+        if (varIndex > 255 || increment > 127 || increment < -128) {
+            code.putByte(Constants.WIDE).put12(Opcodes.IINC, varIndex).putShort(increment)
         } else {
-            code.putByte(Opcodes.IINC).put11(`var`, increment)
+            code.putByte(Opcodes.IINC).put11(varIndex, increment)
         }
         // If needed, update the maximum stack size and number of locals, and stack map frames.
         if (currentBasicBlock != null
             && (compute == COMPUTE_ALL_FRAMES || compute == COMPUTE_INSERTED_FRAMES)
         ) {
-            currentBasicBlock!!.frame!!.execute(Opcodes.IINC, `var`, null, null)
+            currentBasicBlock!!.frame!!.execute(Opcodes.IINC, varIndex, null, null)
         }
         if (compute != COMPUTE_NOTHING) {
-            val currentMaxLocals = `var` + 1
+            val currentMaxLocals = varIndex + 1
             if (currentMaxLocals > maxLocals) {
                 maxLocals = currentMaxLocals
             }

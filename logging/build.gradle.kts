@@ -8,19 +8,18 @@ plugins {
     id("com.github.hierynomus.license")
 }
 
-group = "com.epam.drill.logging"
+group = "com.epam.drill"
 version = Properties().run {
     projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
     getProperty("version.$name") ?: Project.DEFAULT_VERSION
 }
 
 val ktorVersion: String by parent!!.extra
-val slf4jVersion: String by parent!!.extra
 val logbackVersion: String by parent!!.extra
 val microutilsLoggingVersion: String by parent!!.extra
+val macosLd64: String by parent!!.extra
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
@@ -29,7 +28,13 @@ kotlin {
         jvm()
         linuxX64()
         mingwX64()
-        macosX64()
+        macosX64().apply {
+            if(macosLd64.toBoolean()){
+                binaries.all {
+                    linkerOpts("-ld64")
+                }
+            }
+        }
     }
     configurations.all {
         exclude("io.github.microutils", "kotlin-logging-mingwx64")

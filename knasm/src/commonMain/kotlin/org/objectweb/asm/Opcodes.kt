@@ -282,7 +282,9 @@ interface Opcodes {
         const val V16 = 0 shl 16 or 60
         const val V17 = 0 shl 16 or 61
         const val V18 = 0 shl 16 or 62
-
+        const val V19 = 0 shl 16 or 63
+        const val V20 = 0 shl 16 or 64
+        const val V21 = 0 shl 16 or 65
         /**
          * Version flag indicating that the class is using 'preview' features.
          *

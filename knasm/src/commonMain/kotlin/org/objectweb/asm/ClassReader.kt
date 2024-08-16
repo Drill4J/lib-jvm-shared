@@ -1546,6 +1546,7 @@ class ClassReader internal constructor(
         currentOffset = bytecodeStartOffset
         while (currentOffset < bytecodeEndOffset) {
             val currentBytecodeOffset = currentOffset - bytecodeStartOffset
+            readBytecodeInstructionOffset(currentBytecodeOffset)
 
             // Visit the label and the line number(s) for this bytecode offset, if any.
             val currentLabel: Label? = labels[currentBytecodeOffset]
@@ -1946,6 +1947,19 @@ class ClassReader internal constructor(
 
         // Visit the max stack and max locals values.
         methodVisitor.visitMaxs(maxStack, maxLocals)
+    }
+
+    /**
+     * Handles the bytecode offset of the next instruction to be visited in [ ][.accept]. This method is called just before the instruction and before its
+     * associated label and stack map frame, if any. The default implementation of this method does
+     * nothing. Subclasses can override this method to store the argument in a mutable field, for
+     * instance, so that [MethodVisitor] instances can get the bytecode offset of each visited
+     * instruction (if so, the usual concurrency issues related to mutable data should be addressed).
+     *
+     * @param bytecodeOffset the bytecode offset of the next instruction to be visited.
+     */
+    protected fun readBytecodeInstructionOffset(bytecodeOffset: Int) {
+        // Do nothing by default.
     }
 
     /**
@@ -3099,9 +3113,12 @@ class ClassReader internal constructor(
         b = classFileBuffer
         // Check the class' major_version. This field is after the magic and minor_version fields, which
         // use 4 and 2 bytes respectively.
-        if (checkClassVersion && readShort(classFileOffset + 6) > Opcodes.V18) {
+        if (checkClassVersion && readShort(classFileOffset + 6) > Opcodes.V21) {
             throw IllegalArgumentException(
-                "Unsupported class file major version " + readShort(classFileOffset + 6))
+                "Knasm: Unsupported java class file version ${readShort(classFileOffset + 6)}. " +
+                        "Make sure knasm is up to date with latest changes from https://gitlab.ow2.org/asm/asm " +
+                        "for the respective Java classfile versions"
+            )
         }
         // Create the constant pool arrays. The constant_pool_count field is after the magic,
         // minor_version and major_version fields, which use 4, 2 and 2 bytes respectively.

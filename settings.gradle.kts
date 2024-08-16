@@ -7,6 +7,7 @@ pluginManagement {
     val licenseVersion: String by extra
     val publishVersion: String by extra
     val protobufVersion: String by extra
+    val shadowPluginVersion: String by extra
     plugins {
         kotlin("jvm") version kotlinVersion
         kotlin("multiplatform") version kotlinVersion
@@ -16,11 +17,11 @@ pluginManagement {
         id("kotlinx-atomicfu") version atomicfuVersion
         id("org.jetbrains.kotlinx.benchmark") version kotlinxBenchmarkVersion
         id("com.github.hierynomus.license") version licenseVersion
+        id("com.github.johnrengelman.shadow") version shadowPluginVersion
         id("io.github.gradle-nexus.publish-plugin") version publishVersion
         id("com.google.protobuf") version protobufVersion
     }
     repositories {
-        mavenLocal()
         mavenCentral()
         gradlePluginPortal()
     }
@@ -34,26 +35,15 @@ include("logging-native")
 include("logging")
 include("common")
 include("knasm")
-include("drill-hook")
-include("http-clients-instrumentation")
+include("interceptor-hook")
 include("interceptor-http")
-include("interceptor-http-test")
-include("plugin-api-admin")
-include("agent")
-include("dsm")
-include("dsm-annotations")
-include("dsm-test-framework")
-include("dsm-benchmarks")
-include("kt2dts")
-include("kt2dts-cli")
-include("kt2dts-api-sample")
+include("interceptor-stub")
+include("agent-config")
+include("agent-transport")
+include("agent-instrumentation")
 include("ktor-swagger")
 include("ktor-swagger-sample")
 include("admin-analytics")
-include("test-data")
-include("test-plugin-admin")
-include("test-plugin-agent")
-include("test-plugin")
 include("test2code-api")
 include("test2code-common")
 include("konform")
