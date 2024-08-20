@@ -22,11 +22,11 @@ import com.epam.drill.agent.instrument.TestClassPathProvider
 import com.epam.drill.agent.instrument.TestHeadersProcessor
 import com.epam.drill.agent.instrument.TestPayloadProcessor
 import com.epam.drill.agent.instrument.TransformerObject
-import com.epam.drill.agent.instrument.jetty.JettyWsMessagesTransformerObject
+import com.epam.drill.agent.instrument.jetty.Jetty9WsMessagesTransformerObject
 
 actual object JettyWsMessagesTransformer :
     TransformerObject,
-    JettyWsMessagesTransformerObject(),
+    Jetty9WsMessagesTransformerObject(),
     HeadersProcessor by TestHeadersProcessor,
     PayloadProcessor by TestPayloadProcessor,
     ClassPathProvider by TestClassPathProvider

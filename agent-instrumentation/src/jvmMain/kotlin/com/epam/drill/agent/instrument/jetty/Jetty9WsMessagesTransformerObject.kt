@@ -24,7 +24,7 @@ import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.instrument.PayloadProcessor
 
-abstract class JettyWsMessagesTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
+abstract class Jetty9WsMessagesTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
@@ -32,24 +32,18 @@ abstract class JettyWsMessagesTransformerObject : HeadersProcessor, PayloadProce
         listOf(
             "org/eclipse/jetty/websocket/common/WebSocketSession",
             "org/eclipse/jetty/websocket/common/events/AbstractEventDriver",
-            "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler",
-            "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketFrameHandler",
             "org/eclipse/jetty/websocket/common/WebSocketRemoteEndpoint",
             "org/eclipse/jetty/websocket/client/WebSocketClient",
-            "org/eclipse/jetty/websocket/core/client/WebSocketCoreClient",
             "org/eclipse/jetty/websocket/server/HandshakeRFC6455"
         ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting JettyWsMessagesTransformerObject for $className..." }
+        logger.info { "transform: Starting Jetty9WsMessagesTransformerObject for $className..." }
         when (className) {
             "org/eclipse/jetty/websocket/common/WebSocketSession" -> transformWebSocketSession(ctClass)
             "org/eclipse/jetty/websocket/common/events/AbstractEventDriver" -> transformAbstractEventDriver(ctClass)
-            "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler" -> transformJettyWebSocketFrameHandler(ctClass)
-            "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketFrameHandler" -> transformJavaxWebSocketFrameHandler(ctClass)
             "org/eclipse/jetty/websocket/common/WebSocketRemoteEndpoint" -> transformRemoteEndpoint(ctClass)
             "org/eclipse/jetty/websocket/client/WebSocketClient" -> transformWebSocketClient(ctClass)
-            "org/eclipse/jetty/websocket/core/client/WebSocketCoreClient" -> transformWebSocketCoreClient(ctClass)
             "org/eclipse.jetty/websocket/server/HandshakeRFC6455" -> transformHandshakeRFC(ctClass)
         }
     }
@@ -130,34 +124,7 @@ abstract class JettyWsMessagesTransformerObject : HeadersProcessor, PayloadProce
         )
     }
 
-    private fun transformJettyWebSocketFrameHandler(ctClass: CtClass) {
-    }
-
-    private fun transformJavaxWebSocketFrameHandler(ctClass: CtClass) {
-    }
-
     private fun transformRemoteEndpoint(ctClass: CtClass) {
-        //Basic.sendBinary(ByteBuffer data)                         -> sendBytes(data)
-        //Basic.sendBinary(ByteBuffer partialByte, boolean isLast)  -> sendPartialBytes(partialByte, isLast)
-        //Basic.sendObject(Object data)                             -> sendStringByFuture(msg)
-        //                                                          -> sendBytesByFuture(buf)
-        //Basic.sendText(String text)                               -> sendString(text)
-        //Basic.sendText(String partialMessage, boolean isLast)     -> sendPartialString(partialMessage, isLast)
-        //Async.sendBinary(ByteBuffer data)                         -> sendBytesByFuture(data)
-        //Async.sendBinary(ByteBuffer data, SendHandler handler)    -> uncheckedSendFrame(frame, new SendHandlerWriteCallback(handler))
-        //Async.sendObject(Object data)                             -> sendStringByFuture(msg)
-        //                                                          -> sendBytesByFuture(buf)
-        //Async.sendObject(Object data, SendHandler handler)        ->
-        //Async.sendText(String text)                               -> sendStringByFuture(text)
-        //Async.sendText(String text, SendHandler handler)          -> uncheckedSendFrame(frame, new SendHandlerWriteCallback(handler))
-        //-----------------------------------------------------------------------------------------------------------------------------
-        //sendBytes(data)                                                   -> blockingWrite(new BinaryFrame().setPayload(data))
-        //sendPartialBytes(partialByte, isLast)                             -> blockingWrite(frame)
-        //sendBytesByFuture(buf)                                            -> sendAsyncFrame(new BinaryFrame().setPayload(data))
-        //sendString(text)                                                  -> blockingWrite(frame)
-        //sendPartialString(partialMessage, isLast)                         -> blockingWrite(frame)
-        //sendStringByFuture(msg)                                           -> sendAsyncFrame(frame)
-        //uncheckedSendFrame(frame, new SendHandlerWriteCallback(handler))  -> outgoing.outgoingFrame(frame, callback, batchMode)
         val wrapStringCode =
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
@@ -212,17 +179,6 @@ abstract class JettyWsMessagesTransformerObject : HeadersProcessor, PayloadProce
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
                 $3.setHeader("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
-            }
-            """.trimIndent()
-        )
-
-    private fun transformWebSocketCoreClient(ctClass: CtClass) = ctClass
-        .getMethod("connect", "(Lorg/eclipse/jetty/websocket/core/client/CoreClientUpgradeRequest;)Ljava/util/concurrent/CompletableFuture;")
-        .insertCatching(
-            CtBehavior::insertBefore,
-            """
-            if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
-                $1.addHeader(new org.eclipse.jetty.http.HttpField("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true"));
             }
             """.trimIndent()
         )
