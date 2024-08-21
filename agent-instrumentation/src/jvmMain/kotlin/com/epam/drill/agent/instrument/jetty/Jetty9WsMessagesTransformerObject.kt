@@ -31,16 +31,18 @@ abstract class Jetty9WsMessagesTransformerObject : HeadersProcessor, PayloadProc
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         listOf(
             "org/eclipse/jetty/websocket/common/WebSocketSession",
+            "org/eclipse/jetty/websocket/common/io/AbstractWebSocketConnection",
             "org/eclipse/jetty/websocket/common/events/AbstractEventDriver",
             "org/eclipse/jetty/websocket/common/WebSocketRemoteEndpoint",
             "org/eclipse/jetty/websocket/client/WebSocketClient",
-            "org/eclipse/jetty/websocket/server/HandshakeRFC6455"
+            "org/eclipse/jetty/websocket/server/HandshakeRFC6455",
         ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
         logger.info { "transform: Starting Jetty9WsMessagesTransformerObject for $className..." }
         when (className) {
             "org/eclipse/jetty/websocket/common/WebSocketSession" -> transformWebSocketSession(ctClass)
+            "org/eclipse/jetty/websocket/common/io/AbstractWebSocketConnection" -> transformWebSocketConnection(ctClass)
             "org/eclipse/jetty/websocket/common/events/AbstractEventDriver" -> transformAbstractEventDriver(ctClass)
             "org/eclipse/jetty/websocket/common/WebSocketRemoteEndpoint" -> transformRemoteEndpoint(ctClass)
             "org/eclipse/jetty/websocket/client/WebSocketClient" -> transformWebSocketClient(ctClass)
@@ -93,6 +95,15 @@ abstract class Jetty9WsMessagesTransformerObject : HeadersProcessor, PayloadProc
         )
     }
 
+    private fun transformWebSocketConnection(ctClass: CtClass) = CtMethod.make(
+        """
+        public org.eclipse.jetty.websocket.common.WebSocketSession getSession() {
+            return this.session;
+        }
+        """.trimIndent(),
+        ctClass
+    ).also(ctClass::addMethod)
+
     private fun transformAbstractEventDriver(ctClass: CtClass) {
         val method = ctClass.getMethod("incomingFrame", "(Lorg/eclipse/jetty/websocket/api/extensions/Frame;)V")
         method.insertCatching(
@@ -129,7 +140,7 @@ abstract class Jetty9WsMessagesTransformerObject : HeadersProcessor, PayloadProc
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
                     && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
-                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(((org.eclipse.jetty.websocket.common.WebSocketSession)this.outgoing).getHandshakeHeaders())) {
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(((org.eclipse.jetty.websocket.common.io.AbstractWebSocketConnection)this.connection).getSession().getHandshakeHeaders())) {
                 $1 = ${this::class.java.name}.INSTANCE.storeDrillHeaders($1);
             }
             """.trimIndent()
@@ -137,7 +148,7 @@ abstract class Jetty9WsMessagesTransformerObject : HeadersProcessor, PayloadProc
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
                     && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
-                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(((org.eclipse.jetty.websocket.common.WebSocketSession)this.outgoing).getHandshakeHeaders())) {
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(((org.eclipse.jetty.websocket.common.io.AbstractWebSocketConnection)this.connection).getSession().getHandshakeHeaders())) {
                 byte[] bytes = new byte[$1.limit()];
                 $1.get(bytes);
                 $1.clear();
@@ -162,7 +173,7 @@ abstract class Jetty9WsMessagesTransformerObject : HeadersProcessor, PayloadProc
                 """
                 if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
                         && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
-                        && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(((org.eclipse.jetty.websocket.common.WebSocketSession)this.outgoing).getHandshakeHeaders())) {
+                        && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(((org.eclipse.jetty.websocket.common.io.AbstractWebSocketConnection)this.connection).getSession().getHandshakeHeaders())) {
                     byte[] bytes = new byte[$1.getPayload().limit()];
                     $1.getPayload().get(bytes);
                     $1.getPayload().clear();
