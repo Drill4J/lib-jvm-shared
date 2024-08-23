@@ -19,6 +19,7 @@ import javassist.CtBehavior
 import javassist.CtClass
 import javassist.CtField
 import javassist.CtMethod
+import javassist.NotFoundException
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
@@ -28,15 +29,14 @@ abstract class Jetty9WsMessagesTransformerObject : HeadersProcessor, PayloadProc
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        listOf(
-            "org/eclipse/jetty/websocket/common/WebSocketSession",
-            "org/eclipse/jetty/websocket/common/io/AbstractWebSocketConnection",
-            "org/eclipse/jetty/websocket/common/events/AbstractEventDriver",
-            "org/eclipse/jetty/websocket/common/WebSocketRemoteEndpoint",
-            "org/eclipse/jetty/websocket/client/WebSocketClient",
-            "org/eclipse/jetty/websocket/server/HandshakeRFC6455",
-        ).contains(className)
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) = listOf(
+        "org/eclipse/jetty/websocket/common/WebSocketSession",
+        "org/eclipse/jetty/websocket/common/io/AbstractWebSocketConnection",
+        "org/eclipse/jetty/websocket/common/events/AbstractEventDriver",
+        "org/eclipse/jetty/websocket/common/WebSocketRemoteEndpoint",
+        "org/eclipse/jetty/websocket/client/WebSocketClient",
+        "org/eclipse/jetty/websocket/server/HandshakeRFC6455",
+    ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
         logger.info { "transform: Starting Jetty9WsMessagesTransformerObject for $className..." }
@@ -53,6 +53,13 @@ abstract class Jetty9WsMessagesTransformerObject : HeadersProcessor, PayloadProc
     }
 
     private fun transformWebSocketSession(ctClass: CtClass) {
+        try {
+            ctClass.getMethod("setUpgradeRequest", "(Lorg/eclipse/jetty/websocket/api/UpgradeRequest;)V")
+            ctClass.getMethod("setUpgradeResponse", "(Lorg/eclipse/jetty/websocket/api/UpgradeResponse;)V")
+        } catch (e: NotFoundException) {
+            logger.error { "transformWebSocketSession: Skipping transformation (probably Jetty versions isn't 9): $e" }
+            return
+        }
         CtField.make(
             "private java.util.Map/*<java.lang.String, java.lang.String>*/ handshakeHeaders = null;",
             ctClass

@@ -19,43 +19,57 @@ import javassist.CtBehavior
 import javassist.CtClass
 import javassist.CtField
 import javassist.CtMethod
+import javassist.CtNewMethod
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.instrument.PayloadProcessor
 
-abstract class Jetty10WsMessagesTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
+abstract class Jetty11WsMessagesTransformerObject : HeadersProcessor, PayloadProcessor, AbstractTransformerObject() {
 
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) = listOf(
+        "org/eclipse/jetty/websocket/core/FrameHandler",
+        "org/eclipse/jetty/websocket/core/internal/WebSocketCoreSession",
         "org/eclipse/jetty/websocket/core/client/WebSocketCoreClient",
-        "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketFrameHandler",
-        "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketRemoteEndpoint",
-        "org/eclipse/jetty/websocket/javax/client/internal/JsrUpgradeListener",
-        "org/eclipse/jetty/websocket/javax/server/internal/JavaxWebSocketCreator",
-        "org/eclipse/jetty/websocket/javax/server/internal/JavaxWebSocketServerFrameHandlerFactory"
+        "org/eclipse/jetty/websocket/core/server/internal/CreatorNegotiator",
+        "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler",
+        "org/eclipse/jetty/websocket/server/internal/JettyServerFrameHandlerFactory",
+        "org/eclipse/jetty/websocket/jakarta/common/JakartaWebSocketFrameHandler",
+        "org/eclipse/jetty/websocket/jakarta/client/internal/JsrUpgradeListener"
     ).contains(className)
 
     override fun transform(className: String, ctClass: CtClass) {
-        logger.info { "transform: Starting Jetty10WsMessagesTransformerObject for $className..." }
-        try {
-            if(className != "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketFrameHandler")
-                ctClass.classPool.classLoader.loadClass("org.eclipse.jetty.websocket.javax.common.JavaxWebSocketFrameHandler")
-            when (className) {
-                "org/eclipse/jetty/websocket/core/client/WebSocketCoreClient" -> transformWebSocketCoreClient(ctClass)
-                "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketFrameHandler" -> transformJavaxWebSocketFrameHandler(ctClass)
-                "org/eclipse/jetty/websocket/javax/common/JavaxWebSocketRemoteEndpoint" -> transformWebSocketRemoteEndpoint(ctClass)
-                "org/eclipse/jetty/websocket/javax/client/internal/JsrUpgradeListener" -> transformJsrUpgradeListener(ctClass)
-                "org/eclipse/jetty/websocket/javax/server/internal/JavaxWebSocketCreator" -> transformWebSocketCreator(ctClass)
-                "org/eclipse/jetty/websocket/javax/server/internal/JavaxWebSocketServerFrameHandlerFactory" -> transformFrameHandlerFactory(ctClass)
-            }
-        } catch (e: ClassNotFoundException) {
-            logger.error { "transform: Skipping Jetty-10 transformations (probably Jetty versions isn't 10): $e" }
+        logger.info { "transform: Starting Jetty11WsMessagesTransformerObject for $className..." }
+        if(className != "org/eclipse/jetty/websocket/core/FrameHandler"
+            && className != "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler"
+            && className != "org/eclipse/jetty/websocket/jakarta/common/JakartaWebSocketFrameHandler") {
+            ctClass.classPool.classLoader.loadClass("org.eclipse.jetty.websocket.core.FrameHandler")
+            ctClass.classPool.classLoader.loadClass("org.eclipse.jetty.websocket.common.JettyWebSocketFrameHandler")
+            ctClass.classPool.classLoader.loadClass("org.eclipse.jetty.websocket.jakarta.common.JakartaWebSocketFrameHandler")
+        }
+        when (className) {
+            "org/eclipse/jetty/websocket/core/FrameHandler" -> transformFrameHandler(ctClass)
+            "org/eclipse/jetty/websocket/core/internal/WebSocketCoreSession" -> transformCoreSession(ctClass)
+            "org/eclipse/jetty/websocket/core/client/WebSocketCoreClient" -> transformWebSocketCoreClient(ctClass)
+            "org/eclipse/jetty/websocket/core/server/internal/CreatorNegotiator" -> transformCreatorNegotiator(ctClass)
+            "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler" -> transformWebSocketFrameHandler(ctClass)
+            "org/eclipse/jetty/websocket/server/internal/JettyServerFrameHandlerFactory" -> transformFrameHandlerFactory(ctClass)
+            "org/eclipse/jetty/websocket/jakarta/common/JakartaWebSocketFrameHandler" -> transformWebSocketFrameHandler(ctClass)
+            "org/eclipse/jetty/websocket/jakarta/client/internal/JsrUpgradeListener" -> transformJsrUpgradeListener(ctClass)
         }
     }
 
-    private fun transformJavaxWebSocketFrameHandler(ctClass: CtClass) {
+    private fun transformFrameHandler(ctClass: CtClass) = CtNewMethod.abstractMethod(
+        ctClass.classPool.get("java.util.Map"),
+        "getHandshakeHeaders",
+        null,
+        null,
+        ctClass
+    ).also(ctClass::addMethod)
+
+    private fun transformWebSocketFrameHandler(ctClass: CtClass) {
         CtField.make(
             "private java.util.Map/*<java.lang.String, java.lang.String>*/ handshakeHeaders = null;",
             ctClass
@@ -76,8 +90,8 @@ abstract class Jetty10WsMessagesTransformerObject : HeadersProcessor, PayloadPro
             """.trimIndent(),
             ctClass
         ).also(ctClass::addMethod)
-        val acceptMessageMethod = ctClass.getMethod("acceptMessage", "(Lorg/eclipse/jetty/websocket/core/Frame;Lorg/eclipse/jetty/util/Callback;)V")
-        acceptMessageMethod.insertCatching(
+        val method = ctClass.getMethod("acceptMessage", "(Lorg/eclipse/jetty/websocket/core/Frame;Lorg/eclipse/jetty/util/Callback;)V")
+        method.insertCatching(
             CtBehavior::insertBefore,
             """
             if ($1.isDataFrame() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
@@ -93,7 +107,7 @@ abstract class Jetty10WsMessagesTransformerObject : HeadersProcessor, PayloadPro
             }
             """.trimIndent()
         )
-        acceptMessageMethod.insertCatching(
+        method.insertCatching(
             { insertAfter(it, true) },
             """
             if ($1.isDataFrame() && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
@@ -104,14 +118,14 @@ abstract class Jetty10WsMessagesTransformerObject : HeadersProcessor, PayloadPro
         )
     }
 
-    private fun transformWebSocketRemoteEndpoint(ctClass: CtClass) = ctClass
+    private fun transformCoreSession(ctClass: CtClass) = ctClass
         .getMethod("sendFrame", "(Lorg/eclipse/jetty/websocket/core/Frame;Lorg/eclipse/jetty/util/Callback;Z)V")
         .insertCatching(
             CtBehavior::insertBefore,
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()
                     && ${this::class.java.name}.INSTANCE.${this::hasHeaders.name}()
-                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(((org.eclipse.jetty.websocket.javax.common.JavaxWebSocketFrameHandler)this.session.getFrameHandler()).getHandshakeHeaders())) {
+                    && ${this::class.java.name}.INSTANCE.${this::isPayloadProcessingSupported.name}(this.handler.getHandshakeHeaders())) {
                 byte[] bytes = new byte[$1.getPayload().limit()];
                 $1.getPayload().get(bytes);
                 $1.getPayload().clear();
@@ -132,8 +146,8 @@ abstract class Jetty10WsMessagesTransformerObject : HeadersProcessor, PayloadPro
                 java.lang.String header = java.lang.String.join(",", $2.getHeaders().getValuesList(headerName));
                 allHeaders.put(headerName, header);
             }
-            org.eclipse.jetty.websocket.core.FrameHandler frameHandler = ((org.eclipse.jetty.websocket.javax.client.internal.JavaxClientUpgradeRequest)$1).getFrameHandler();
-            ((org.eclipse.jetty.websocket.javax.common.JavaxWebSocketFrameHandler)frameHandler).setHandshakeHeaders(allHeaders);
+            org.eclipse.jetty.websocket.core.FrameHandler frameHandler = ((org.eclipse.jetty.websocket.jakarta.client.internal.JakartaClientUpgradeRequest)$1).getFrameHandler();
+            ((org.eclipse.jetty.websocket.jakarta.common.JakartaWebSocketFrameHandler)frameHandler).setHandshakeHeaders(allHeaders);
             """.trimIndent()
         )
 
@@ -150,7 +164,7 @@ abstract class Jetty10WsMessagesTransformerObject : HeadersProcessor, PayloadPro
                 java.lang.String header = java.lang.String.join(",", (java.util.List/*<java.lang.String>*/)upgradeHeaders.get(headerName));
                 allHeaders.put(headerName, header);
             }
-            ((org.eclipse.jetty.websocket.javax.common.JavaxWebSocketFrameHandler)${'$'}_).setHandshakeHeaders(allHeaders);
+            ((org.eclipse.jetty.websocket.common.JettyWebSocketFrameHandler)${'$'}_).setHandshakeHeaders(allHeaders);
             """.trimIndent()
         )
 
@@ -165,13 +179,13 @@ abstract class Jetty10WsMessagesTransformerObject : HeadersProcessor, PayloadPro
             """.trimIndent()
         )
 
-    private fun transformWebSocketCreator(ctClass: CtClass) = ctClass
-        .getMethod("createWebSocket", "(Lorg/eclipse/jetty/websocket/core/server/ServerUpgradeRequest;Lorg/eclipse/jetty/websocket/core/server/ServerUpgradeResponse;)Ljava/lang/Object;")
+    private fun transformCreatorNegotiator(ctClass: CtClass) = ctClass
+        .getMethod("negotiate", "(Lorg/eclipse/jetty/websocket/core/server/WebSocketNegotiation;)Lorg/eclipse/jetty/websocket/core/FrameHandler;")
         .insertCatching(
             CtBehavior::insertBefore,
             """
             if (${this::class.java.name}.INSTANCE.${this::isPayloadProcessingEnabled.name}()) {
-                $2.setHeader("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
+                $1.getResponse().setHeader("${PayloadProcessor.HEADER_WS_PER_MESSAGE}", "true");
             }
             """.trimIndent()
         )
