@@ -42,22 +42,26 @@ abstract class Jetty11WsMessagesTransformerObject : HeadersProcessor, PayloadPro
 
     override fun transform(className: String, ctClass: CtClass) {
         logger.info { "transform: Starting Jetty11WsMessagesTransformerObject for $className..." }
-        if(className != "org/eclipse/jetty/websocket/core/FrameHandler"
-            && className != "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler"
-            && className != "org/eclipse/jetty/websocket/jakarta/common/JakartaWebSocketFrameHandler") {
-            ctClass.classPool.classLoader.loadClass("org.eclipse.jetty.websocket.core.FrameHandler")
-            ctClass.classPool.classLoader.loadClass("org.eclipse.jetty.websocket.common.JettyWebSocketFrameHandler")
-            ctClass.classPool.classLoader.loadClass("org.eclipse.jetty.websocket.jakarta.common.JakartaWebSocketFrameHandler")
-        }
-        when (className) {
-            "org/eclipse/jetty/websocket/core/FrameHandler" -> transformFrameHandler(ctClass)
-            "org/eclipse/jetty/websocket/core/internal/WebSocketCoreSession" -> transformCoreSession(ctClass)
-            "org/eclipse/jetty/websocket/core/client/WebSocketCoreClient" -> transformWebSocketCoreClient(ctClass)
-            "org/eclipse/jetty/websocket/core/server/internal/CreatorNegotiator" -> transformCreatorNegotiator(ctClass)
-            "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler" -> transformWebSocketFrameHandler(ctClass)
-            "org/eclipse/jetty/websocket/server/internal/JettyServerFrameHandlerFactory" -> transformFrameHandlerFactory(ctClass)
-            "org/eclipse/jetty/websocket/jakarta/common/JakartaWebSocketFrameHandler" -> transformWebSocketFrameHandler(ctClass)
-            "org/eclipse/jetty/websocket/jakarta/client/internal/JsrUpgradeListener" -> transformJsrUpgradeListener(ctClass)
+        try {
+            if(className != "org/eclipse/jetty/websocket/core/FrameHandler"
+                && className != "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler"
+                && className != "org/eclipse/jetty/websocket/jakarta/common/JakartaWebSocketFrameHandler") {
+                ctClass.classPool.classLoader.loadClass("org.eclipse.jetty.websocket.core.FrameHandler")
+                ctClass.classPool.classLoader.loadClass("org.eclipse.jetty.websocket.common.JettyWebSocketFrameHandler")
+                ctClass.classPool.classLoader.loadClass("org.eclipse.jetty.websocket.jakarta.common.JakartaWebSocketFrameHandler")
+            }
+            when (className) {
+                "org/eclipse/jetty/websocket/core/FrameHandler" -> transformFrameHandler(ctClass)
+                "org/eclipse/jetty/websocket/core/internal/WebSocketCoreSession" -> transformCoreSession(ctClass)
+                "org/eclipse/jetty/websocket/core/client/WebSocketCoreClient" -> transformWebSocketCoreClient(ctClass)
+                "org/eclipse/jetty/websocket/core/server/internal/CreatorNegotiator" -> transformCreatorNegotiator(ctClass)
+                "org/eclipse/jetty/websocket/common/JettyWebSocketFrameHandler" -> transformWebSocketFrameHandler(ctClass)
+                "org/eclipse/jetty/websocket/server/internal/JettyServerFrameHandlerFactory" -> transformFrameHandlerFactory(ctClass)
+                "org/eclipse/jetty/websocket/jakarta/common/JakartaWebSocketFrameHandler" -> transformWebSocketFrameHandler(ctClass)
+                "org/eclipse/jetty/websocket/jakarta/client/internal/JsrUpgradeListener" -> transformJsrUpgradeListener(ctClass)
+            }
+        } catch (e: ClassNotFoundException) {
+            logger.error { "transform: Skipping Jetty-11 transformations (probably Jetty versions isn't 11): $e" }
         }
     }
 

@@ -41,7 +41,7 @@ abstract class Jetty9WsMessagesTransformerObject : HeadersProcessor, PayloadProc
     override fun transform(className: String, ctClass: CtClass) {
         logger.info { "transform: Starting Jetty9WsMessagesTransformerObject for $className..." }
         if(className != "org/eclipse/jetty/websocket/common/WebSocketSession")
-            ctClass.classPool.classLoader.loadClass("org.eclipse.jetty.websocket.common.WebSocketSession")
+            ctClass.classPool.classLoader?.loadClass("org.eclipse.jetty.websocket.common.WebSocketSession")
         when (className) {
             "org/eclipse/jetty/websocket/common/WebSocketSession" -> transformWebSocketSession(ctClass)
             "org/eclipse/jetty/websocket/common/io/AbstractWebSocketConnection" -> transformWebSocketConnection(ctClass)
