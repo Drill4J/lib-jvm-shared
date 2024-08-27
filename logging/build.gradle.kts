@@ -41,11 +41,6 @@ kotlin {
             }
         }
     }
-    configurations.all {
-        exclude("io.github.microutils", "kotlin-logging-mingwx64")
-        exclude("io.github.microutils", "kotlin-logging-macosx64")
-        exclude("io.github.microutils", "kotlin-logging-macosArm64")
-    }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
         all {
@@ -72,21 +67,12 @@ kotlin {
         }
         val mingwX64Main by getting {
             dependsOn(nativeMain)
-            dependencies {
-                api(project(":logging-native"))
-            }
         }
         val macosX64Main by getting {
             dependsOn(nativeMain)
-            dependencies {
-                api(project(":logging-native"))
-            }
         }
         val macosArm64Main by getting {
             dependsOn(nativeMain)
-            dependencies {
-                api(project(":logging-native"))
-            }
         }
     }
 }
