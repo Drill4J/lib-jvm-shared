@@ -22,7 +22,6 @@ pluginManagement {
         id("com.google.protobuf") version protobufVersion
     }
     repositories {
-        mavenLocal()
         mavenCentral()
         gradlePluginPortal()
     }

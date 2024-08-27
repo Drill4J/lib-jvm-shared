@@ -40,7 +40,4 @@ class QueuedAgentMessageMetadataSender<M : AgentMessage, T>(
         agentMetadataSender.addStateListener(this)
     }
 
-    override val available
-        get() = metadataSent && super.available
-
 }

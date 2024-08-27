@@ -96,8 +96,10 @@ class HttpAgentMessageTransport(
         drillInternalHeader?.also(request::setHeader)
         apiKeyHeader?.also(request::setHeader)
         request.setHeader(HttpHeaders.CONTENT_TYPE, mimeType)
-        request.entity = ByteArrayEntity(message, getContentType(mimeType)).let {
-            if(gzipCompression) GzipCompressingEntity(it) else it
+        request.entity = ByteArrayEntity(message, getContentType(mimeType))
+        if (gzipCompression) {
+            request.setHeader(HttpHeaders.CONTENT_ENCODING, "gzip")
+            request.entity = GzipCompressingEntity(request.entity)
         }
         logger.trace {
             val messageAsString = "\n${message.decodeToString().prependIndent("\t")}"

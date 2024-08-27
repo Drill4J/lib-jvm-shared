@@ -26,8 +26,6 @@ open class SimpleAgentMessageSender<M : AgentMessage, T>(
     agentMetadataSender: AgentMetadataSender<T>
 ) : AgentMessageSender<M>, AgentMetadataSender<T> by agentMetadataSender {
 
-    override val available: Boolean by agentMetadataSender::metadataSent
-
     override fun send(destination: AgentMessageDestination, message: M) = transport.send(
         destinationMapper.map(destination),
         messageSerializer.serialize(message),

@@ -43,7 +43,7 @@ abstract class UndertowHttpServerTransformerObject(
         val agentIdHeader = headersRetriever.agentIdHeader()
         val agentIdValue = headersRetriever.agentIdHeaderValue()
 
-        logger.info { "transform: Starting UndertowTransformer with admin host $adminUrl..." }
+        logger.debug { "transform: Starting UndertowTransformer with admin host $adminUrl..." }
         val method = ctClass.getMethod("executeRootHandler", "(Lio/undertow/server/HttpHandler;Lio/undertow/server/HttpServerExchange;)V")
 
         method.insertCatching(

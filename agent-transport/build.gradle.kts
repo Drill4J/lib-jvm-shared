@@ -19,7 +19,6 @@ val kotlinxSerializationVersion: String by parent!!.extra
 val apacheHttpClientVersion: String by parent!!.extra
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 

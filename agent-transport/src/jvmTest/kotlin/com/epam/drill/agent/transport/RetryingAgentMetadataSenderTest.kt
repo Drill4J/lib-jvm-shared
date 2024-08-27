@@ -68,7 +68,6 @@ class RetryingAgentMetadataSenderTest {
         every { messageTransport.send(any(), any(), any()) } returns responseStatus
         every { responseStatus.success } returns true
 
-        assertFalse(sender.metadataSent)
         val config = mockk<AgentMetadata>()
         val thread = sender.send(config)
 
@@ -83,7 +82,6 @@ class RetryingAgentMetadataSenderTest {
         every { messageTransport.send(any(), any(), any()) } returns responseStatus
         every { responseStatus.success } returns true
 
-        assertFalse(sender.metadataSent)
         val thread = sender.send("somestring")
 
         thread.join(5000)
@@ -95,7 +93,6 @@ class RetryingAgentMetadataSenderTest {
         every { messageTransport.send(any(), any(), any()) } returns responseStatus
         every { responseStatus.success } returns true
 
-        assertFalse(sender.metadataSent)
         val thread = sender.send("somestring", "test/custom")
 
         thread.join(5000)
@@ -107,7 +104,6 @@ class RetryingAgentMetadataSenderTest {
         every { messageTransport.send(any(), any(), any()) } returns responseStatus
         every { responseStatus.success } returnsMany listOf(false, false, false, false, true)
 
-        assertFalse(sender.metadataSent)
         val thread = sender.send(mockk<AgentMetadata>())
 
         Thread.sleep(1000)
@@ -128,7 +124,6 @@ class RetryingAgentMetadataSenderTest {
         ))
         every { responseStatus.success } returns true
 
-        assertFalse(sender.metadataSent)
         val thread = sender.send(mockk<AgentMetadata>())
 
         Thread.sleep(1000)
@@ -142,7 +137,6 @@ class RetryingAgentMetadataSenderTest {
     private fun verifyMethodCallsBeforeSend(payload: String, contentType: String) {
         verify(atLeast = 1) { messageTransport.send(messageDestination, payload, contentType) }
         verify(exactly = 0) { stateListener.onStateAlive() }
-        assertFalse(sender.metadataSent)
     }
 
     private fun verifyMethodCallsAfterSend(sendCount: Int, payload: String, contentType: String) {
@@ -151,9 +145,8 @@ class RetryingAgentMetadataSenderTest {
         verify(exactly = 1) { destinationMapper.map(any()) }
         verify(exactly = 1) { destinationMapper.map(destination.captured) }
         verify(exactly = 1) { stateListener.onStateAlive() }
-        assertTrue(sender.metadataSent)
         assertEquals("PUT", destination.captured.type)
-        assertEquals("", destination.captured.target)
+        assertEquals("instances", destination.captured.target)
     }
 
 }

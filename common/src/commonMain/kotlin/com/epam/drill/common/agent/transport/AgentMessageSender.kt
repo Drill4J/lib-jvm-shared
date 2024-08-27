@@ -25,6 +25,5 @@ package com.epam.drill.common.agent.transport
  * @see [AgentMessageDestination]
  */
 interface AgentMessageSender<M : AgentMessage> {
-    val available: Boolean
     fun send(destination: AgentMessageDestination, message: M): ResponseStatus
 }

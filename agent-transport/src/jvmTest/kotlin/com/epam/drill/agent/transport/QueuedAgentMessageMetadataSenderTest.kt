@@ -94,19 +94,7 @@ class QueuedAgentMessageMetadataSenderTest {
     }
 
     @Test
-    fun `available only after config sent`() {
-        every { configSender.metadataSent } returns false
-        assertFalse(sender.available)
-
-        every { configSender.metadataSent } returns true
-        assertTrue(sender.available)
-
-        verifyInitialization()
-    }
-
-    @Test
-    fun `sending successful after config sent`() {
-        every { configSender.metadataSent } returns true
+    fun `sending successful`() {
         every { responseStatus.success } returns true
         every {messageTransport.send(
             capture(toSendDestinations),
@@ -118,7 +106,6 @@ class QueuedAgentMessageMetadataSenderTest {
         for (i in 0..9) sender.send(AgentMessageDestination("TYPE", "target-$i"), TestAgentMessage("message-$i"))
             .also(responses::add)
 
-        assertTrue(sender.available)
         for (i in 0..9) {
             assertTrue(responses[i].success)
 
@@ -137,35 +124,7 @@ class QueuedAgentMessageMetadataSenderTest {
     }
 
     @Test
-    fun `sending queued before config sent`() {
-        every { configSender.metadataSent } returns false
-        every { responseStatus.success } returns true
-        every { messageTransport.send(any(), any(), any()) } returns responseStatus
-
-        val responses = mutableListOf<ResponseStatus>()
-        for (i in 0..9) sender.send(AgentMessageDestination("TYPE", "target-$i"), TestAgentMessage("message-$i"))
-            .also(responses::add)
-
-        assertFalse(sender.available)
-        for (i in 0..9) {
-            assertFalse(responses[i].success)
-
-            assertEquals("TYPE", incomingDestinations[i].type)
-            assertEquals("target-$i", incomingDestinations[i].target)
-            assertEquals("message-$i", incomingMessage[i].msg)
-
-            assertEquals("MAP", queuedPairs[i].first.type)
-            assertEquals("mapped-target-$i", queuedPairs[i].first.target)
-            assertEquals("serialized-message-$i", queuedPairs[i].second)
-        }
-
-        verifyInitialization()
-        verifyMethodCalls(receive = 10, send = 0, queue = 10, dequeue = 0, failed = 0)
-    }
-
-    @Test
     fun `sending successful for error response`() {
-        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns false
         every { messageTransport.send(
             capture(toSendDestinations),
@@ -177,7 +136,6 @@ class QueuedAgentMessageMetadataSenderTest {
         for (i in 0..9) sender.send(AgentMessageDestination("TYPE", "target-$i"), TestAgentMessage("message-$i"))
             .also(responses::add)
 
-        assertTrue(sender.available)
         for (i in 0..9) {
             assertFalse(responses[i].success)
 
@@ -197,7 +155,6 @@ class QueuedAgentMessageMetadataSenderTest {
 
     @Test
     fun `sending queued for exception response`() {
-        every { configSender.metadataSent } returns true
         every {messageTransport.send(
             capture(toSendDestinations),
             capture(toSendMessages),
@@ -208,7 +165,6 @@ class QueuedAgentMessageMetadataSenderTest {
         for (i in 0..9) sender.send(AgentMessageDestination("TYPE", "target-$i"), TestAgentMessage("message-$i"))
             .also(responses::add)
 
-        assertFalse(sender.available)
         assertEquals("MAP", toSendDestinations[0].type)
         assertEquals("mapped-target-0", toSendDestinations[0].target)
         assertEquals("serialized-message-0", toSendMessages[0])
@@ -232,7 +188,6 @@ class QueuedAgentMessageMetadataSenderTest {
 
     @Test
     fun `queue sent successful after state-alive`() {
-        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns true
         every { messageTransport.send(
             capture(toSendDestinations),
@@ -244,7 +199,6 @@ class QueuedAgentMessageMetadataSenderTest {
         sender.onStateAlive()
         sender.sendingThread?.join(5000)
 
-        assertTrue(sender.available)
         for (i in 0..9) {
             assertEquals("MAP", toSendDestinations[i].type)
             assertEquals("queued-target-$i", toSendDestinations[i].target)
@@ -258,7 +212,6 @@ class QueuedAgentMessageMetadataSenderTest {
 
     @Test
     fun `queue send failed after state-alive`() {
-        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns true
         every { messageTransport.send(
             capture(toSendDestinations),
@@ -270,7 +223,6 @@ class QueuedAgentMessageMetadataSenderTest {
         sender.onStateAlive()
         sender.sendingThread?.join(5000)
 
-        assertFalse(sender.available)
         assertEquals("MAP", toSendDestinations[0].type)
         assertEquals("queued-target-0", toSendDestinations[0].target)
         assertEquals("queued-message-0", toSendMessages[0])
@@ -282,7 +234,6 @@ class QueuedAgentMessageMetadataSenderTest {
 
     @Test
     fun `queue send partially after state-alive`() {
-        every { configSender.metadataSent } returns true
         every { responseStatus.success } returns true
         every { messageTransport.send(
             capture(toSendDestinations),
@@ -299,7 +250,6 @@ class QueuedAgentMessageMetadataSenderTest {
         sender.onStateAlive()
         sender.sendingThread?.join(5000)
 
-        assertFalse(sender.available)
         for (i in 0..3) {
             assertEquals("MAP", toSendDestinations[i].type)
             assertEquals("queued-target-$i", toSendDestinations[i].target)

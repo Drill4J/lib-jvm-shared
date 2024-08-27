@@ -9,9 +9,9 @@ version = Properties().run {
     projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
     getProperty("version.$name") ?: Project.DEFAULT_VERSION
 }
+val macosLd64: String by parent!!.extra
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
@@ -20,7 +20,13 @@ kotlin {
         jvm()
         linuxX64()
         mingwX64()
-        macosX64()
+        macosX64().apply {
+            if(macosLd64.toBoolean()){
+                binaries.all {
+                    linkerOpts("-ld64")
+                }
+            }
+        }
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {

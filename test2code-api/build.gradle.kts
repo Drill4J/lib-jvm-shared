@@ -15,9 +15,8 @@ version = rootProject.version
 
 val kotlinxSerializationVersion: String by parent!!.extra
 val ktorVersion: String by parent!!.extra
-
+val macosLd64: String by parent!!.extra
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
@@ -26,7 +25,13 @@ kotlin {
         jvm()
         linuxX64()
         mingwX64()
-        macosX64()
+        macosX64().apply {
+            if(macosLd64.toBoolean()){
+                binaries.all {
+                    linkerOpts("-ld64")
+                }
+            }
+        }
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
