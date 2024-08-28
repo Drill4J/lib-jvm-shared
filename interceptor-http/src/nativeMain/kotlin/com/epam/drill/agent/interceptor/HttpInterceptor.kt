@@ -33,6 +33,7 @@ import com.epam.drill.hook.io.injectedHeaders
 import com.epam.drill.hook.io.readCallback
 import com.epam.drill.hook.io.readHeaders
 import com.epam.drill.hook.io.writeCallback
+import kotlinx.cinterop.ExperimentalForeignApi
 
 private const val HTTP_DETECTOR_BYTES_COUNT = 8
 private const val HTTP_RESPONSE_MARKER = "HTTP"
@@ -52,6 +53,7 @@ class HttpInterceptor : Interceptor {
     private val drillInternalHeader = HTTP_HEADER_DRILL_INTERNAL.encodeToByteArray()
     private val logger = KotlinLogging.logger("com.epam.drill.agent.interceptor.HttpInterceptor")
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun MemScope.interceptRead(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>, size: Int) = try {
         val prefix = bytes.readBytes(HTTP_DETECTOR_BYTES_COUNT).decodeToString()
         val readBytes by lazy { bytes.readBytes(size) }
@@ -77,6 +79,7 @@ class HttpInterceptor : Interceptor {
         logger.error(e) { "interceptRead: $e" }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun MemScope.interceptWrite(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>, size: Int) = try {
         val prefix = bytes.readBytes(HTTP_DETECTOR_BYTES_COUNT).decodeToString()
         val readBytes by lazy { bytes.readBytes(size) }
@@ -120,6 +123,7 @@ class HttpInterceptor : Interceptor {
         localResponses.remove(fd)
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun isSuitableByteStream(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>) =
         bytes.readBytes(HTTP_DETECTOR_BYTES_COUNT).decodeToString().let { httpVerbs.any(it::startsWith) }
                 || localRequests.containsKey(fd)
