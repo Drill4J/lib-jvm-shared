@@ -33,15 +33,18 @@ import com.epam.drill.hook.io.injectedHeaders
 import com.epam.drill.hook.io.readCallback
 import com.epam.drill.hook.io.readHeaders
 import com.epam.drill.hook.io.writeCallback
+import kotlinx.cinterop.ExperimentalForeignApi
 
 private const val HTTP_DETECTOR_BYTES_COUNT = 8
 private const val HTTP_RESPONSE_MARKER = "HTTP"
 private const val HTTP_HEADER_DRILL_INTERNAL = "drill-internal: true"
 
 @ThreadLocal
+@OptIn(ExperimentalForeignApi::class)
 private val localRequests = mutableMapOf<DRILL_SOCKET, ByteArray>()
 
 @ThreadLocal
+@OptIn(ExperimentalForeignApi::class)
 private val localResponses = mutableMapOf<DRILL_SOCKET, ByteArray>()
 
 class HttpInterceptor : Interceptor {
@@ -52,6 +55,7 @@ class HttpInterceptor : Interceptor {
     private val drillInternalHeader = HTTP_HEADER_DRILL_INTERNAL.encodeToByteArray()
     private val logger = KotlinLogging.logger("com.epam.drill.agent.interceptor.HttpInterceptor")
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun MemScope.interceptRead(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>, size: Int) = try {
         val prefix = bytes.readBytes(HTTP_DETECTOR_BYTES_COUNT).decodeToString()
         val readBytes by lazy { bytes.readBytes(size) }
@@ -77,6 +81,7 @@ class HttpInterceptor : Interceptor {
         logger.error(e) { "interceptRead: $e" }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun MemScope.interceptWrite(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>, size: Int) = try {
         val prefix = bytes.readBytes(HTTP_DETECTOR_BYTES_COUNT).decodeToString()
         val readBytes by lazy { bytes.readBytes(size) }
@@ -115,16 +120,19 @@ class HttpInterceptor : Interceptor {
         TcpFinalData(bytes, size)
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun close(fd: DRILL_SOCKET) {
         localRequests.remove(fd)
         localResponses.remove(fd)
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun isSuitableByteStream(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>) =
         bytes.readBytes(HTTP_DETECTOR_BYTES_COUNT).decodeToString().let { httpVerbs.any(it::startsWith) }
                 || localRequests.containsKey(fd)
                 || localResponses.containsKey(fd)
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun readHeaders(fd: DRILL_SOCKET, bytes: ByteArray) {
         val decoded = bytes.decodeToString()
         logger.trace { "readHeaders: Reading HTTP request from fd=$fd:\n${decoded.prependIndent("\t")}" }
@@ -139,6 +147,7 @@ class HttpInterceptor : Interceptor {
         readCallback.value(bytes)
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun writeHeaders(fd: DRILL_SOCKET, bytes: ByteArray, index: Int, headers: Map<String, String>): ByteArray {
         headers.entries.forEach { logger.trace { "writeHeaders: Writing HTTP header to fd=$fd: ${it.key}=${it.value}" } }
         val responseHead = bytes.copyOfRange(0, index)
