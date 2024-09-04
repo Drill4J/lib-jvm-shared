@@ -18,14 +18,20 @@ package com.epam.drill.agent.configuration.provider
 import com.epam.drill.agent.configuration.AgentConfigurationProvider
 
 class AgentOptionsProvider(
-    private val agentOptions: String,
+    private val agentOptions: String?,
     override val priority: Int = 400
 ) : AgentConfigurationProvider {
 
     override val configuration = configuration()
 
-    private fun configuration() = agentOptions.split(",")
-        .filter(String::isNotEmpty)
-        .associate { it.substringBefore("=") to it.substringAfter("=", "") }
-
+    private fun configuration(): Map<String, String> {
+        if (agentOptions == null) {
+            return emptyMap()
+        }
+        return agentOptions.split(",")
+            .filter(String::isNotEmpty)
+            .associate {
+                it.substringBefore("=") to it.substringAfter("=", "")
+            }
+    }
 }
