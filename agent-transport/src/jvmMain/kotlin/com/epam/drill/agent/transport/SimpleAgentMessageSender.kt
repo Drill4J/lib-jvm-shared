@@ -22,9 +22,8 @@ import com.epam.drill.common.agent.transport.AgentMessageSender
 open class SimpleAgentMessageSender<M : AgentMessage, T>(
     private val transport: AgentMessageTransport<T>,
     private val messageSerializer: AgentMessageSerializer<M, T>,
-    private val destinationMapper: AgentMessageDestinationMapper,
-    agentMetadataSender: AgentMetadataSender<T>
-) : AgentMessageSender<M>, AgentMetadataSender<T> by agentMetadataSender {
+    private val destinationMapper: AgentMessageDestinationMapper
+) : AgentMessageSender<M> {
 
     override fun send(destination: AgentMessageDestination, message: M) = transport.send(
         destinationMapper.map(destination),
