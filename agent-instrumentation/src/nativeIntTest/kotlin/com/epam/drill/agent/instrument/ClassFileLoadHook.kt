@@ -20,11 +20,12 @@ import org.objectweb.asm.ClassReader
 import io.ktor.utils.io.bits.Memory
 import io.ktor.utils.io.bits.loadByteArray
 import io.ktor.utils.io.bits.of
-import com.epam.drill.agent.instrument.transformers.clients.ApacheHttpClientTransformer
-import com.epam.drill.agent.instrument.transformers.clients.JavaHttpClientTransformer
-import com.epam.drill.agent.instrument.transformers.clients.OkHttp3ClientTransformer
-import com.epam.drill.agent.instrument.transformers.clients.WebClientTransformer
+import com.epam.drill.agent.instrument.transformers.clients.*
 import com.epam.drill.agent.instrument.transformers.servers.*
+import com.epam.drill.agent.instrument.transformers.jetty.*
+import com.epam.drill.agent.instrument.transformers.netty.*
+import com.epam.drill.agent.instrument.transformers.tomcat.*
+import com.epam.drill.agent.instrument.transformers.undertow.*
 import com.epam.drill.jvmapi.gen.Allocate
 import com.epam.drill.jvmapi.gen.jint
 import com.epam.drill.jvmapi.gen.jintVar
@@ -36,14 +37,26 @@ object ClassFileLoadHook {
         JavaHttpClientTransformer,
         ApacheHttpClientTransformer,
         OkHttp3ClientTransformer,
-        TomcatTransformer,
-        NettyTransformer,
-        UndertowTransformer,
+        NettyHttpServerTransformer,
+        NettyWsServerTransformer,
+        NettyWsClientTransformer,
+        NettyWsMessagesTransformer,
         SSLEngineTransformer,
         KafkaTransformer,
-        JettyTransformer,
+        JettyHttpServerTransformer,
+        JettyWsServerTransformer,
+        JettyWsClientTransformer,
+        JettyWsMessagesTransformer,
         ReactorTransformer,
-        WebClientTransformer
+        SpringWebClientTransformer,
+        UndertowHttpServerTransformer,
+        UndertowWsServerTransformer,
+        UndertowWsClientTransformer,
+        UndertowWsMessagesTransformer,
+        TomcatHttpServerTransformer,
+        TomcatWsServerTransformer,
+        TomcatWsClientTransformer,
+        TomcatWsMessagesTransformer
     )
 
     operator fun invoke(
@@ -64,15 +77,18 @@ object ClassFileLoadHook {
             Memory.of(classData, classDataLen).loadByteArray(0, it)
         }
         val classReader = ClassReader(classBytes)
+        var transformedBytes = classBytes
         clientTransformers.forEach {
             if (it.permit(classReader.className, classReader.superName, classReader.interfaces)) {
-                val transformedBytes = it.transform(className, classBytes, loader, protectionDomain)
-                if (transformedBytes !== classBytes) convertToNativePointers(transformedBytes, newData, newDataLen)
+                transformedBytes = it.transform(className, transformedBytes, loader, protectionDomain)
             }
+        }
+        if (!transformedBytes.contentEquals(classBytes)) {
+            convertToNativePointers(transformedBytes, newData, newDataLen)
         }
     }
 
-    private fun isBootstrapClassloading(loader: jobject?, protectionDomain: jobject?,) =
+    private fun isBootstrapClassloading(loader: jobject?, protectionDomain: jobject?) =
         loader == null || protectionDomain == null
 
     private fun convertToNativePointers(

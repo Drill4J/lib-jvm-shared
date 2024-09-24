@@ -35,7 +35,7 @@ abstract class KafkaTransformerObject : HeadersProcessor, AbstractTransformerObj
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         KAFKA_CONSUMER_SPRING == className || interfaces.contains(KAFKA_PRODUCER_INTERFACE)
 
     override fun transform(className: String, ctClass: CtClass) {
