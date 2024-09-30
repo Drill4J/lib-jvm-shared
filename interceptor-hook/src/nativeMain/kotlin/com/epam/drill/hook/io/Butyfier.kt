@@ -16,10 +16,13 @@
 package com.epam.drill.hook.io
 
 import com.epam.drill.hook.gen.*
+import kotlinx.cinterop.ExperimentalForeignApi
 
+@OptIn(ExperimentalForeignApi::class)
 val nativeConnect
     get() = connect_func!!
 
+@OptIn(ExperimentalForeignApi::class)
 val nativeClose
     get() = close_func!!
 

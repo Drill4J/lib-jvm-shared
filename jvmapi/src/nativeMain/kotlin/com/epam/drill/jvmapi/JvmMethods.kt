@@ -20,7 +20,9 @@ import com.epam.drill.jvmapi.gen.FindClass
 import com.epam.drill.jvmapi.gen.GetMethodID
 import com.epam.drill.jvmapi.gen.GetStaticFieldID
 import com.epam.drill.jvmapi.gen.GetStaticObjectField
+import kotlinx.cinterop.ExperimentalForeignApi
 
+@OptIn(ExperimentalForeignApi::class)
 fun getObjectMethod(clazz: KClass<out Any>, method: String, signature: String) = run {
     val className = clazz.qualifiedName!!.replace(".", "/")
     val classRef = FindClass(className)
@@ -30,29 +32,38 @@ fun getObjectMethod(clazz: KClass<out Any>, method: String, signature: String) =
     instaceRef to methodId
 }
 
+@OptIn(ExperimentalForeignApi::class)
 fun getObjectVoidMethod(clazz: KClass<out Any>, method: String) =
     getObjectMethod(clazz, method, "()V")
 
+@OptIn(ExperimentalForeignApi::class)
 fun getObjectVoidMethodWithBoolean(clazz: KClass<out Any>, method: String) =
     getObjectMethod(clazz, method, "(Z)V")
 
+@OptIn(ExperimentalForeignApi::class)
 fun getObjectVoidMethodWithInt(clazz: KClass<out Any>, method: String) =
     getObjectMethod(clazz, method, "(I)V")
 
+@OptIn(ExperimentalForeignApi::class)
 fun getObjectVoidMethodWithString(clazz: KClass<out Any>, method: String) =
     getObjectMethod(clazz, method, "(Ljava/lang/String;)V")
 
+@OptIn(ExperimentalForeignApi::class)
 fun getObjectVoidMethodWithByteArray(clazz: KClass<out Any>, method: String) =
     getObjectMethod(clazz, method, "([B)V")
 
+@OptIn(ExperimentalForeignApi::class)
 fun getObjectIntMethod(clazz: KClass<out Any>, method: String) =
     getObjectMethod(clazz, method, "()I")
 
+@OptIn(ExperimentalForeignApi::class)
 fun getObjectObjectMethodWithString(clazz: KClass<out Any>, method: String) =
     getObjectMethod(clazz, method, "(Ljava/lang/String;)Ljava/lang/Object;")
 
+@OptIn(ExperimentalForeignApi::class)
 fun getObjectStringMethod(clazz: KClass<out Any>, method: String) =
     getObjectMethod(clazz, method, "()Ljava/lang/String;")
 
+@OptIn(ExperimentalForeignApi::class)
 fun getObjectByteArrayMethod(clazz: KClass<out Any>, method: String) =
     getObjectMethod(clazz, method, "()[B")

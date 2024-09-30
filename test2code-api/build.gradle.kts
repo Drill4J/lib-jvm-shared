@@ -1,5 +1,4 @@
 import java.net.URI
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import com.hierynomus.gradle.license.tasks.LicenseCheck
 import com.hierynomus.gradle.license.tasks.LicenseFormat
 
@@ -21,15 +20,20 @@ repositories {
 }
 
 kotlin {
-    targets {
-        jvm()
-        linuxX64()
-        mingwX64()
-        macosX64().apply {
-            if(macosLd64.toBoolean()){
-                binaries.all {
-                    linkerOpts("-ld64")
-                }
+    jvm()
+    linuxX64()
+    mingwX64()
+    macosX64().apply {
+        if (macosLd64.toBoolean()) {
+            binaries.all {
+                linkerOpts("-ld64")
+            }
+        }
+    }
+    macosArm64().apply {
+        if (macosLd64.toBoolean()) {
+            binaries.all {
+                linkerOpts("-ld64")
             }
         }
     }

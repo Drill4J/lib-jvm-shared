@@ -21,6 +21,12 @@ import kotlin.test.assertEquals
 class AgentOptionsProviderTest {
 
     @Test
+    fun `null options`() {
+        val result = AgentOptionsProvider(null).configuration
+        assertEquals(0, result.size)
+    }
+
+    @Test
     fun `empty options`() {
         val result = AgentOptionsProvider("").configuration
         assertEquals(0, result.size)

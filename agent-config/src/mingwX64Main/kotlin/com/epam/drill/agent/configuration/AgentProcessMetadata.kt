@@ -23,6 +23,7 @@ import platform.posix.pclose
 import platform.posix.popen
 import io.ktor.utils.io.core.readText
 import io.ktor.utils.io.streams.Input
+import kotlinx.cinterop.ExperimentalForeignApi
 
 actual object AgentProcessMetadata {
 
@@ -32,17 +33,20 @@ actual object AgentProcessMetadata {
     actual val environmentVars: Map<String, String>
         get() = environmentVars()
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun commandLine() = memScoped {
         val pid = getpid()
         executeCommand("wmic process where \"processid='$pid'\" get commandline", "r").lines()[1]
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun environmentVars() = memScoped {
         executeCommand("set", "r").lines()
             .filter(String::isNotEmpty)
             .associate { it.substringBefore("=") to it.substringAfter("=", "") }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun executeCommand(command: String, mode: String) = memScoped {
         val file = popen!!.invoke(command.cstr.getPointer(this), mode.cstr.getPointer(this))!!
         Input(file).readText().also { pclose!!.invoke(file) }

@@ -28,20 +28,23 @@ import platform.posix.open
 import io.ktor.utils.io.streams.Output
 import mu.Appender
 
-class FileOutputAppender(val filename: String, append: Boolean = true) : Appender {
+class FileOutputAppender(val filename: String, append: Boolean = true, override val includePrefix: Boolean = true) : Appender {
 
     private val appendFlag = if (append) O_APPEND else O_TRUNC
     private val openFlags = O_WRONLY or O_CREAT or appendFlag
     private val openMode = S_IWUSR or S_IRUSR or S_IRGRP or S_IROTH
     private val output = Output(open(filename, openFlags, openMode))
 
-    override fun trace(message: Any?) = append(message).getOrDefault(Unit)
-    override fun debug(message: Any?) = append(message).getOrDefault(Unit)
-    override fun info(message: Any?) = append(message).getOrDefault(Unit)
-    override fun warn(message: Any?) = append(message).getOrDefault(Unit)
-    override fun error(message: Any?) = append(message).getOrDefault(Unit)
 
-    fun close() = output.close()
+    override fun trace(loggerName: String, message: String) = append(message).getOrDefault(Unit)
+    override fun debug(loggerName: String, message: String) = append(message).getOrDefault(Unit)
+    override fun info(loggerName: String, message: String) = append(message).getOrDefault(Unit)
+    override fun warn(loggerName: String, message: String) = append(message).getOrDefault(Unit)
+    override fun error(loggerName: String, message: String) = append(message).getOrDefault(Unit)
+
+    fun close() {
+        output.close()
+    }
 
     private fun append(message: Any?) = message.toString().runCatching {
         output.appendLine(this)

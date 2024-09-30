@@ -13,27 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.hook.io
+package com.epam.drill.agent.module
 
-import com.epam.drill.hook.gen.*
-import kotlinx.cinterop.ExperimentalForeignApi
+import com.epam.drill.common.agent.module.AgentModule
 
-@OptIn(ExperimentalForeignApi::class)
-val nativeRead
-    get() = read_func!!
+actual object JvmModuleStorage {
 
-@OptIn(ExperimentalForeignApi::class)
-val nativeWrite
-    get() = write_func!!
+    private val storage = mutableMapOf<String, AgentModule>()
 
-@OptIn(ExperimentalForeignApi::class)
-val nativeSend
-    get() = send_func!!
+    actual operator fun get(id: String) = storage.get(id)
 
-@OptIn(ExperimentalForeignApi::class)
-val nativeRecv
-    get() = recv_func!!
+    actual fun values(): Collection<AgentModule> = storage.values
 
-@OptIn(ExperimentalForeignApi::class)
-val nativeAccept
-    get() = accept_func!!
+    actual fun add(module: AgentModule) = storage.put(module.id, module).let {}
+
+}

@@ -46,6 +46,7 @@ object ClassFileLoadHook {
         WebClientTransformer
     )
 
+    @OptIn(ExperimentalForeignApi::class)
     operator fun invoke(
         loader: jobject?,
         clsName: CPointer<ByteVar>?,
@@ -72,9 +73,11 @@ object ClassFileLoadHook {
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun isBootstrapClassloading(loader: jobject?, protectionDomain: jobject?,) =
         loader == null || protectionDomain == null
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun convertToNativePointers(
         transformedBytes: ByteArray,
         newData: CPointer<CPointerVar<UByteVar>>?,

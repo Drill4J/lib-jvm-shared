@@ -21,16 +21,21 @@ import kotlinx.cinterop.invoke
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.toKString
 import com.epam.drill.jvmapi.gen.jstring
+import kotlinx.cinterop.ExperimentalForeignApi
 
 class StringConverter {
 
+    @OptIn(ExperimentalForeignApi::class)
     private val jni = env.pointed.pointed!!
+    @OptIn(ExperimentalForeignApi::class)
     private val strings = mutableMapOf<jstring, CPointer<ByteVar>?>()
 
+    @OptIn(ExperimentalForeignApi::class)
     fun toKString(jstring: jstring) = jni.GetStringUTFChars!!(env, jstring, null)
         .also { strings[jstring] = it }
         ?.toKString()!!
 
+    @OptIn(ExperimentalForeignApi::class)
     fun release() = strings.forEach { jni.ReleaseStringUTFChars!!(env, it.key, it.value) }
 
 }

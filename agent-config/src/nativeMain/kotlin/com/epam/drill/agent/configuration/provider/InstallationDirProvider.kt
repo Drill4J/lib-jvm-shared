@@ -20,6 +20,7 @@ import platform.posix.getenv
 import com.epam.drill.agent.configuration.AgentConfigurationProvider
 import com.epam.drill.agent.configuration.AgentProcessMetadata
 import com.epam.drill.agent.configuration.DefaultParameterDefinitions
+import kotlinx.cinterop.ExperimentalForeignApi
 
 class InstallationDirProvider(
     private val configurationProviders: Set<AgentConfigurationProvider>,
@@ -42,6 +43,7 @@ class InstallationDirProvider(
         .mapNotNull { it.configuration[DefaultParameterDefinitions.INSTALLATION_DIR.name] }
         .lastOrNull()
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun fromJavaToolOptions() = getenv("JAVA_TOOL_OPTIONS")?.toKString()?.let(::parse)
 
     private fun fromCommandLine() = runCatching(AgentProcessMetadata::commandLine::get).getOrNull()?.let(::parse)

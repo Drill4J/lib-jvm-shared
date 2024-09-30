@@ -33,26 +33,34 @@ expect val tcpInitializer: Unit
 @SharedImmutable
 private val accessThread = Worker.start(true)
 
+@OptIn(ExperimentalForeignApi::class)
 @SharedImmutable
 val _connects = atomic(persistentHashSetOf<DRILL_SOCKET>())
 
+@OptIn(ExperimentalForeignApi::class)
 @SharedImmutable
 val _accepts = atomic(persistentHashSetOf<DRILL_SOCKET>())
 
+@OptIn(ExperimentalForeignApi::class)
 val connects
     get() = _connects.value
+
+@OptIn(ExperimentalForeignApi::class)
 val accepts
     get() = _accepts.value
 
+@OptIn(ExperimentalForeignApi::class)
 @ThreadLocal
 private var _tcpHook: CPointer<funchook_t>? = null
 
+@OptIn(ExperimentalForeignApi::class, ObsoleteWorkersApi::class)
 var tcpHook
     get() = accessThread.execute(TransferMode.UNSAFE, {}) { _tcpHook }.result
     set(value) = accessThread.execute(TransferMode.UNSAFE, { value }) { _tcpHook = it }.result
 
 expect fun configureTcpHooks()
 
+@OptIn(ExperimentalForeignApi::class)
 fun configureTcpHooksBuild(block: () -> Unit) = if (tcpHook != null) {
     funchook_install(tcpHook, 0).check("funchook_install")
 } else {
@@ -69,20 +77,26 @@ fun configureTcpHooksBuild(block: () -> Unit) = if (tcpHook != null) {
 }
 
 
+@OptIn(ExperimentalForeignApi::class)
 fun removeTcpHook() {
     funchook_uninstall(tcpHook, 0).check("funchook_uninstall")
 }
 
 //TODO EPMDJ-8696 Move back to common module
 
+@OptIn(ExperimentalForeignApi::class)
 expect fun drillRead(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: size_t): ssize_t
 
+@OptIn(ExperimentalForeignApi::class)
 expect fun drillWrite(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: size_t): ssize_t
 
+@OptIn(ExperimentalForeignApi::class)
 expect fun drillSend(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: Int, flags: Int): Int
 
+@OptIn(ExperimentalForeignApi::class)
 expect fun drillRecv(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: Int, flags: Int): Int
 
+@OptIn(ExperimentalForeignApi::class)
 internal fun drillConnect(fd: DRILL_SOCKET, addr: CPointer<sockaddr>?, socklen: drill_sock_len): Int {
     initRuntimeIfNeeded()
     val connectStatus = nativeConnect(fd, addr, socklen).convert<Int>()
@@ -90,6 +104,7 @@ internal fun drillConnect(fd: DRILL_SOCKET, addr: CPointer<sockaddr>?, socklen: 
     return connectStatus
 }
 
+@OptIn(ExperimentalForeignApi::class)
 fun drillClose(fd: DRILL_SOCKET): Int {
     initRuntimeIfNeeded()
     val result = nativeClose(fd)

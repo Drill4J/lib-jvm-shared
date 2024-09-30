@@ -23,12 +23,15 @@ import io.ktor.utils.io.core.readText
 import io.ktor.utils.io.streams.Input
 import com.epam.drill.agent.configuration.AgentConfigurationProvider
 import com.epam.drill.agent.configuration.DefaultParameterDefinitions
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlin.experimental.ExperimentalNativeApi
 
 class PropertiesFileProvider(
     private val configurationProviders: Set<AgentConfigurationProvider>,
     override val priority: Int = 200
 ) : AgentConfigurationProvider {
 
+    @OptIn(ExperimentalNativeApi::class)
     private val pathSeparator = if (Platform.osFamily == OsFamily.WINDOWS) "\\" else "/"
     private val defaultPath = ".${pathSeparator}drill.properties"
 
@@ -38,6 +41,7 @@ class PropertiesFileProvider(
         ?.let(::parseLines)
         ?: emptyMap()
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun readFile(filepath: String) = memScoped {
         val file = open(filepath, O_RDONLY)
         Input(file).readText().also { close(file) }

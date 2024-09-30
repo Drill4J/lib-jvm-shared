@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.hook.io
+package com.epam.drill.agent.request
 
-import com.epam.drill.hook.gen.*
-import kotlinx.cinterop.ExperimentalForeignApi
+import com.epam.drill.common.agent.request.DrillRequest
+import com.epam.drill.common.agent.request.RequestHolder
 
-@OptIn(ExperimentalForeignApi::class)
-val nativeRead
-    get() = read_func!!
-
-@OptIn(ExperimentalForeignApi::class)
-val nativeWrite
-    get() = write_func!!
-
-@OptIn(ExperimentalForeignApi::class)
-val nativeSend
-    get() = send_func!!
-
-@OptIn(ExperimentalForeignApi::class)
-val nativeRecv
-    get() = recv_func!!
-
-@OptIn(ExperimentalForeignApi::class)
-val nativeAccept
-    get() = accept_func!!
+expect object DrillRequestHolder : RequestHolder {
+    override fun remove()
+    override fun retrieve(): DrillRequest?
+    override fun store(drillRequest: DrillRequest)
+    fun store(drillRequest: ByteArray)
+    fun dump(): ByteArray?
+    fun init(isAsync: Boolean)
+}

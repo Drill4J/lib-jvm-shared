@@ -23,6 +23,7 @@ import platform.posix.pclose
 import platform.posix.popen
 import io.ktor.utils.io.core.readText
 import io.ktor.utils.io.streams.Input
+import kotlinx.cinterop.ExperimentalForeignApi
 
 actual object AgentProcessMetadata {
 
@@ -32,11 +33,13 @@ actual object AgentProcessMetadata {
     actual val environmentVars: Map<String, String>
         get() = environmentVars()
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun commandLine() = memScoped {
         val file = open("/proc/self/cmdline", O_RDONLY)
         Input(file).readText().also { close(file) }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun environmentVars() = memScoped {
         val file = popen("env", "r")!!
         Input(file).readText().also { pclose(file) }

@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.hook.io
+package com.epam.drill.agent.request
 
-import com.epam.drill.hook.gen.*
-import kotlinx.cinterop.ExperimentalForeignApi
+import com.epam.drill.agent.module.JvmModuleStorage
+import com.epam.drill.common.agent.request.RequestProcessor
 
-@OptIn(ExperimentalForeignApi::class)
-val nativeRead
-    get() = read_func!!
+object DrillRequestProcessor : RequestProcessor {
 
-@OptIn(ExperimentalForeignApi::class)
-val nativeWrite
-    get() = write_func!!
+    override fun processServerRequest() {
+        module().forEach { it.processServerRequest() }
+    }
 
-@OptIn(ExperimentalForeignApi::class)
-val nativeSend
-    get() = send_func!!
+    override fun processServerResponse() {
+        module().forEach { it.processServerResponse() }
+    }
 
-@OptIn(ExperimentalForeignApi::class)
-val nativeRecv
-    get() = recv_func!!
-
-@OptIn(ExperimentalForeignApi::class)
-val nativeAccept
-    get() = accept_func!!
+    private fun module() = JvmModuleStorage.values().filterIsInstance<RequestProcessor>()
+}

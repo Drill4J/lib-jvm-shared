@@ -16,18 +16,24 @@
 package com.epam.drill.hook.io
 
 import com.epam.drill.hook.gen.*
+import kotlinx.cinterop.ExperimentalForeignApi
 
+@OptIn(ExperimentalForeignApi::class)
 val nativeRead
     get() = read_func!!
 
+@OptIn(ExperimentalForeignApi::class)
 val nativeWrite
     get() = write_func!!
 
+@OptIn(ExperimentalForeignApi::class)
 val nativeSend
     get() = send_func!!
 
+@OptIn(ExperimentalForeignApi::class)
 val nativeRecv
     get() = recv_func!!
 
+@OptIn(ExperimentalForeignApi::class)
 val nativeAccept
     get() = accept_func!!
