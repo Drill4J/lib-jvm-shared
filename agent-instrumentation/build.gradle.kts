@@ -29,6 +29,8 @@ val transmittableThreadLocalVersion: String by parent!!.extra
 val bytebuddyVersion: String by parent!!.extra
 val nativeAgentLibName: String by parent!!.extra
 val macosLd64: String by parent!!.extra
+val kotlinxSerializationVersion: String by parent!!.extra
+val kotlinxCollectionsVersion: String by parent!!.extra
 
 repositories {
     mavenCentral()
@@ -64,6 +66,9 @@ kotlin {
     }
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
+        all {
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+        }
         targets.withType<KotlinNativeTarget>()[HostManager.host.presetName].compilations.forEach {
             it.defaultSourceSet.kotlin.srcDir("src/native${it.compilationName.capitalize()}/kotlin")
             it.defaultSourceSet.resources.srcDir("src/native${it.compilationName.capitalize()}/resources")
@@ -77,6 +82,7 @@ kotlin {
         val commonIntTest by creating
         val jvmMain by getting {
             dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
                 implementation("org.javassist:javassist:$javassistVersion")
                 implementation("com.alibaba:transmittable-thread-local:$transmittableThreadLocalVersion")
                 implementation("net.bytebuddy:byte-buddy:$bytebuddyVersion")
@@ -102,6 +108,8 @@ kotlin {
         }
         val configureNativeMainDependencies: KotlinSourceSet.() -> Unit = {
             dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:$kotlinxCollectionsVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
                 implementation(project(":jvmapi"))
             }
         }
