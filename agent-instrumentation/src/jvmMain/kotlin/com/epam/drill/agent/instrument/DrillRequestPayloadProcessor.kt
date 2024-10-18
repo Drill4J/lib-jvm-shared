@@ -16,7 +16,7 @@
 package com.epam.drill.agent.instrument
 
 open class DrillRequestPayloadProcessor(
-    private val enabled: Boolean = true,
+    private val enabled: () -> Boolean = { true },
     private val headersProcessor: HeadersProcessor
 ) : PayloadProcessor {
 
@@ -52,7 +52,7 @@ open class DrillRequestPayloadProcessor(
     override fun storeDrillHeaders(message: ByteArray?) = message
         ?.let { storeDrillHeaders(message.decodeToString())!!.encodeToByteArray() }
 
-    override fun isPayloadProcessingEnabled() = enabled
+    override fun isPayloadProcessingEnabled() = enabled()
 
     override fun isPayloadProcessingSupported(headers: Map<String, String>?) =
         headers != null
