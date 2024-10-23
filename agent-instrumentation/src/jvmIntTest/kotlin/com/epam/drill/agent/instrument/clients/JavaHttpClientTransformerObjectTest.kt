@@ -18,20 +18,16 @@ package com.epam.drill.agent.instrument.clients
 import java.net.HttpURLConnection
 import java.net.URL
 
-open class JavaHttpClientTransformerObjectTest : AbstractClientTransformerObjectTest() {
+open class JavaHttpClientTransformerObjectTest : AbstractHttpClientTransformerObjectTest() {
 
     override fun callHttpEndpoint(
         endpoint: String,
-        headers: Map<String, String>,
         body: String
     ): Pair<Map<String, String>, String> {
         lateinit var connection: HttpURLConnection
         try {
             connection = URL(endpoint).openConnection() as HttpURLConnection
             connection.requestMethod = "POST"
-            headers.entries.forEach {
-                connection.setRequestProperty(it.key, it.value)
-            }
             connection.doOutput = true
             connection.outputStream.write(body.encodeToByteArray())
             connection.outputStream.close()

@@ -34,7 +34,7 @@ abstract class AbstractTransformerObject : TransformerObject, ClassPathProvider 
         classFileBuffer: ByteArray,
         loader: Any?,
         protectionDomain: Any?
-    ): ByteArray = ClassPool(true).run {
+    ): ByteArray = ClassPool.getDefault().run {
         val classLoader = loader ?: ClassLoader.getSystemClassLoader()
         this.appendClassPath(LoaderClassPath(classLoader as? ClassLoader))
         if (this.getOrNull(this::class.java.name) == null) {
