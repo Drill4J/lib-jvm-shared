@@ -46,7 +46,7 @@ abstract class SSLEngineTransformerObject(
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         "javax/net/ssl/SSLEngine" == superName
 
     override fun transform(className: String, ctClass: CtClass) {

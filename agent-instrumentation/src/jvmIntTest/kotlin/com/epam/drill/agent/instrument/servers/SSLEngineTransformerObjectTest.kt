@@ -25,7 +25,7 @@ import mu.KLogger
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.TestSslContextFactory
 
-class SSLEngineTransformerObjectTest : AbstractServerTransformerObjectTest() {
+class SSLEngineTransformerObjectTest : AbstractHttpServerTransformerObjectTest() {
 
     override val logger: KLogger = KotlinLogging.logger {}
 
