@@ -20,6 +20,7 @@ import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
 import kotlinx.cinterop.ByteVarOf
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.MemScope
 import kotlinx.cinterop.memScoped
 import kotlinx.collections.immutable.persistentListOf
@@ -38,19 +39,24 @@ fun addInterceptor(interceptor: Interceptor) {
 }
 
 interface ReadInterceptor {
+    @OptIn(ExperimentalForeignApi::class)
     fun MemScope.interceptRead(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>, size: Int)
 }
 
 interface WriteInterceptor {
+    @OptIn(ExperimentalForeignApi::class)
     fun MemScope.interceptWrite(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>, size: Int): TcpFinalData
 }
 
 interface Interceptor : ReadInterceptor, WriteInterceptor {
+    @OptIn(ExperimentalForeignApi::class)
     fun isSuitableByteStream(fd: DRILL_SOCKET, bytes: CPointer<ByteVarOf<Byte>>): Boolean
+    @OptIn(ExperimentalForeignApi::class)
     fun close(fd: DRILL_SOCKET)
 }
 
 
+@OptIn(ExperimentalForeignApi::class)
 fun tryDetectProtocol(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: Int) {
     buf?.let { byteBuf ->
         interceptors.forEach {
@@ -68,12 +74,14 @@ fun tryDetectProtocol(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: I
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 fun close(fd: DRILL_SOCKET) {
     interceptors.forEach {
         it.close(fd)
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 fun MemScope.processWriteEvent(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: Int): TcpFinalData {
     return buf?.let { byteBuf ->
         interceptors.forEach {
@@ -100,14 +108,18 @@ val CR_LF_BYTES = CR_LF.encodeToByteArray()
 @SharedImmutable
 val HEADERS_DELIMITER = CR_LF_BYTES + CR_LF_BYTES
 
+@OptIn(ExperimentalForeignApi::class)
 @SharedImmutable
 val injectedHeaders = atomic({ emptyMap<String, String>() }.freeze()).freeze()
 
+@OptIn(ExperimentalForeignApi::class)
 @SharedImmutable
 val readHeaders = atomic({ _: Map<ByteArray, ByteArray> -> }.freeze()).freeze()
 
+@OptIn(ExperimentalForeignApi::class)
 @SharedImmutable
 val readCallback = atomic({ _: ByteArray -> }.freeze()).freeze()
 
+@OptIn(ExperimentalForeignApi::class)
 @SharedImmutable
 val writeCallback = atomic({ _: ByteArray -> }.freeze()).freeze()

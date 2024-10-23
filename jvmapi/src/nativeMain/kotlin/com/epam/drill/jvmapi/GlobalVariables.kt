@@ -15,7 +15,7 @@
  */
 package com.epam.drill.jvmapi
 
-import kotlin.native.concurrent.AtomicReference
+import kotlin.concurrent.AtomicReference
 import kotlin.native.concurrent.freeze
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.CPointerVar
@@ -29,13 +29,18 @@ import kotlinx.cinterop.value
 import com.epam.drill.jvmapi.gen.JNIEnvVar
 import com.epam.drill.jvmapi.gen.JavaVMVar
 import com.epam.drill.jvmapi.gen.jvmtiEnvVar
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlin.native.concurrent.ThreadLocal
 
+@OptIn(ExperimentalForeignApi::class)
 @SharedImmutable
 val vmGlobal = AtomicReference<CPointer<JavaVMVar>?>(null).freeze()
 
+@OptIn(ExperimentalForeignApi::class)
 @SharedImmutable
 val jvmti = AtomicReference<CPointer<jvmtiEnvVar>?>(null).freeze()
 
+@OptIn(ExperimentalForeignApi::class)
 @ThreadLocal
 val env: CPointer<JNIEnvVar> by lazy {
     memScoped {

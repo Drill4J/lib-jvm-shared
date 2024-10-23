@@ -80,9 +80,6 @@ kotlin {
         val mingwX64Main by getting(configuration = configureNativeMainDependencies)
         val linuxX64IntTest by getting(configuration = configureNativeIntTestDependencies)
         val mingwX64IntTest by getting(configuration = configureNativeIntTestDependencies)
-        mingwX64Main.dependencies {
-            implementation(project(":logging-native"))
-        }
     }
     tasks {
         val filterOutCurrentPlatform: (KotlinNativeTarget) -> Boolean = {

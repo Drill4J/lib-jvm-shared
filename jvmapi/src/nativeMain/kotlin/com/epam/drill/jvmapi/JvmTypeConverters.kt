@@ -20,11 +20,14 @@ import kotlinx.cinterop.convert
 import kotlinx.cinterop.usePinned
 import platform.posix.memcpy
 import com.epam.drill.jvmapi.gen.*
+import kotlinx.cinterop.ExperimentalForeignApi
 
+@OptIn(ExperimentalForeignApi::class)
 fun toJByteArray(array: ByteArray) = NewByteArray(array.size)!!.apply {
     array.usePinned { SetByteArrayRegion(this, 0, array.size, it.addressOf(0)) }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 fun toByteArray(jarray: jobject) = ByteArray(GetArrayLength(jarray)).apply {
     if (this.isEmpty()) return@apply
     val buffer = GetPrimitiveArrayCritical(jarray, null)

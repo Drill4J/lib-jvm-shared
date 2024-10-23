@@ -21,12 +21,15 @@ import com.epam.drill.jvmapi.gen.JNIEnv
 import com.epam.drill.jvmapi.gen.NewStringUTF
 import com.epam.drill.jvmapi.gen.jobject
 import com.epam.drill.jvmapi.gen.jstring
+import kotlinx.cinterop.ExperimentalForeignApi
 
+@OptIn(ExperimentalForeignApi::class)
 @Suppress("UNUSED_PARAMETER")
 fun callNativeVoidMethod(env: JNIEnv, thiz: jobject, method: () -> Unit) = memScoped {
     method()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @Suppress("UNUSED_PARAMETER")
 fun callNativeVoidMethodWithString(env: JNIEnv, thiz: jobject, method: (String?) -> Unit, string: jstring?) = memScoped {
     withStringsRelease {
@@ -34,11 +37,13 @@ fun callNativeVoidMethodWithString(env: JNIEnv, thiz: jobject, method: (String?)
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @Suppress("UNUSED_PARAMETER")
 fun callNativeBooleanMethod(env: JNIEnv, thiz: jobject, method: () -> Boolean?) = memScoped {
     method()?.toByte()?.toUByte()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @Suppress("UNUSED_PARAMETER")
 fun callNativeStringMethod(env: JNIEnv, thiz: jobject, method: () -> String?) = memScoped {
     NewStringUTF(method())

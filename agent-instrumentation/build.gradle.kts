@@ -43,20 +43,25 @@ kotlin {
             compilation = compilations["intTest"]
         }
     }
-    targets {
-        jvm(configure = configureIntTestTarget)
-        linuxX64(configure = configureIntTestTarget)
-        macosX64(configure = configureIntTestTarget).apply {
-            if (macosLd64.toBoolean()) {
-                binaries.all {
-                    linkerOpts("-ld64")
-                }
+    jvm(configure = configureIntTestTarget)
+    linuxX64(configure = configureIntTestTarget)
+    macosX64(configure = configureIntTestTarget).apply {
+        if (macosLd64.toBoolean()) {
+            binaries.all {
+                linkerOpts("-ld64")
             }
         }
-        mingwX64(configure = configureIntTestTarget).apply {
+    }
+    macosArm64(configure = configureIntTestTarget).apply {
+        if (macosLd64.toBoolean()) {
             binaries.all {
-                linkerOpts("-lpsapi", "-lwsock32", "-lws2_32", "-lmswsock")
+                linkerOpts("-ld64")
             }
+        }
+    }
+    mingwX64(configure = configureIntTestTarget).apply {
+        binaries.all {
+            linkerOpts("-lpsapi", "-lwsock32", "-lws2_32", "-lmswsock")
         }
     }
     @Suppress("UNUSED_VARIABLE")
@@ -124,9 +129,11 @@ kotlin {
         val mingwX64Main by getting(configuration = configureNativeMainDependencies)
         val linuxX64Main by getting(configuration = configureNativeMainDependencies)
         val macosX64Main by getting(configuration = configureNativeMainDependencies)
+        val macosArm64Main by getting(configuration = configureNativeMainDependencies)
         val mingwX64IntTest by getting(configuration = configureNativeIntTestDependencies)
         val linuxX64IntTest by getting(configuration = configureNativeIntTestDependencies)
         val macosX64IntTest by getting(configuration = configureNativeIntTestDependencies)
+        val macosArm64IntTest by getting(configuration = configureNativeIntTestDependencies)
     }
     tasks {
         val filterOutCurrentPlatform: (KotlinNativeTarget) -> Boolean = {

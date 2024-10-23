@@ -25,12 +25,11 @@ kotlin {
             includeDirs("src/nativeInterop/cinterop/$targetName")
         }
     }
-    targets {
-        jvm()
-        linuxX64(configure = configureCInterop)
-        mingwX64(configure = configureCInterop)
-        macosX64(configure = configureCInterop)
-    }
+    jvm()
+    linuxX64(configure = configureCInterop)
+    mingwX64(configure = configureCInterop)
+    macosX64(configure = configureCInterop)
+    macosArm64(configure = configureCInterop)
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
         all {
@@ -51,6 +50,9 @@ kotlin {
             dependsOn(nativeMain)
         }
         val macosX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val macosArm64Main by getting {
             dependsOn(nativeMain)
         }
     }

@@ -31,7 +31,6 @@ pluginManagement {
 }
 
 include("jvmapi")
-include("logging-native")
 include("logging")
 include("common")
 include("knasm")

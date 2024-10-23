@@ -17,7 +17,7 @@
 
 package com.epam.drill.agent.instrument
 
-import kotlin.native.concurrent.AtomicReference
+import kotlin.concurrent.AtomicReference
 import kotlin.native.concurrent.freeze
 import kotlinx.cinterop.*
 import com.epam.drill.jvmapi.callNativeStringMethod
@@ -30,10 +30,12 @@ import com.epam.drill.jvmapi.gen.*
 import com.epam.drill.jvmapi.jvmti
 import com.epam.drill.jvmapi.vmGlobal
 import com.epam.drill.logging.LoggingConfiguration
+import kotlin.experimental.ExperimentalNativeApi
 
 @SharedImmutable
 val runtimeJarPath = AtomicReference("")
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 @Suppress("unused_parameter")
 @CName("Agent_OnLoad")
 fun agentOnLoad(vmPointer: CPointer<JavaVMVar>, options: String, reservedPtr: Long): Int = memScoped {
@@ -64,6 +66,7 @@ fun agentOnLoad(vmPointer: CPointer<JavaVMVar>, options: String, reservedPtr: Lo
     JNI_OK
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @Suppress("unused_parameter")
 fun vmInitEvent(env: CPointer<jvmtiEnvVar>?, jniEnv: CPointer<JNIEnvVar>?, thread: jthread?) {
     SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, null)
@@ -73,6 +76,7 @@ fun vmInitEvent(env: CPointer<jvmtiEnvVar>?, jniEnv: CPointer<JNIEnvVar>?, threa
     callObjectVoidMethodWithInt(LoggingConfiguration::class, LoggingConfiguration::setLogMessageLimit, 524288)
 }
 
+@OptIn(ExperimentalForeignApi::class)
 @Suppress("unused_parameter")
 fun classFileLoadHook(
     jvmtiEnv: CPointer<jvmtiEnvVar>?,
@@ -95,17 +99,22 @@ fun classFileLoadHook(
     newData,
 )
 
+@OptIn(ExperimentalNativeApi::class, ExperimentalForeignApi::class)
 @CName("Java_com_epam_drill_agent_instrument_TestClassPathProvider_getClassPath")
 fun getClassPath(env: JNIEnv, thiz: jobject) = callNativeStringMethod(env, thiz, TestClassPathProvider::getClassPath)
 
+@OptIn(ExperimentalNativeApi::class, ExperimentalForeignApi::class)
 @CName("checkEx")
 fun checkEx(errCode: jvmtiError, funName: String) = checkEx(errCode, funName)
 
+@OptIn(ExperimentalNativeApi::class, ExperimentalForeignApi::class)
 @CName("currentEnvs")
 fun currentEnvs() = env
 
+@OptIn(ExperimentalNativeApi::class, ExperimentalForeignApi::class)
 @CName("jvmtii")
 fun jvmtii() = jvmti.value
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 @CName("getJvm")
 fun getJvm() = vmGlobal.value

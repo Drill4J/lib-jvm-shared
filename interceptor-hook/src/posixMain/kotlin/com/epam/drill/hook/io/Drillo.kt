@@ -24,6 +24,7 @@ import kotlinx.collections.immutable.*
 import platform.posix.*
 
 
+@OptIn(ExperimentalForeignApi::class)
 actual val tcpInitializer = run {
     val socketHook = funchook_create()
     funchook_prepare(socketHook, close_func_point, staticCFunction(::drillClose)).check("prepare close_func_point")
@@ -37,6 +38,7 @@ actual val tcpInitializer = run {
 }
 
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun drillRead(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: size_t): ssize_t {
     initRuntimeIfNeeded()
     val read = nativeRead(fd.convert(), buf, size.convert())
@@ -45,6 +47,7 @@ actual fun drillRead(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: si
     return read.convert()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun drillWrite(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: size_t): ssize_t {
     initRuntimeIfNeeded()
 
@@ -58,6 +61,7 @@ actual fun drillWrite(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: s
 }
 
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun drillSend(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: Int, flags: Int): Int {
     initRuntimeIfNeeded()
     return memScoped {
@@ -66,6 +70,7 @@ actual fun drillSend(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: In
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun drillRecv(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: Int, flags: Int): Int {
     initRuntimeIfNeeded()
     val read = nativeRecv(fd, buf, size.convert(), flags)
@@ -73,6 +78,7 @@ actual fun drillRecv(fd: DRILL_SOCKET, buf: CPointer<ByteVarOf<Byte>>?, size: In
     return read.convert()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 fun drillAccept(
     fd: DRILL_SOCKET,
     addr: CPointer<sockaddr>?,
@@ -85,12 +91,14 @@ fun drillAccept(
     return socket
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun configureTcpHooks() = configureTcpHooksBuild {
     println("Configuration for unix")
     funchook_prepare(tcpHook, writev_func_point, staticCFunction(::writevDrill))
     funchook_prepare(tcpHook, readv_func_point, staticCFunction(::readvDrill))
 }
 
+@OptIn(ExperimentalForeignApi::class)
 private fun readvDrill(fd: Int, iovec: CPointer<iovec>?, size: Int): ssize_t {
     val convert = readv_func!!(fd, iovec, size).convert<ssize_t>()
     println("readv intercepted do not implemented now. If you see this message, please put issue to https://github.com/Drill4J/Drill4J")
@@ -98,6 +106,7 @@ private fun readvDrill(fd: Int, iovec: CPointer<iovec>?, size: Int): ssize_t {
 }
 
 
+@OptIn(ExperimentalForeignApi::class)
 private fun writevDrill(fd: Int, iovec: CPointer<iovec>?, size: Int): ssize_t {
     return memScoped {
         //todo I think we(headers) should be in the first buffer
