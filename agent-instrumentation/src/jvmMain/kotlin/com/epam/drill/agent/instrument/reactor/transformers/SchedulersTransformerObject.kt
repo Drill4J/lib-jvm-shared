@@ -18,7 +18,6 @@ package com.epam.drill.agent.instrument.reactor.transformers
 import com.epam.drill.agent.instrument.TransformerObject
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.reactor.PropagatedDrillRequestRunnable
-import com.epam.drill.agent.instrument.servers.SCHEDULERS_CLASS_NAME
 import com.epam.drill.common.agent.request.DrillRequest
 import com.epam.drill.common.agent.request.RequestHolder
 import javassist.CtBehavior
@@ -33,10 +32,11 @@ abstract class SchedulersTransformerObject :
     TransformerObject,
     RequestHolder,
     AbstractTransformerObject() {
+
     override val logger = KotlinLogging.logger {}
 
     override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        className == SCHEDULERS_CLASS_NAME
+        className == "reactor/core/scheduler/Schedulers"
 
     override fun transform(className: String, ctClass: CtClass) {
         ctClass.getDeclaredMethod("onSchedule").insertCatching(

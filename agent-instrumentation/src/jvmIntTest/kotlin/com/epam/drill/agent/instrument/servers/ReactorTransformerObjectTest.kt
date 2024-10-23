@@ -16,7 +16,6 @@
 package com.epam.drill.agent.instrument.servers
 
 import com.epam.drill.agent.instrument.TestRequestHolder
-import mu.KLogger
 import mu.KotlinLogging
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.ObjectProvider
@@ -48,10 +47,14 @@ import kotlin.test.Test
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     classes = [ReactorTransformerObjectTest.SimpleController::class]
 )
-class ReactorTransformerObjectTest: AbstractServerTransformerObjectTest() {
+class ReactorTransformerObjectTest: AbstractHttpServerTransformerObjectTest() {
+
     override val logger = KotlinLogging.logger {}
+
     @Autowired
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     lateinit var webTestClient: WebTestClient
+
     @LocalServerPort
     var serverPort: Int = 0
 

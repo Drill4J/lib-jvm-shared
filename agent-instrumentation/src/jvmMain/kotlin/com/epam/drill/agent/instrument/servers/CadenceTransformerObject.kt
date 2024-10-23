@@ -37,7 +37,7 @@ abstract class CadenceTransformerObject : HeadersProcessor, AbstractTransformerO
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>): Boolean =
+    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
         CADENCE_PRODUCER == className || CADENCE_CONSUMER == className
 
     override fun transform(className: String, ctClass: CtClass) {
