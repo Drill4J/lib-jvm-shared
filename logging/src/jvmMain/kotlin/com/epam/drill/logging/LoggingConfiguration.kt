@@ -47,7 +47,6 @@ actual object LoggingConfiguration {
         val levelRegex = Regex("(TRACE|DEBUG|INFO|WARN|ERROR)")
         val isCorrect: (Pair<String, String>) -> Boolean = { levelRegex.matches(it.second) }
         levels.filter(isCorrect).forEach {
-            println("!!! Setting logging level ${it.second} for ${it.first}")
             (loggerContext.getLogger(it.first) as Logger).level = Level.toLevel(it.second)
         }
     }
