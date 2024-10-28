@@ -36,6 +36,8 @@ data class AstMethod(
     val probesCount: Int,
     val probesStartPos: Int,
     val bodyChecksum: String,
+    val annotations: Map<String, List<String>>? = null,
+    val classAnnotations: Map<String, List<String>>? = null,
 )
 
 /**
