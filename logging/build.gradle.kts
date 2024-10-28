@@ -16,7 +16,6 @@ version = Properties().run {
 
 val ktorVersion: String by parent!!.extra
 val logbackVersion: String by parent!!.extra
-val microutilsLoggingVersion: String by parent!!.extra
 val macosLd64: String by parent!!.extra
 
 repositories {
@@ -48,7 +47,7 @@ kotlin {
         }
         val commonMain by getting {
             dependencies {
-                api("io.github.microutils:kotlin-logging:$microutilsLoggingVersion")
+                api(project(":kotlin-logging"))
             }
         }
         val jvmMain by getting {

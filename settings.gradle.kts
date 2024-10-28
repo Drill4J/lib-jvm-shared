@@ -31,6 +31,7 @@ pluginManagement {
 }
 
 include("jvmapi")
+include("kotlin-logging")
 include("logging")
 include("common")
 include("knasm")
