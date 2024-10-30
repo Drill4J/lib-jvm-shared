@@ -13,19 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.module
+package com.epam.drill.agent.common.configuration
 
-import com.epam.drill.common.agent.AgentContext
-import com.epam.drill.common.agent.configuration.AgentConfiguration
-import com.epam.drill.common.agent.transport.AgentMessage
-import com.epam.drill.common.agent.transport.AgentMessageSender
-
-abstract class AgentModule(
-    val id: String,
-    val context: AgentContext,
-    protected val sender: AgentMessageSender<AgentMessage>,
-    protected val configuration: AgentConfiguration
-) {
-    abstract fun load()
-    open fun onConnect() = Unit
+enum class AgentType(val notation: String) {
+    JAVA("Java"),
+    DOTNET(".NET"),
+    JAVASCRIPT("JavaScript")
 }

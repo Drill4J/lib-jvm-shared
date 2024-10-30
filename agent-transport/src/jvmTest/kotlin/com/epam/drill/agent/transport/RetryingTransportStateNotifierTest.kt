@@ -23,9 +23,9 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import java.io.IOException
-import com.epam.drill.common.agent.transport.AgentMessage
-import com.epam.drill.common.agent.transport.AgentMessageDestination
-import com.epam.drill.common.agent.transport.ResponseStatus
+import com.epam.drill.agent.common.transport.AgentMessage
+import com.epam.drill.agent.common.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.ResponseStatus
 import io.mockk.ConstantAnswer
 import io.mockk.ManyAnswersAnswer
 import io.mockk.MockKAnnotations

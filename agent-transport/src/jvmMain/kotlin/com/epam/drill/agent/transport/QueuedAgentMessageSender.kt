@@ -18,10 +18,10 @@ package com.epam.drill.agent.transport
 import kotlin.concurrent.thread
 import java.io.IOException
 import mu.KotlinLogging
-import com.epam.drill.common.agent.transport.AgentMessage
-import com.epam.drill.common.agent.transport.AgentMessageDestination
-import com.epam.drill.common.agent.transport.AgentMessageSender
-import com.epam.drill.common.agent.transport.ResponseStatus
+import com.epam.drill.agent.common.transport.AgentMessage
+import com.epam.drill.agent.common.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.AgentMessageSender
+import com.epam.drill.agent.common.transport.ResponseStatus
 
 private const val TRANSPORT_ERR = "Transport is in unavailable state"
 

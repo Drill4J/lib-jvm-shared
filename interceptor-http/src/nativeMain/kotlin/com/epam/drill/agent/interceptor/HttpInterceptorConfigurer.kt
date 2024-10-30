@@ -17,8 +17,8 @@ package com.epam.drill.agent.interceptor
 
 import kotlin.native.concurrent.freeze
 import mu.KotlinLogging
-import com.epam.drill.common.agent.request.HeadersRetriever
-import com.epam.drill.common.agent.request.RequestHolder
+import com.epam.drill.agent.common.request.HeadersRetriever
+import com.epam.drill.agent.common.request.RequestHolder
 import com.epam.drill.hook.io.addInterceptor
 import com.epam.drill.hook.io.configureTcpHooks
 import com.epam.drill.hook.io.injectedHeaders

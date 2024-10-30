@@ -34,7 +34,7 @@ import javax.websocket.server.ServerEndpointConfig
 import org.glassfish.tyrus.core.TyrusServerEndpointConfigurator
 import org.glassfish.tyrus.server.Server
 import com.epam.drill.agent.instrument.TestRequestHolder
-import com.epam.drill.common.agent.request.DrillRequest
+import com.epam.drill.agent.common.request.DrillRequest
 
 @Suppress("FunctionName")
 abstract class AbstractWsClientTransformerObjectTest {

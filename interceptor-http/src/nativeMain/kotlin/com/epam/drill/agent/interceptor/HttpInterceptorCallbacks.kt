@@ -15,9 +15,9 @@
  */
 package com.epam.drill.agent.interceptor
 
-import com.epam.drill.common.agent.request.DrillRequest
-import com.epam.drill.common.agent.request.HeadersRetriever
-import com.epam.drill.common.agent.request.RequestHolder
+import com.epam.drill.agent.common.request.DrillRequest
+import com.epam.drill.agent.common.request.HeadersRetriever
+import com.epam.drill.agent.common.request.RequestHolder
 
 class HttpInterceptorCallbacks(
     private val headersRetriever: HeadersRetriever,

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.request
+package com.epam.drill.agent.common.configuration
 
-interface RequestProcessor {
-    fun processServerRequest()
-    fun processServerResponse()
+interface AgentConfiguration {
+    val agentMetadata: AgentMetadata
+    val parameters: AgentParameters
 }

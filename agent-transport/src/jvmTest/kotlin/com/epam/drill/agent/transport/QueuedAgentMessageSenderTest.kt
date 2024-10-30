@@ -22,9 +22,9 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import java.io.IOException
 import java.util.concurrent.ConcurrentLinkedQueue
-import com.epam.drill.common.agent.transport.AgentMessage
-import com.epam.drill.common.agent.transport.AgentMessageDestination
-import com.epam.drill.common.agent.transport.ResponseStatus
+import com.epam.drill.agent.common.transport.AgentMessage
+import com.epam.drill.agent.common.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.ResponseStatus
 import io.mockk.ConstantAnswer
 import io.mockk.FunctionAnswer
 import io.mockk.ManyAnswersAnswer

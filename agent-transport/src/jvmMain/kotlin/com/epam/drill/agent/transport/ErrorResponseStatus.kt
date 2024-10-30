@@ -15,7 +15,7 @@
  */
 package com.epam.drill.agent.transport
 
-import com.epam.drill.common.agent.transport.ResponseStatus
+import com.epam.drill.agent.common.transport.ResponseStatus
 
 class ErrorResponseStatus(t: Throwable) : ResponseStatus {
     override val success = false

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.common.agent.request
+package com.epam.drill.agent.common.request
 
 import kotlinx.serialization.Serializable
 

@@ -26,7 +26,7 @@ import org.simpleframework.http.core.Container
 import org.simpleframework.http.core.ContainerSocketProcessor
 import org.simpleframework.transport.connect.SocketConnection
 import com.epam.drill.agent.instrument.TestRequestHolder
-import com.epam.drill.common.agent.request.DrillRequest
+import com.epam.drill.agent.common.request.DrillRequest
 
 @Suppress("FunctionName")
 abstract class AbstractHttpClientTransformerObjectTest {

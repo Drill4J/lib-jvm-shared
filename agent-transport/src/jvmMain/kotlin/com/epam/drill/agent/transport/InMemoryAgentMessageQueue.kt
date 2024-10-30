@@ -17,7 +17,7 @@ package com.epam.drill.agent.transport
 
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
-import com.epam.drill.common.agent.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.AgentMessageDestination
 
 class InMemoryAgentMessageQueue<T>(
     private val messageSerializer: AgentMessageSerializer<*, T>,

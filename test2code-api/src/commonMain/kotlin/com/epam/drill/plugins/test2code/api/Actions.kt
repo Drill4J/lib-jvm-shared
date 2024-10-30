@@ -15,7 +15,7 @@
  */
 package com.epam.drill.plugins.test2code.api
 
-import com.epam.drill.common.agent.transport.AgentMessage
+import com.epam.drill.agent.common.transport.AgentMessage
 import kotlinx.serialization.Serializable
 
 @Serializable

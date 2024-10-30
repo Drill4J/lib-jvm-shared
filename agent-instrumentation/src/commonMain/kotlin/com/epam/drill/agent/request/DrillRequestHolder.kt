@@ -15,8 +15,8 @@
  */
 package com.epam.drill.agent.request
 
-import com.epam.drill.common.agent.request.DrillRequest
-import com.epam.drill.common.agent.request.RequestHolder
+import com.epam.drill.agent.common.request.DrillRequest
+import com.epam.drill.agent.common.request.RequestHolder
 
 expect object DrillRequestHolder : RequestHolder {
     override fun remove()

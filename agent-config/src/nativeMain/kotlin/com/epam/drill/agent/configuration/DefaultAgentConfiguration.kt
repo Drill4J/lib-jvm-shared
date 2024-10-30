@@ -15,10 +15,10 @@
  */
 package com.epam.drill.agent.configuration
 
-import com.epam.drill.common.agent.configuration.AgentConfiguration
-import com.epam.drill.common.agent.configuration.AgentMetadata
-import com.epam.drill.common.agent.configuration.AgentParameters
-import com.epam.drill.common.agent.configuration.AgentType
+import com.epam.drill.agent.common.configuration.AgentConfiguration
+import com.epam.drill.agent.common.configuration.AgentMetadata
+import com.epam.drill.agent.common.configuration.AgentParameters
+import com.epam.drill.agent.common.configuration.AgentType
 
 actual class DefaultAgentConfiguration(
     private val configurationProviders: Set<AgentConfigurationProvider>

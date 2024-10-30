@@ -16,7 +16,7 @@
 package com.epam.drill.agent.transport.http
 
 import org.apache.hc.core5.http.HttpStatus
-import com.epam.drill.common.agent.transport.ResponseStatus
+import com.epam.drill.agent.common.transport.ResponseStatus
 
 open class HttpResponseStatus(private val status: Int) : ResponseStatus {
 

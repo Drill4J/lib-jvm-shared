@@ -21,7 +21,7 @@ import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
-import com.epam.drill.common.agent.request.HeadersRetriever
+import com.epam.drill.agent.common.request.HeadersRetriever
 
 private const val HTTP_DETECTOR_BYTES_COUNT = 8
 private const val HTTP_HEADERS_SEPARATOR = "\r\n"
