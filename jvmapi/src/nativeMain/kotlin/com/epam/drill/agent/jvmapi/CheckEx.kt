@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.jvmapi
+package com.epam.drill.agent.jvmapi
 
 import mu.KotlinLogging
-import com.epam.drill.jvmapi.gen.*
+import com.epam.drill.agent.jvmapi.gen.*
 import kotlinx.cinterop.ExperimentalForeignApi
 
 @OptIn(ExperimentalForeignApi::class)

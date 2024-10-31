@@ -16,13 +16,13 @@
 package com.epam.drill.agent.instrument
 
 import kotlinx.cinterop.toBoolean
-import com.epam.drill.jvmapi.gen.CallBooleanMethod
-import com.epam.drill.jvmapi.gen.CallObjectMethod
-import com.epam.drill.jvmapi.gen.NewStringUTF
-import com.epam.drill.jvmapi.gen.jobject
-import com.epam.drill.jvmapi.getObjectMethod
-import com.epam.drill.jvmapi.toByteArray
-import com.epam.drill.jvmapi.toJByteArray
+import com.epam.drill.agent.jvmapi.gen.CallBooleanMethod
+import com.epam.drill.agent.jvmapi.gen.CallObjectMethod
+import com.epam.drill.agent.jvmapi.gen.NewStringUTF
+import com.epam.drill.agent.jvmapi.gen.jobject
+import com.epam.drill.agent.jvmapi.getObjectMethod
+import com.epam.drill.agent.jvmapi.toByteArray
+import com.epam.drill.agent.jvmapi.toJByteArray
 import kotlinx.cinterop.ExperimentalForeignApi
 
 abstract class AbstractTransformerObject : TransformerObject {

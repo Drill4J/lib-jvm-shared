@@ -20,7 +20,7 @@ import kotlin.native.concurrent.freeze
 import kotlinx.cinterop.*
 import com.epam.drill.jvmapi.checkEx
 import com.epam.drill.jvmapi.env
-import com.epam.drill.jvmapi.gen.*
+import com.epam.drill.agent.jvmapi.gen.*
 import com.epam.drill.jvmapi.jvmti
 import com.epam.drill.jvmapi.vmGlobal
 import com.epam.drill.logging.LoggingConfiguration

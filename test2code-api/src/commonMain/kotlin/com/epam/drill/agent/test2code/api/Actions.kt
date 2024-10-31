@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.plugins.test2code.api
+package com.epam.drill.agent.test2code.api
 
 import com.epam.drill.agent.common.transport.AgentMessage
 import kotlinx.serialization.Serializable

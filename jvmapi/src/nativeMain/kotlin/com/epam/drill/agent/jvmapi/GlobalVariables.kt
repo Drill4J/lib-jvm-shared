@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.jvmapi
+package com.epam.drill.agent.jvmapi
 
 import kotlin.concurrent.AtomicReference
 import kotlin.native.concurrent.freeze
@@ -26,9 +26,9 @@ import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.value
-import com.epam.drill.jvmapi.gen.JNIEnvVar
-import com.epam.drill.jvmapi.gen.JavaVMVar
-import com.epam.drill.jvmapi.gen.jvmtiEnvVar
+import com.epam.drill.agent.jvmapi.gen.JNIEnvVar
+import com.epam.drill.agent.jvmapi.gen.JavaVMVar
+import com.epam.drill.agent.jvmapi.gen.jvmtiEnvVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlin.native.concurrent.ThreadLocal
 

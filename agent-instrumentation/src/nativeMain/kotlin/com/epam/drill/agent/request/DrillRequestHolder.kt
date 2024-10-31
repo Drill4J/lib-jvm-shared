@@ -18,10 +18,10 @@ package com.epam.drill.agent.request
 import kotlinx.serialization.protobuf.ProtoBuf
 import com.epam.drill.agent.common.request.DrillRequest
 import com.epam.drill.agent.common.request.RequestHolder
-import com.epam.drill.jvmapi.callObjectByteArrayMethod
-import com.epam.drill.jvmapi.callObjectVoidMethod
-import com.epam.drill.jvmapi.callObjectVoidMethodWithBoolean
-import com.epam.drill.jvmapi.callObjectVoidMethodWithByteArray
+import com.epam.drill.agent.jvmapi.callObjectByteArrayMethod
+import com.epam.drill.agent.jvmapi.callObjectVoidMethod
+import com.epam.drill.agent.jvmapi.callObjectVoidMethodWithBoolean
+import com.epam.drill.agent.jvmapi.callObjectVoidMethodWithByteArray
 
 actual object DrillRequestHolder : RequestHolder {
 
