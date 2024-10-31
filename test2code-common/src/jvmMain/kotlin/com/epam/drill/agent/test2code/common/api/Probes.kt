@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.plugins.test2code.common.api
+package com.epam.drill.agent.test2code.common.api
 
 import java.util.*
 
