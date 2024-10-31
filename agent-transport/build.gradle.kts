@@ -17,6 +17,7 @@ version = Properties().run {
 
 val kotlinxSerializationVersion: String by parent!!.extra
 val apacheHttpClientVersion: String by parent!!.extra
+val microutilsLoggingVersion: String by parent!!.extra
 
 repositories {
     mavenCentral()
@@ -36,7 +37,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
                 implementation("org.apache.httpcomponents.client5:httpclient5:$apacheHttpClientVersion")
-                implementation(project(":logging"))
+                api("io.github.microutils:kotlin-logging:$microutilsLoggingVersion")
                 implementation(project(":common"))
             }
         }

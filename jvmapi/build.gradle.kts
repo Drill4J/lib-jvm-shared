@@ -19,6 +19,8 @@ repositories {
     mavenCentral()
 }
 
+val microutilsLoggingVersion: String by parent!!.extra
+
 kotlin {
     val configureCInterop: KotlinNativeTarget.() -> Unit = {
         compilations["main"].cinterops.create("jvmti") {
@@ -37,7 +39,7 @@ kotlin {
         }
         val commonMain by getting {
             dependencies {
-                implementation(project(":logging"))
+                api("io.github.microutils:kotlin-logging:$microutilsLoggingVersion")
             }
         }
         val nativeMain by creating {

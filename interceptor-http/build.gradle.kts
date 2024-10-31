@@ -24,6 +24,7 @@ version = Properties().run {
 
 val logbackVersion: String by parent!!.extra
 val nativeAgentLibName: String by parent!!.extra
+val microutilsLoggingVersion: String by parent!!.extra
 
 repositories {
     mavenCentral()
@@ -66,7 +67,7 @@ kotlin {
         }
         val configureNativeMainDependencies: KotlinSourceSet.() -> Unit = {
             dependencies {
-                implementation(project(":logging"))
+                api("io.github.microutils:kotlin-logging:$microutilsLoggingVersion")
                 implementation(project(":common"))
                 implementation(project(":interceptor-hook"))
             }

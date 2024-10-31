@@ -31,6 +31,9 @@ val nativeAgentLibName: String by parent!!.extra
 val macosLd64: String by parent!!.extra
 val kotlinxSerializationVersion: String by parent!!.extra
 val kotlinxCollectionsVersion: String by parent!!.extra
+val microutilsLoggingVersion: String by parent!!.extra
+val atomicfuVersion: String by parent!!.extra
+val ktorVersion: String by parent!!.extra
 
 repositories {
     mavenCentral()
@@ -75,7 +78,7 @@ kotlin {
         }
         val commonMain by getting {
             dependencies {
-                implementation(project(":logging"))
+                api("io.github.microutils:kotlin-logging:$microutilsLoggingVersion")
                 implementation(project(":common"))
             }
         }
@@ -115,6 +118,7 @@ kotlin {
         }
         val configureNativeMainDependencies: KotlinSourceSet.() -> Unit = {
             dependencies {
+                implementation("org.jetbrains.kotlinx:atomicfu:$atomicfuVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:$kotlinxCollectionsVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
                 implementation(project(":jvmapi"))
@@ -123,6 +127,8 @@ kotlin {
         val configureNativeIntTestDependencies: KotlinSourceSet.() -> Unit = {
             dependsOn(commonIntTest)
             dependencies {
+                implementation("io.ktor:ktor-utils:$ktorVersion")
+                implementation(project(":logging"))
                 implementation(project(":knasm"))
             }
         }
