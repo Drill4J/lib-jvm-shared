@@ -22,7 +22,7 @@ import com.epam.drill.agent.common.transport.AgentMessageSender
 
 abstract class AgentModule(
     val id: String,
-    val context: com.epam.drill.agent.common.AgentContext,
+    val context: AgentContext,
     protected val sender: AgentMessageSender<AgentMessage>,
     protected val configuration: AgentConfiguration
 ) {
