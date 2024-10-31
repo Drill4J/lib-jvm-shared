@@ -1,6 +1,6 @@
-package com.epam.drill.konform.validation
+package com.epam.drill.agent.konform.validation
 
-import com.epam.drill.konform.validation.internal.ValidationBuilderImpl
+import com.epam.drill.agent.konform.validation.internal.ValidationBuilderImpl
 
 interface Validation<T> {
 

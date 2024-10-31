@@ -1,7 +1,7 @@
-package com.epam.drill.konform.validation.jsonschema
+package com.epam.drill.agent.konform.validation.jsonschema
 
-import com.epam.drill.konform.validation.Constraint
-import com.epam.drill.konform.validation.ValidationBuilder
+import com.epam.drill.agent.konform.validation.Constraint
+import com.epam.drill.agent.konform.validation.ValidationBuilder
 import kotlin.math.roundToInt
 
 inline fun <reified T> ValidationBuilder<*>.type() =

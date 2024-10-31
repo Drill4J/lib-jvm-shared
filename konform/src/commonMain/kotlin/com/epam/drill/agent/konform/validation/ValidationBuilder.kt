@@ -1,11 +1,11 @@
-package com.epam.drill.konform.validation
+package com.epam.drill.agent.konform.validation
 
-import com.epam.drill.konform.validation.internal.ArrayValidation
-import com.epam.drill.konform.validation.internal.IterableValidation
-import com.epam.drill.konform.validation.internal.MapValidation
-import com.epam.drill.konform.validation.internal.OptionalValidation
-import com.epam.drill.konform.validation.internal.RequiredValidation
-import com.epam.drill.konform.validation.internal.ValidationBuilderImpl
+import com.epam.drill.agent.konform.validation.internal.ArrayValidation
+import com.epam.drill.agent.konform.validation.internal.IterableValidation
+import com.epam.drill.agent.konform.validation.internal.MapValidation
+import com.epam.drill.agent.konform.validation.internal.OptionalValidation
+import com.epam.drill.agent.konform.validation.internal.RequiredValidation
+import com.epam.drill.agent.konform.validation.internal.ValidationBuilderImpl
 import kotlin.jvm.JvmName
 //import kotlin.jvm.JvmName
 import kotlin.reflect.KProperty1

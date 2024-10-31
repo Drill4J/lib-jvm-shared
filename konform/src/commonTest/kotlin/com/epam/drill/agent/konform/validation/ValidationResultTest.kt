@@ -1,8 +1,9 @@
-package com.epam.drill.konform.validation
+package com.epam.drill.agent.konform.validation
 
-import com.epam.drill.konform.validation.jsonschema.maxLength
-import com.epam.drill.konform.validation.jsonschema.minLength
-import com.epam.drill.konform.validation.jsonschema.pattern
+import com.epam.drill.agent.konform.validation.Validation
+import com.epam.drill.agent.konform.validation.jsonschema.maxLength
+import com.epam.drill.agent.konform.validation.jsonschema.minLength
+import com.epam.drill.agent.konform.validation.jsonschema.pattern
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

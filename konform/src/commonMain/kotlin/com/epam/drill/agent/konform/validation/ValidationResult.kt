@@ -1,4 +1,4 @@
-package com.epam.drill.konform.validation
+package com.epam.drill.agent.konform.validation
 
 import kotlin.reflect.KProperty1
 

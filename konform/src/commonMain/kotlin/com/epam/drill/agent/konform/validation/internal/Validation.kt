@@ -1,10 +1,10 @@
-package com.epam.drill.konform.validation.internal
+package com.epam.drill.agent.konform.validation.internal
 
-import com.epam.drill.konform.validation.Constraint
-import com.epam.drill.konform.validation.Invalid
-import com.epam.drill.konform.validation.Valid
-import com.epam.drill.konform.validation.Validation
-import com.epam.drill.konform.validation.ValidationResult
+import com.epam.drill.agent.konform.validation.Constraint
+import com.epam.drill.agent.konform.validation.Invalid
+import com.epam.drill.agent.konform.validation.Valid
+import com.epam.drill.agent.konform.validation.Validation
+import com.epam.drill.agent.konform.validation.ValidationResult
 import kotlin.reflect.KProperty1
 
 internal class OptionalValidation<T: Any>(

@@ -1,6 +1,7 @@
-package com.epam.drill.konform.validation
+package com.epam.drill.agent.konform.validation
 
-import com.epam.drill.konform.validation.jsonschema.minItems
+import com.epam.drill.agent.konform.validation.*
+import com.epam.drill.agent.konform.validation.jsonschema.minItems
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -294,7 +295,8 @@ class ValidationBuilderTest {
         Data().let { assertEquals(Valid(it), mapValidation(it)) }
         Data(registrations = mapOf(
             "user1" to Register(email = "valid"),
-            "user2" to Register(email = "a")))
+            "user2" to Register(email = "a")
+        ))
             .let {
                 assertEquals(0, countErrors(mapValidation(it), Data::registrations, "user1", Register::email))
                 assertEquals(1, countErrors(mapValidation(it), Data::registrations, "user2", Register::email))
@@ -323,7 +325,8 @@ class ValidationBuilderTest {
         Data(emptyMap()).let { assertEquals(Valid(it), mapValidation(it)) }
         Data(registrations = mapOf(
             "user1" to Register(email = "valid"),
-            "user2" to Register(email = "a")))
+            "user2" to Register(email = "a")
+        ))
             .let {
                 assertEquals(0, countErrors(mapValidation(it), Data::registrations, "user1", Register::email))
                 assertEquals(1, countErrors(mapValidation(it), Data::registrations, "user2", Register::email))

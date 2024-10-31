@@ -1,11 +1,11 @@
-package com.epam.drill.konform.validation.internal
+package com.epam.drill.agent.konform.validation.internal
 
-import com.epam.drill.konform.validation.Constraint
-import com.epam.drill.konform.validation.Validation
-import com.epam.drill.konform.validation.ValidationBuilder
-import com.epam.drill.konform.validation.internal.ValidationBuilderImpl.Companion.PropModifier.NonNull
-import com.epam.drill.konform.validation.internal.ValidationBuilderImpl.Companion.PropModifier.Optional
-import com.epam.drill.konform.validation.internal.ValidationBuilderImpl.Companion.PropModifier.OptionalRequired
+import com.epam.drill.agent.konform.validation.Constraint
+import com.epam.drill.agent.konform.validation.Validation
+import com.epam.drill.agent.konform.validation.ValidationBuilder
+import com.epam.drill.agent.konform.validation.internal.ValidationBuilderImpl.Companion.PropModifier.NonNull
+import com.epam.drill.agent.konform.validation.internal.ValidationBuilderImpl.Companion.PropModifier.Optional
+import com.epam.drill.agent.konform.validation.internal.ValidationBuilderImpl.Companion.PropModifier.OptionalRequired
 import kotlin.collections.Map.Entry
 import kotlin.reflect.KProperty1
 
@@ -72,7 +72,7 @@ internal class ValidationBuilderImpl<T> : ValidationBuilder<T>() {
         ) : PropKey<T>() {
             override fun build(builder: ValidationBuilderImpl<*>): Validation<T> {
                 @Suppress("UNCHECKED_CAST")
-                val validations = (builder as ValidationBuilderImpl<Map.Entry<K, V>>).build()
+                val validations = (builder as ValidationBuilderImpl<Entry<K, V>>).build()
                 return when (modifier) {
                     NonNull -> NonNullPropertyValidation(property, MapValidation(validations))
                     Optional -> OptionalPropertyValidation(property, MapValidation(validations))
