@@ -23,7 +23,7 @@ import com.epam.drill.agent.common.request.RequestHolder
 import javassist.CtClass
 import mu.KotlinLogging
 
-private const val COMPATIBILITY_TEST_CLASS_NAME = "com/epam/test/drill/DrillTestContext"
+private const val COMPATIBILITY_TEST_CLASS_NAME = "com/epam/drill/compatibility/context/DrillTestContext"
 private const val DRILL_SESSION_ID_HEADER = "drill-session-id"
 
 /**
