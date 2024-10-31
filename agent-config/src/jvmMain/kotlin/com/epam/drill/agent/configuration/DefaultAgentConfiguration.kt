@@ -35,6 +35,7 @@ actual class DefaultAgentConfiguration(
         appId = parameters[DefaultParameterDefinitions.APP_ID],
         buildVersion = parameters[DefaultParameterDefinitions.BUILD_VERSION],
         commitSha = parameters[DefaultParameterDefinitions.COMMIT_SHA],
+        envId = parameters[DefaultParameterDefinitions.ENV_ID],
         instanceId = parameters[DefaultParameterDefinitions.INSTANCE_ID],
         packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES]
     )

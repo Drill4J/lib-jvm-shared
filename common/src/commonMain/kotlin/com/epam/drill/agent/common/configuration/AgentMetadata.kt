@@ -26,5 +26,6 @@ data class AgentMetadata(
     val instanceId: String,
     val commitSha: String? = null,
     val buildVersion: String? = null,
+    val envId: String? = null,
     @Transient val packagesPrefixes: List<String> = emptyList()
 ) : AgentMessage()

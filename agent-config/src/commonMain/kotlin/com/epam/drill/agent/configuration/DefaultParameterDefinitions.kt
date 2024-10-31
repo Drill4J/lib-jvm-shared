@@ -24,6 +24,7 @@ object DefaultParameterDefinitions {
     val BUILD_VERSION = AgentParameterDefinition.forString(name = "buildVersion")
     val COMMIT_SHA = AgentParameterDefinition.forString(name = "commitSha")
     val INSTANCE_ID = AgentParameterDefinition.forString(name = "instanceId")
+    val ENV_ID = AgentParameterDefinition.forString(name = "envId")
     val PACKAGE_PREFIXES = AgentParameterDefinition.forType(
         name = "packagePrefixes",
         defaultValue = emptyList(),

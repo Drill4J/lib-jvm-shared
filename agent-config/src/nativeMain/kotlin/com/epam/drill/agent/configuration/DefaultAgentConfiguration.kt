@@ -43,6 +43,7 @@ actual class DefaultAgentConfiguration(
         DefaultParameterDefinitions.BUILD_VERSION,
         DefaultParameterDefinitions.GROUP_ID,
         DefaultParameterDefinitions.COMMIT_SHA,
+        DefaultParameterDefinitions.ENV_ID,
         DefaultParameterDefinitions.PACKAGE_PREFIXES,
         DefaultParameterDefinitions.INSTALLATION_DIR,
         DefaultParameterDefinitions.CONFIG_PATH
@@ -53,6 +54,7 @@ actual class DefaultAgentConfiguration(
         appId = parameters[DefaultParameterDefinitions.APP_ID],
         buildVersion = parameters[DefaultParameterDefinitions.BUILD_VERSION],
         commitSha = parameters[DefaultParameterDefinitions.COMMIT_SHA],
+        envId = parameters[DefaultParameterDefinitions.ENV_ID],
         instanceId = parameters[DefaultParameterDefinitions.INSTANCE_ID],
         packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES]
     )
