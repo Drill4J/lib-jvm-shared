@@ -31,7 +31,7 @@ fun checkEx(errCode: UInt, funName: String): UInt {
 }
 
 @SharedImmutable
-private val logger = KotlinLogging.logger("com.epam.drill.jvmapi.CheckEx")
+private val logger = KotlinLogging.logger("com.epam.drill.agent.jvmapi.CheckEx")
 
 @OptIn(ExperimentalForeignApi::class)
 @SharedImmutable
