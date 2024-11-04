@@ -57,14 +57,14 @@ public fun agentOnLoad(
     options: String,
     reservedPtr: Long
 ): Int = memScoped {
-    com.epam.drill.jvmapi.vmGlobal.value = vmPointer.freeze()
+    com.epam.drill.agent.jvmapi.vmGlobal.value = vmPointer.freeze()
     val vm = vmPointer.pointed
     val jvmtiEnvPtr = alloc<CPointerVar<jvmtiEnvVar>>()
     vm.value!!.pointed.GetEnv!!(vm.ptr, jvmtiEnvPtr.ptr.reinterpret(),
-        com.epam.drill.jvmapi.gen.JVMTI_VERSION.convert())
-    com.epam.drill.jvmapi.jvmti.value = jvmtiEnvPtr.value
+        com.epam.drill.agent.jvmapi.gen.JVMTI_VERSION.convert())
+    com.epam.drill.agent.jvmapi.jvmti.value = jvmtiEnvPtr.value
     jvmtiEnvPtr.value.freeze()
-    com.epam.drill.core.Agent.agentOnLoad(options) // call method of class configured in gradle file using kni-block 
+    com.epam.drill.agent.Agent.agentOnLoad(options) // call method of class configured in gradle file using kni-block 
 }
 ```
 
@@ -72,7 +72,7 @@ public fun agentOnLoad(
 ```kotlin
     kni {
         jvmTargets = sequenceOf(jvm)
-        jvmtiAgentObjectPath = "com.epam.drill.core.Agent"
+        jvmtiAgentObjectPath = "com.epam.drill.agent.Agent"
         nativeCrossCompileTarget = sequenceOf(linuxX64, mingwX64, macosX64)
     }
 ```

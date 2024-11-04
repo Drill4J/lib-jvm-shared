@@ -20,7 +20,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame
-import com.epam.drill.common.agent.request.DrillRequest
+import com.epam.drill.agent.common.request.DrillRequest
 import com.epam.drill.agent.instrument.TestRequestHolder
 import com.epam.drill.agent.instrument.netty.NettyWsTestClient.CustomClientProtocolHandlerChannelInitializer
 import com.epam.drill.agent.instrument.netty.NettyWsTestClient.DefaultClientProtocolHandlerChannelInitializer

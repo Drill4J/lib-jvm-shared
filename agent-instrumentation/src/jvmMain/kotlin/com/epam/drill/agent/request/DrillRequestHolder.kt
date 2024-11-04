@@ -16,8 +16,8 @@
 package com.epam.drill.agent.request
 
 import com.alibaba.ttl.TransmittableThreadLocal
-import com.epam.drill.common.agent.request.DrillRequest
-import com.epam.drill.common.agent.request.RequestHolder
+import com.epam.drill.agent.common.request.DrillRequest
+import com.epam.drill.agent.common.request.RequestHolder
 import kotlinx.serialization.protobuf.ProtoBuf
 import mu.KotlinLogging
 

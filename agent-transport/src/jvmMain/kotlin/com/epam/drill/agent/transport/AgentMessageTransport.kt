@@ -15,13 +15,13 @@
  */
 package com.epam.drill.agent.transport
 
-import com.epam.drill.common.agent.transport.AgentMessageDestination
-import com.epam.drill.common.agent.transport.ResponseStatus
+import com.epam.drill.agent.common.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.ResponseStatus
 
 /**
  * A transport interface for serialized messages.
  *
- * It's used to send serialized [com.epam.drill.common.agent.transport.AgentMessage]
+ * It's used to send serialized [com.epam.drill.agent.common.transport.AgentMessage]
  * to transport-specific [AgentMessageDestination]. Serialization and destination mapping should be done
  * by [AgentMessageSerializer] and [AgentMessageDestinationMapper] correspondingly.
  * In case of transport errors messages may be stored in [AgentMessageQueue] for subsequent retries.
@@ -30,7 +30,7 @@ import com.epam.drill.common.agent.transport.ResponseStatus
  * @see AgentMessageSerializer
  * @see AgentMessageDestinationMapper
  * @see AgentMessageQueue
- * @see com.epam.drill.common.agent.transport.AgentMessage
+ * @see com.epam.drill.agent.common.transport.AgentMessage
  */
 interface AgentMessageTransport<T> {
     fun send(destination: AgentMessageDestination, message: T, contentType: String = ""): ResponseStatus

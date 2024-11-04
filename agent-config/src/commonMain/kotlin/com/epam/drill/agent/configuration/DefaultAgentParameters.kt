@@ -16,8 +16,8 @@
 package com.epam.drill.agent.configuration
 
 import kotlin.reflect.KProperty
-import com.epam.drill.common.agent.configuration.AgentParameterDefinition
-import com.epam.drill.common.agent.configuration.AgentParameters
+import com.epam.drill.agent.common.configuration.AgentParameterDefinition
+import com.epam.drill.agent.common.configuration.AgentParameters
 
 expect class DefaultAgentParameters(
     inputParameters: Map<String, String>

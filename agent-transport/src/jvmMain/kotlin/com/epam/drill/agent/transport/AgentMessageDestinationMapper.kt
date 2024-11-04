@@ -15,20 +15,20 @@
  */
 package com.epam.drill.agent.transport
 
-import com.epam.drill.common.agent.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.AgentMessageDestination
 
 /**
  * A destination mapper interface for mapping [AgentMessageDestination]
  * from common form to transport specific form.
  *
  * It's used to map [AgentMessageDestination] in the same time as
- * [com.epam.drill.common.agent.transport.AgentMessage] serialization
+ * [com.epam.drill.agent.common.transport.AgentMessage] serialization
  * before storing in [AgentMessageQueue] or sending by [AgentMessageTransport].
  *
  * @see AgentMessageDestination
  * @see AgentMessageQueue
  * @see AgentMessageTransport
- * @see com.epam.drill.common.agent.transport.AgentMessage
+ * @see com.epam.drill.agent.common.transport.AgentMessage
  */
 interface AgentMessageDestinationMapper {
     fun map(destination: AgentMessageDestination): AgentMessageDestination

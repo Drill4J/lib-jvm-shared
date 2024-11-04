@@ -18,9 +18,9 @@ package com.epam.drill.agent.instrument
 import java.util.Objects
 import mu.KLogger
 import mu.KotlinLogging
-import com.epam.drill.common.agent.request.DrillRequest
-import com.epam.drill.common.agent.request.HeadersRetriever
-import com.epam.drill.common.agent.request.RequestHolder
+import com.epam.drill.agent.common.request.DrillRequest
+import com.epam.drill.agent.common.request.HeadersRetriever
+import com.epam.drill.agent.common.request.RequestHolder
 
 open class DrillRequestHeadersProcessor(
     private val headersRetriever: HeadersRetriever,

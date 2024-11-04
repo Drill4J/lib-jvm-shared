@@ -18,7 +18,7 @@ package com.epam.drill.agent.instrument.reactor.transformers
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.TransformerObject
 import com.epam.drill.agent.instrument.reactor.PublisherAssembler
-import com.epam.drill.common.agent.request.RequestHolder
+import com.epam.drill.agent.common.request.RequestHolder
 import javassist.CtBehavior
 import javassist.CtClass
 import mu.KotlinLogging

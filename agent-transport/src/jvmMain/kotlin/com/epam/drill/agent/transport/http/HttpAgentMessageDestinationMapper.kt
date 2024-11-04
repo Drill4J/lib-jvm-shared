@@ -17,7 +17,7 @@ package com.epam.drill.agent.transport.http
 
 import java.lang.UnsupportedOperationException
 import com.epam.drill.agent.transport.AgentMessageDestinationMapper
-import com.epam.drill.common.agent.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.AgentMessageDestination
 
 class HttpAutotestAgentMessageDestinationMapper(
     private val groupId: String,

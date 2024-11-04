@@ -9,7 +9,7 @@ plugins {
     id("com.github.hierynomus.license")
 }
 
-group = "com.epam.drill"
+group = "com.epam.drill.agent"
 version = Properties().run {
     projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
     getProperty("version.$name") ?: Project.DEFAULT_VERSION
@@ -18,6 +18,8 @@ version = Properties().run {
 repositories {
     mavenCentral()
 }
+
+val microutilsLoggingVersion: String by parent!!.extra
 
 kotlin {
     val configureCInterop: KotlinNativeTarget.() -> Unit = {
@@ -37,7 +39,7 @@ kotlin {
         }
         val commonMain by getting {
             dependencies {
-                implementation(project(":logging"))
+                api("io.github.microutils:kotlin-logging:$microutilsLoggingVersion")
             }
         }
         val nativeMain by creating {

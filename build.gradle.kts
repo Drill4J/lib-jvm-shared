@@ -12,7 +12,7 @@ plugins {
     id("com.google.protobuf").apply(false)
 }
 
-group = "com.epam.drill"
+group = "com.epam.drill.agent"
 
 repositories {
     mavenCentral()

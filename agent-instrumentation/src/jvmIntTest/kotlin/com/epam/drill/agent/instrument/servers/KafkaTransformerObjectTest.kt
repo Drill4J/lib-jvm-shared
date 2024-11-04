@@ -44,7 +44,7 @@ import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit4.SpringRunner
 import com.epam.drill.agent.instrument.TestRequestHolder
-import com.epam.drill.common.agent.request.DrillRequest
+import com.epam.drill.agent.common.request.DrillRequest
 
 @RunWith(SpringRunner::class)
 @EmbeddedKafka(

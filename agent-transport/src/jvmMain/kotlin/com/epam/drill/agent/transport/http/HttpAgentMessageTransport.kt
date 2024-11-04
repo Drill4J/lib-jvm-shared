@@ -35,7 +35,7 @@ import org.apache.hc.core5.http.message.BasicHeader
 import org.apache.hc.core5.ssl.SSLContextBuilder
 import mu.KotlinLogging
 import com.epam.drill.agent.transport.AgentMessageTransport
-import com.epam.drill.common.agent.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.AgentMessageDestination
 
 private const val HEADER_DRILL_INTERNAL = "drill-internal"
 private const val HEADER_API_KEY = "X-Api-Key"

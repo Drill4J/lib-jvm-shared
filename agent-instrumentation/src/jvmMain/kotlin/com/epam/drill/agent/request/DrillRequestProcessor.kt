@@ -16,7 +16,7 @@
 package com.epam.drill.agent.request
 
 import com.epam.drill.agent.module.JvmModuleStorage
-import com.epam.drill.common.agent.request.RequestProcessor
+import com.epam.drill.agent.common.request.RequestProcessor
 
 object DrillRequestProcessor : RequestProcessor {
 

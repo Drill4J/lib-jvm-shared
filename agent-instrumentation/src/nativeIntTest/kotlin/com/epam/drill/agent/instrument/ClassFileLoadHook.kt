@@ -26,10 +26,10 @@ import com.epam.drill.agent.instrument.transformers.jetty.*
 import com.epam.drill.agent.instrument.transformers.netty.*
 import com.epam.drill.agent.instrument.transformers.tomcat.*
 import com.epam.drill.agent.instrument.transformers.undertow.*
-import com.epam.drill.jvmapi.gen.Allocate
-import com.epam.drill.jvmapi.gen.jint
-import com.epam.drill.jvmapi.gen.jintVar
-import com.epam.drill.jvmapi.gen.jobject
+import com.epam.drill.agent.jvmapi.gen.Allocate
+import com.epam.drill.agent.jvmapi.gen.jint
+import com.epam.drill.agent.jvmapi.gen.jintVar
+import com.epam.drill.agent.jvmapi.gen.jobject
 
 object ClassFileLoadHook {
 

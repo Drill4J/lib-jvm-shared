@@ -20,7 +20,7 @@ import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
-import com.epam.drill.common.agent.request.HeadersRetriever
+import com.epam.drill.agent.common.request.HeadersRetriever
 
 /**
  * Transformer for simple Netty-based web servers

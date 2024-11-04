@@ -15,8 +15,8 @@
  */
 package com.epam.drill.agent.instrument.reactor
 
-import com.epam.drill.common.agent.request.DrillRequest
-import com.epam.drill.common.agent.request.RequestHolder
+import com.epam.drill.agent.common.request.DrillRequest
+import com.epam.drill.agent.common.request.RequestHolder
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}

@@ -15,8 +15,8 @@
  */
 package com.epam.drill.agent.transport
 
-import com.epam.drill.common.agent.transport.AgentMessage
-import com.epam.drill.common.agent.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.AgentMessage
+import com.epam.drill.agent.common.transport.AgentMessageDestination
 
 /**
  * A message serializer interface for [AgentMessage] serialization before sending by [AgentMessageTransport].

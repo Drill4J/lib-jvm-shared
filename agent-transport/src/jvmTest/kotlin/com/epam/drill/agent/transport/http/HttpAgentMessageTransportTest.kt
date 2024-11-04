@@ -33,7 +33,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClientBuilder
 import org.apache.hc.core5.http.ClassicHttpRequest
 import org.apache.hc.core5.http.HttpHeaders
 import org.apache.hc.core5.http.io.HttpClientResponseHandler
-import com.epam.drill.common.agent.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.AgentMessageDestination
 import io.mockk.slot
 
 class HttpAgentMessageTransportTest {

@@ -4,7 +4,7 @@ plugins {
     kotlin("multiplatform")
 }
 
-group = "com.epam.drill"
+group = "com.epam.drill.agent"
 version = Properties().run {
     projectDir.parentFile.resolve("versions.properties").reader().use { load(it) }
     getProperty("version.$name") ?: Project.DEFAULT_VERSION

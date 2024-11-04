@@ -20,16 +20,16 @@ package com.epam.drill.agent.instrument
 import kotlin.concurrent.AtomicReference
 import kotlin.native.concurrent.freeze
 import kotlinx.cinterop.*
-import com.epam.drill.jvmapi.callNativeStringMethod
-import com.epam.drill.jvmapi.callObjectVoidMethod
-import com.epam.drill.jvmapi.callObjectVoidMethodWithInt
-import com.epam.drill.jvmapi.callObjectVoidMethodWithString
-import com.epam.drill.jvmapi.checkEx
-import com.epam.drill.jvmapi.env
-import com.epam.drill.jvmapi.gen.*
-import com.epam.drill.jvmapi.jvmti
-import com.epam.drill.jvmapi.vmGlobal
-import com.epam.drill.logging.LoggingConfiguration
+import com.epam.drill.agent.jvmapi.callNativeStringMethod
+import com.epam.drill.agent.jvmapi.callObjectVoidMethod
+import com.epam.drill.agent.jvmapi.callObjectVoidMethodWithInt
+import com.epam.drill.agent.jvmapi.callObjectVoidMethodWithString
+import com.epam.drill.agent.jvmapi.checkEx
+import com.epam.drill.agent.jvmapi.env
+import com.epam.drill.agent.jvmapi.gen.*
+import com.epam.drill.agent.jvmapi.jvmti
+import com.epam.drill.agent.jvmapi.vmGlobal
+import com.epam.drill.agent.logging.LoggingConfiguration
 import kotlin.experimental.ExperimentalNativeApi
 
 @SharedImmutable

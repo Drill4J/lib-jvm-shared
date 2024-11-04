@@ -21,8 +21,8 @@ import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.reactor.PropagatedDrillRequestCallable
 import com.epam.drill.agent.instrument.reactor.PropagatedDrillRequestRunnable
-import com.epam.drill.common.agent.request.DrillRequest
-import com.epam.drill.common.agent.request.RequestHolder
+import com.epam.drill.agent.common.request.DrillRequest
+import com.epam.drill.agent.common.request.RequestHolder
 
 abstract class TaskExecutorTransformerObject : RequestHolder, AbstractTransformerObject() {
 

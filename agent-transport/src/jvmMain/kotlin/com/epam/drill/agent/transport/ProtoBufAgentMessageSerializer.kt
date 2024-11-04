@@ -17,8 +17,8 @@ package com.epam.drill.agent.transport
 
 import kotlinx.serialization.protobuf.ProtoBuf
 import kotlinx.serialization.serializer
-import com.epam.drill.common.agent.transport.AgentMessage
-import com.epam.drill.common.agent.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.AgentMessage
+import com.epam.drill.agent.common.transport.AgentMessageDestination
 
 class ProtoBufAgentMessageSerializer<M : AgentMessage> : AgentMessageSerializer<M, ByteArray> {
     override fun contentType(): String = "application/protobuf"

@@ -22,13 +22,13 @@ package com.epam.drill.agent.transport
  * For stateful transports [AgentMessageTransport] itself may be [TransportStateNotifier].
  * For stateless transports separate instance of [TransportStateNotifier] may check state in retrying threads.
  *
- * It's used to notify [com.epam.drill.common.agent.transport.AgentMessageSender]
+ * It's used to notify [com.epam.drill.agent.common.transport.AgentMessageSender]
  * that has [TransportStateListener] implementation about [AgentMessageTransport]
  * state changes.
  *
  * @see TransportStateListener
  * @see AgentMessageTransport
- * @see com.epam.drill.common.agent.transport.AgentMessageSender
+ * @see com.epam.drill.agent.common.transport.AgentMessageSender
  */
 interface TransportStateNotifier {
     fun addStateListener(listener: TransportStateListener)
