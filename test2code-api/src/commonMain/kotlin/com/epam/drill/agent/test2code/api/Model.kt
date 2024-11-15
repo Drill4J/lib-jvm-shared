@@ -49,6 +49,14 @@ data class TestDetails @JvmOverloads constructor(
         return toString().compareTo(other.toString())
     }
 
+    override fun equals(other: Any?): Boolean {
+        return if (other is TestDetails) compareTo(other) == 0 else false
+    }
+
+    override fun hashCode(): Int {
+        return toString().hashCode()
+    }
+
     override fun toString(): String {
         return "engine='$engine', path='$path', testName='$testName', params=$params"
     }
