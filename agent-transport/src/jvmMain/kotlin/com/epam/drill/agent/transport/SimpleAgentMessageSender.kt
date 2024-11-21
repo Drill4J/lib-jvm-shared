@@ -20,7 +20,7 @@ import com.epam.drill.agent.common.transport.AgentMessageDestination
 import com.epam.drill.agent.common.transport.AgentMessageSender
 
 open class SimpleAgentMessageSender<M : AgentMessage, T>(
-    private val transport: AgentMessageTransport<T>,
+    private val transport: AgentMessageTransport<T, ByteArray>,
     private val messageSerializer: AgentMessageSerializer<M, T>,
     private val destinationMapper: AgentMessageDestinationMapper
 ) : AgentMessageSender<M> {

@@ -15,7 +15,9 @@
  */
 package com.epam.drill.agent.transport.http
 
+import com.epam.drill.agent.common.transport.ResponseContent
+
 class HttpResponseContent<T>(
     status: Int,
-    val content: T
-) : HttpResponseStatus(status)
+    override val content: T
+) : HttpResponseStatus(status), ResponseContent<T>

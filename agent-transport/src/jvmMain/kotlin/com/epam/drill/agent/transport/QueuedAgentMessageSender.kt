@@ -48,7 +48,7 @@ private const val TRANSPORT_ERR = "Transport is in unavailable state"
  * @see TransportStateListener
  */
 open class QueuedAgentMessageSender<M : AgentMessage, T>(
-    private val transport: AgentMessageTransport<T>,
+    private val transport: AgentMessageTransport<T, ByteArray>,
     private val messageSerializer: AgentMessageSerializer<M, T>,
     private val destinationMapper: AgentMessageDestinationMapper,
     transportStateNotifier: TransportStateNotifier,

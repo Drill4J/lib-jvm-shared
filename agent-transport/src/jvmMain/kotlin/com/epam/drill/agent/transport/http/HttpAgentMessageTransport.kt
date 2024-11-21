@@ -36,6 +36,7 @@ import org.apache.hc.core5.ssl.SSLContextBuilder
 import mu.KotlinLogging
 import com.epam.drill.agent.transport.AgentMessageTransport
 import com.epam.drill.agent.common.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.ResponseContent
 
 private const val HEADER_DRILL_INTERNAL = "drill-internal"
 private const val HEADER_API_KEY = "X-Api-Key"
@@ -48,7 +49,7 @@ class HttpAgentMessageTransport(
     drillInternal: Boolean = true,
     private val gzipCompression: Boolean = true,
     private val receiveContent: Boolean = false
-) : AgentMessageTransport<ByteArray> {
+) : AgentMessageTransport<ByteArray, ByteArray> {
 
     private val logger = KotlinLogging.logger {}
     private val clientBuilder = HttpClientBuilder.create()
@@ -82,7 +83,7 @@ class HttpAgentMessageTransport(
 
     override fun send(
         destination: AgentMessageDestination,
-        message: ByteArray,
+        message: ByteArray?,
         contentType: String
     ) = clientBuilder.build().use { client ->
         val request = when (destination.type) {
@@ -96,19 +97,27 @@ class HttpAgentMessageTransport(
         drillInternalHeader?.also(request::setHeader)
         apiKeyHeader?.also(request::setHeader)
         request.setHeader(HttpHeaders.CONTENT_TYPE, mimeType)
-        request.entity = ByteArrayEntity(message, getContentType(mimeType))
-        if (gzipCompression) {
-            request.setHeader(HttpHeaders.CONTENT_ENCODING, "gzip")
-            request.entity = GzipCompressingEntity(request.entity)
+        if (message != null) {
+            request.entity = ByteArrayEntity(message, getContentType(mimeType))
+            if (gzipCompression) {
+                request.setHeader(HttpHeaders.CONTENT_ENCODING, "gzip")
+                request.entity = GzipCompressingEntity(request.entity)
+            }
         }
         logger.trace {
-            val messageAsString = "\n${message.decodeToString().prependIndent("\t")}"
+            val messageAsString = "\n${message?.decodeToString()?.prependIndent("\t")}"
             "execute: Request to ${request.uri}, method: ${request.method}: $messageAsString"
         }
         if (receiveContent)
             client.execute(request, ::contentResponseHandler)!!
         else
             client.execute(request, ::statusResponseHandler)!!
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun send(destination: AgentMessageDestination, message: ByteArray?) = send(destination, message, "").run {
+        if (this is ResponseContent<*>) this as ResponseContent<ByteArray>
+        else HttpResponseContent(statusObject, ByteArray(0))
     }
 
     private fun contentResponseHandler(response: ClassicHttpResponse) =

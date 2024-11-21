@@ -16,6 +16,7 @@
 package com.epam.drill.agent.transport
 
 import com.epam.drill.agent.common.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.ResponseContent
 import com.epam.drill.agent.common.transport.ResponseStatus
 
 /**
@@ -32,6 +33,7 @@ import com.epam.drill.agent.common.transport.ResponseStatus
  * @see AgentMessageQueue
  * @see com.epam.drill.agent.common.transport.AgentMessage
  */
-interface AgentMessageTransport<T> {
-    fun send(destination: AgentMessageDestination, message: T, contentType: String = ""): ResponseStatus
+interface AgentMessageTransport<T,R> {
+    fun send(destination: AgentMessageDestination, message: T? = null, contentType: String = ""): ResponseStatus
+    fun send(destination: AgentMessageDestination, message: T? = null): ResponseContent<R>
 }
