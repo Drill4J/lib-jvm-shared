@@ -15,274 +15,197 @@
  */
 package com.epam.drill.agent.transport
 
-import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
-import java.io.IOException
-import java.util.concurrent.ConcurrentLinkedQueue
 import com.epam.drill.agent.common.transport.AgentMessage
 import com.epam.drill.agent.common.transport.AgentMessageDestination
 import com.epam.drill.agent.common.transport.ResponseStatus
-import io.mockk.ConstantAnswer
-import io.mockk.FunctionAnswer
-import io.mockk.ManyAnswersAnswer
-import io.mockk.MockKAnnotations
-import io.mockk.ThrowingAnswer
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import io.mockk.verify
+import org.junit.Before
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
+import kotlin.test.assertEquals
 
 class QueuedAgentMessageSenderTest {
 
     private class TestAgentMessage(val msg: String) : AgentMessage()
 
     @MockK
-    private lateinit var messageTransport: AgentMessageTransport<String>
+    private lateinit var messageTransport: AgentMessageTransport
+
     @MockK
-    private lateinit var responseStatus: ResponseStatus
-    @MockK
-    private lateinit var messageSerializer: AgentMessageSerializer<AgentMessage, String>
+    private lateinit var messageSerializer: AgentMessageSerializer<AgentMessage>
+
     @MockK
     private lateinit var destinationMapper: AgentMessageDestinationMapper
-    @MockK
-    private lateinit var stateNotifier: TransportStateNotifier
-    @MockK
-    private lateinit var stateListener: TransportStateListener
-    @MockK
-    private lateinit var messageQueue: InMemoryAgentMessageQueue<String>
 
-    private lateinit var sender: QueuedAgentMessageSender<AgentMessage, String>
+    @MockK
+    private lateinit var messageQueue: AgentMessageQueue<ByteArray>
+
+    @MockK
+    private lateinit var messageSendingListener: MessageSendingListener
+
+    private lateinit var sender: QueuedAgentMessageSender<AgentMessage>
 
     private val incomingMessage = mutableListOf<TestAgentMessage>()
     private val incomingDestinations = mutableListOf<AgentMessageDestination>()
-    private val toSendMessages = mutableListOf<String>()
+    private val toSendMessages = mutableListOf<ByteArray>()
     private val toSendContentTypes = mutableListOf<String>()
     private val toSendDestinations = mutableListOf<AgentMessageDestination>()
-    private val queuedPairs = mutableListOf<Pair<AgentMessageDestination, String>>()
+    private val unsentMessages = mutableListOf<ByteArray>()
+    private val unsentDestinations = mutableListOf<AgentMessageDestination>()
+    private val sentMessages = mutableListOf<ByteArray>()
+    private val sentDestinations = mutableListOf<AgentMessageDestination>()
+    private val queueOffers = mutableListOf<Boolean>()
+    private val queuePolls = mutableListOf<Pair<AgentMessageDestination, ByteArray>?>()
+    private val queue: BlockingQueue<Pair<AgentMessageDestination, ByteArray>> = LinkedBlockingQueue(10)
 
-    @BeforeTest
+    @Suppress("UNCHECKED_CAST")
+    @Before
     fun setup() = MockKAnnotations.init(this).also {
-        val serialize: (TestAgentMessage) -> String = {
-            "serialized-${it.msg}"
-        }
-        val mapDestination: (AgentMessageDestination) -> AgentMessageDestination = {
-            AgentMessageDestination("MAP", "mapped-${it.target}")
-        }
-        every { messageSerializer.serialize(capture(incomingMessage)) } answers
-                FunctionAnswer { serialize(it.invocation.args[0] as TestAgentMessage) }
-        every { messageSerializer.contentType() } returns "test/test"
-        every { destinationMapper.map(capture(incomingDestinations)) } answers
-                FunctionAnswer { mapDestination(it.invocation.args[0] as AgentMessageDestination) }
-        every { stateNotifier.addStateListener(any()) } returns Unit
-        every { stateListener.onStateFailed() } returns Unit
-        every { messageQueue.offer(capture(queuedPairs)) } returns true
-
-        sender = QueuedAgentMessageSender(messageTransport, messageSerializer, destinationMapper,
-            stateNotifier, stateListener, messageQueue)
-
         incomingMessage.clear()
         incomingDestinations.clear()
         toSendMessages.clear()
         toSendContentTypes.clear()
         toSendDestinations.clear()
-        queuedPairs.clear()
+        unsentDestinations.clear()
+        unsentMessages.clear()
+        sentDestinations.clear()
+        sentMessages.clear()
+        queueOffers.clear()
+        queuePolls.clear()
+        queue.clear()
+
+        val serialize: (TestAgentMessage) -> ByteArray = {
+            "serialized-${it.msg}".encodeToByteArray()
+        }
+        val mapDestination: (AgentMessageDestination) -> AgentMessageDestination = {
+            AgentMessageDestination("MAP", "mapped-${it.target}")
+        }
+        every { messageSerializer.serialize(capture(incomingMessage)) } answers FunctionAnswer {
+            serialize(it.invocation.args[0] as TestAgentMessage)
+        }
+        every { messageSerializer.contentType() } returns "test/test"
+        every { destinationMapper.map(capture(incomingDestinations)) } answers FunctionAnswer {
+            mapDestination(it.invocation.args[0] as AgentMessageDestination)
+        }
+        every { messageSendingListener.onUnsent(capture(unsentDestinations), capture(unsentMessages)) } returns Unit
+        every { messageSendingListener.onSent(capture(sentDestinations), capture(sentMessages)) } returns Unit
+        every { messageQueue.size() } answers FunctionAnswer { queue.size }
+        every { messageQueue.poll(any(), any()) } answers FunctionAnswer {
+            queue.poll(1, TimeUnit.SECONDS).also(queuePolls::add)
+        }
+        every { messageQueue.offer(any()) } answers FunctionAnswer {
+            queue.offer(it.invocation.args[0] as Pair<AgentMessageDestination, ByteArray>).also(queueOffers::add)
+        }
+
+        sender = QueuedAgentMessageSender(
+            messageTransport,
+            messageSerializer,
+            destinationMapper,
+            messageQueue,
+            messageSendingListener,
+            StubExponentialBackoff()
+        )
     }
 
     @Test
-    fun `sending successful for ok response`() {
-        every { responseStatus.success } returns true
-        every {messageTransport.send(
-            capture(toSendDestinations),
-            capture(toSendMessages),
-            capture(toSendContentTypes)
-        )} returns responseStatus
+    fun `given ok response, QueuedAgentMessageSender should send messages`() {
+        every { messageTransportSending() } returns ResponseStatus(true)
 
-        val responses = mutableListOf<ResponseStatus>()
-        for (i in 0..9) sender.send(AgentMessageDestination("TYPE", "target-$i"), TestAgentMessage("message-$i"))
-            .also(responses::add)
-
-        for (i in 0..9) {
-            assertTrue(responses[i].success)
-
-            assertEquals("TYPE", incomingDestinations[i].type)
-            assertEquals("target-$i", incomingDestinations[i].target)
-            assertEquals("message-$i", incomingMessage[i].msg)
-
-            assertEquals("MAP", toSendDestinations[i].type)
-            assertEquals("mapped-target-$i", toSendDestinations[i].target)
-            assertEquals("serialized-message-$i", toSendMessages[i])
-            assertEquals("test/test", toSendContentTypes[i])
+        repeat(10) {
+            sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"))
         }
+        sender.shutdown()
 
-        verifyInitialization()
-        verifyMethodCalls(receive = 10, send = 10, queue = 0, dequeue = 0, failed = 0)
+        verifyMethodCalls(calls = 10, sendingAttempts = 10, enqueued = 10, dequeued = 10, sent = 10, unsent = 0)
     }
 
     @Test
-    fun `sending successful for error response`() {
-        every { responseStatus.success } returns false
-        every { messageTransport.send(
-            capture(toSendDestinations),
-            capture(toSendMessages),
-            capture(toSendContentTypes)
-        )} returns responseStatus
+    fun `given bad response, QueuedAgentMessageSender shouldn't send messages`() {
+        every { messageTransportSending() } returns ResponseStatus(false)
 
-        val responses = mutableListOf<ResponseStatus>()
-        for (i in 0..9) sender.send(AgentMessageDestination("TYPE", "target-$i"), TestAgentMessage("message-$i"))
-            .also(responses::add)
-
-        for (i in 0..9) {
-            assertFalse(responses[i].success)
-
-            assertEquals("TYPE", incomingDestinations[i].type)
-            assertEquals("target-$i", incomingDestinations[i].target)
-            assertEquals("message-$i", incomingMessage[i].msg)
-
-            assertEquals("MAP", toSendDestinations[i].type)
-            assertEquals("mapped-target-$i", toSendDestinations[i].target)
-            assertEquals("serialized-message-$i", toSendMessages[i])
-            assertEquals("test/test", toSendContentTypes[i])
+        repeat(10) {
+            sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"))
         }
+        sender.shutdown()
 
-        verifyInitialization()
-        verifyMethodCalls(receive = 10, send = 10, queue = 0, dequeue = 0, failed = 0)
+        verifyMethodCalls(calls = 10, sendingAttempts = 50, enqueued = 10, dequeued = 10, sent = 0, unsent = 10)
     }
 
     @Test
-    fun `sending queued for exception response`() {
-        every {messageTransport.send(
-            capture(toSendDestinations),
-            capture(toSendMessages),
-            capture(toSendContentTypes)
-        )} answers ThrowingAnswer(IOException())
+    fun `given shutdown state, QueuedAgentMessageSender shouldn't add messages to queue`() {
+        every { messageTransportSending() } returns ResponseStatus(true)
 
-        val responses = mutableListOf<ResponseStatus>()
-        for (i in 0..9) sender.send(AgentMessageDestination("TYPE", "target-$i"), TestAgentMessage("message-$i"))
-            .also(responses::add)
-
-        assertEquals("MAP", toSendDestinations[0].type)
-        assertEquals("mapped-target-0", toSendDestinations[0].target)
-        assertEquals("serialized-message-0", toSendMessages[0])
-        assertEquals("test/test", toSendContentTypes[0])
-
-        for (i in 0..9) {
-            assertFalse(responses[i].success)
-
-            assertEquals("TYPE", incomingDestinations[i].type)
-            assertEquals("target-$i", incomingDestinations[i].target)
-            assertEquals("message-$i", incomingMessage[i].msg)
-
-            assertEquals("MAP", queuedPairs[i].first.type)
-            assertEquals("mapped-target-$i", queuedPairs[i].first.target)
-            assertEquals("serialized-message-$i", queuedPairs[i].second)
+        sender.shutdown() //shutdown before sending messages
+        repeat(10) {
+            sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"))
         }
 
-        verifyInitialization()
-        verifyMethodCalls(receive = 10, send = 1, queue = 10, dequeue = 0, failed = 1)
+        verifyMethodCalls(calls = 10, sendingAttempts = 0, enqueued = 0, dequeued = 0, sent = 0, unsent = 10)
     }
 
     @Test
-    fun `queue sent successful after state-alive`() {
-        every { responseStatus.success } returns true
-        every { messageTransport.send(
-            capture(toSendDestinations),
-            capture(toSendMessages),
-            capture(toSendContentTypes)
-        )} returns responseStatus
-        fillMessageQueue(10)
+    fun `given limit on queue capacity, QueuedAgentMessageSender shouldn't add messages to queue`() {
+        every { messageTransportSending() } returns ResponseStatus(true)
+        every { messageQueue.offer(any()) } returns false //queue is full
 
-        sender.onStateAlive()
-        sender.sendingThread?.join(5000)
+        repeat(10) {
+            sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"))
+        }
+        sender.shutdown()
 
-        for (i in 0..9) {
-            assertEquals("MAP", toSendDestinations[i].type)
-            assertEquals("queued-target-$i", toSendDestinations[i].target)
-            assertEquals("queued-message-$i", toSendMessages[i])
-            assertEquals("test/test", toSendContentTypes[i])
+        verifyMethodCalls(calls = 10, sendingAttempts = 0, enqueued = 0, dequeued = 0, sent = 0, unsent = 10)
+    }
+
+    private fun verifyMethodCalls(
+        calls: Int? = null,
+        sendingAttempts: Int? = null,
+        enqueued: Int? = null,
+        dequeued: Int? = null,
+        sent: Int? = null,
+        unsent: Int? = null
+    ) {
+        calls?.let { verify(exactly = it) { messageSerializer.serialize(any()) } }
+        calls?.let { verify(exactly = it) { destinationMapper.map(any()) } }
+        enqueued?.let {
+            if (it > 0) verify(atLeast = it) { messageQueue.offer(any()) }
+            assertEquals(it, queueOffers.filter { o -> o }.size)
+        }
+        dequeued?.let {
+            if (it > 0) verify(atLeast = it) { messageQueue.poll(any(), any()) }
+            assertEquals(it, queuePolls.filterNotNull().size)
         }
 
-        verifyInitialization()
-        verifyMethodCalls(receive = 0, send = 10, queue = 0, dequeue = 10, failed = 0)
+        sendingAttempts?.let { verify(exactly = it) { messageTransport.send(any(), any(), any()) } }
+        sent?.let { verify(exactly = it) { messageSendingListener.onSent(any(), any()) } }
+        unsent?.let { verify(exactly = it) { messageSendingListener.onUnsent(any(), any()) } }
     }
 
-    @Test
-    fun `queue send failed after state-alive`() {
-        every { responseStatus.success } returns true
-        every { messageTransport.send(
-            capture(toSendDestinations),
-            capture(toSendMessages),
-            capture(toSendContentTypes)
-        )} answers ThrowingAnswer(IOException())
-        fillMessageQueue(10)
+    private fun MockKMatcherScope.messageTransportSending() = messageTransport.send(
+        capture(toSendDestinations),
+        capture(toSendMessages),
+        capture(toSendContentTypes)
+    )
 
-        sender.onStateAlive()
-        sender.sendingThread?.join(5000)
-
-        assertEquals("MAP", toSendDestinations[0].type)
-        assertEquals("queued-target-0", toSendDestinations[0].target)
-        assertEquals("queued-message-0", toSendMessages[0])
-        assertEquals("test/test", toSendContentTypes[0])
-
-        verifyInitialization()
-        verifyMethodCalls(receive = 0, send = 1, queue = 0, dequeue = 0, failed = 1)
-    }
-
-    @Test
-    fun `queue send partially after state-alive`() {
-        every { responseStatus.success } returns true
-        every { messageTransport.send(
-            capture(toSendDestinations),
-            capture(toSendMessages),
-            capture(toSendContentTypes)
-        )} answers ManyAnswersAnswer(listOf(
-            ConstantAnswer(responseStatus),
-            ConstantAnswer(responseStatus),
-            ConstantAnswer(responseStatus),
-            ThrowingAnswer(IOException())
-        ))
-        fillMessageQueue(10)
-
-        sender.onStateAlive()
-        sender.sendingThread?.join(5000)
-
-        for (i in 0..3) {
-            assertEquals("MAP", toSendDestinations[i].type)
-            assertEquals("queued-target-$i", toSendDestinations[i].target)
-            assertEquals("queued-message-$i", toSendMessages[i])
-            assertEquals("test/test", toSendContentTypes[i])
+    private class StubExponentialBackoff : ExponentialBackoff {
+        override fun tryWithExponentialBackoff(
+            initDelay: Long,
+            baseDelay: Long,
+            maxDelay: Long,
+            factor: Double,
+            maxRetries: Int,
+            onSleep: (Long) -> Unit,
+            operation: (Int, Long) -> Boolean
+        ): Boolean {
+            var attempts = 0
+            var result: Boolean
+            do {
+                result = operation(0, 0)
+                attempts++
+            } while (attempts < maxRetries && !result)
+            return result
         }
-
-        verifyInitialization()
-        verifyMethodCalls(receive = 0, send = 4, queue = 0, dequeue = 3, failed = 1)
     }
-
-    private fun verifyInitialization() {
-        verify(exactly = 1) { stateNotifier.addStateListener(any()) }
-        verify(exactly = 1) { stateNotifier.addStateListener(sender) }
-    }
-
-    private fun verifyMethodCalls(receive: Int, send: Int, queue: Int, dequeue: Int, failed: Int) {
-        verify(exactly = receive) { messageSerializer.serialize(any()) }
-        verify(exactly = receive) { destinationMapper.map(any()) }
-        verify(exactly = send) { messageTransport.send(any(), any(), any()) }
-        verify(exactly = queue) { messageQueue.offer(any()) }
-        verify(exactly = dequeue) { messageQueue.remove() }
-        verify(exactly = failed) { stateListener.onStateFailed() }
-    }
-
-    @Suppress("SameParameterValue")
-    private fun fillMessageQueue(size: Int) {
-        val queuePair: (Int) -> Pair<AgentMessageDestination, String> = {
-            Pair(AgentMessageDestination("MAP", "queued-target-$it"), "queued-message-$it")
-        }
-        val queue = ConcurrentLinkedQueue<Pair<AgentMessageDestination, String>>()
-        for (i in 1..size) queue.add(queuePair(i - 1))
-        every { messageQueue.peek() } answers FunctionAnswer { queue.peek() }
-        every { messageQueue.element() } answers FunctionAnswer { queue.element() }
-        every { messageQueue.poll() } answers FunctionAnswer { queue.poll() }
-        every { messageQueue.remove() } answers FunctionAnswer { queue.remove() }
-    }
-
 }
