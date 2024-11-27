@@ -24,6 +24,7 @@ package com.epam.drill.agent.common.transport
  * @see [AgentMessage]
  * @see [AgentMessageDestination]
  */
-interface AgentMessageSender<M : AgentMessage> {
-    fun send(destination: AgentMessageDestination, message: M): ResponseStatus
+interface AgentMessageSender<T> {
+    fun send(destination: AgentMessageDestination, message: T)
+    fun shutdown() {}
 }

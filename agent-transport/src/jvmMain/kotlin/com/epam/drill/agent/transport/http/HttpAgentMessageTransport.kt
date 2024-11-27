@@ -36,7 +36,8 @@ import org.apache.hc.core5.ssl.SSLContextBuilder
 import mu.KotlinLogging
 import com.epam.drill.agent.transport.AgentMessageTransport
 import com.epam.drill.agent.common.transport.AgentMessageDestination
-import com.epam.drill.agent.common.transport.ResponseContent
+import com.epam.drill.agent.common.transport.ResponseStatus
+import org.apache.hc.core5.http.HttpStatus
 
 private const val HEADER_DRILL_INTERNAL = "drill-internal"
 private const val HEADER_API_KEY = "X-Api-Key"
@@ -48,8 +49,7 @@ class HttpAgentMessageTransport(
     sslTruststorePass: String = "",
     drillInternal: Boolean = true,
     private val gzipCompression: Boolean = true,
-    private val receiveContent: Boolean = false
-) : AgentMessageTransport<ByteArray, ByteArray> {
+) : AgentMessageTransport {
 
     private val logger = KotlinLogging.logger {}
     private val clientBuilder = HttpClientBuilder.create()
@@ -85,7 +85,7 @@ class HttpAgentMessageTransport(
         destination: AgentMessageDestination,
         message: ByteArray?,
         contentType: String
-    ) = clientBuilder.build().use { client ->
+    ): ResponseStatus<ByteArray> = clientBuilder.build().use { client ->
         val request = when (destination.type) {
             "GET" -> HttpGet(serverUri.resolve(destination.target))
             "POST" -> HttpPost(serverUri.resolve(destination.target))
@@ -105,26 +105,33 @@ class HttpAgentMessageTransport(
             }
         }
         logger.trace {
-            val messageAsString = "\n${message?.decodeToString()?.prependIndent("\t")}"
-            "execute: Request to ${request.uri}, method: ${request.method}: $messageAsString"
+            val messageAsString = message?.decodeToString()
+            "execute: Request to ${request.uri}, method: ${request.method}, request body: $messageAsString"
         }
-        if (receiveContent)
-            client.execute(request, ::contentResponseHandler)!!
-        else
-            client.execute(request, ::statusResponseHandler)!!
+
+        try {
+            client.execute(request, ::contentResponseHandler)
+        } catch (e: Throwable) {
+            ResponseStatus(success = false, errorContent = e.message)
+        }.onSuccess { content ->
+            logger.trace {
+                val messageAsString = content?.decodeToString()
+                "execute: Successful response from ${request.uri}, method: ${request.method}, response body: $messageAsString"
+            }
+        }.onError { errorContent ->
+            logger.debug {
+                "execute: Failed response from ${request.uri}, method: ${request.method}, error message: $errorContent"
+            }
+        }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun send(destination: AgentMessageDestination, message: ByteArray?) = send(destination, message, "").run {
-        if (this is ResponseContent<*>) this as ResponseContent<ByteArray>
-        else HttpResponseContent(statusObject, ByteArray(0))
-    }
-
-    private fun contentResponseHandler(response: ClassicHttpResponse) =
-        HttpResponseContent<ByteArray>(response.code, EntityUtils.toByteArray(response.entity))
-
-    private fun statusResponseHandler(response: ClassicHttpResponse) = HttpResponseStatus(response.code)
+    private fun contentResponseHandler(response: ClassicHttpResponse) = ResponseStatus(
+        success = isSuccess(response),
+        content = response.takeIf(::isSuccess)?.let { EntityUtils.toByteArray(it.entity) },
+        errorContent = response.takeIf(::isFail)?.let { EntityUtils.toString(it.entity) },
+    )
 
     private fun getContentType(mimeType: String) = contentTypes.getOrPut(mimeType) { ContentType.create(mimeType) }
-
+    private fun isSuccess(response: ClassicHttpResponse) = response.code == HttpStatus.SC_SUCCESS
+    private fun isFail(response: ClassicHttpResponse) = !isSuccess(response)
 }
