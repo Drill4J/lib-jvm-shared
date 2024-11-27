@@ -28,7 +28,9 @@ open class SimpleAgentMessageSender<T>(
         transport.send(
             destinationMapper.map(destination),
             messageSerializer.serialize(message)
-        ).takeIf { it.success } ?: error("Failed to receive message from $destination.")
+        ).onError {
+            error("Failed to send message from $destination, error message: $it")
+        }
     }
 
 }

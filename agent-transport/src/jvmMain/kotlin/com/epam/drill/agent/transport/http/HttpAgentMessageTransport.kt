@@ -114,7 +114,7 @@ class HttpAgentMessageTransport(
         } catch (e: Throwable) {
             ResponseStatus(success = false, errorContent = e.message)
         }.onSuccess { content ->
-            logger.trace {
+            logger.debug {
                 val messageAsString = content?.decodeToString()
                 "execute: Successful response from ${request.uri}, method: ${request.method}, response body: $messageAsString"
             }

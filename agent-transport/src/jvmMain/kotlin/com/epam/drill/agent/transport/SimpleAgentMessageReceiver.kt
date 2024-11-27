@@ -25,9 +25,11 @@ class SimpleAgentMessageReceiver(
     private val destinationMapper: AgentMessageDestinationMapper = StubAgentDestinationMapper
 ) : AgentMessageReceiver {
 
-    override fun <T: Any> receive(destination: AgentMessageDestination, clazz: KClass<T>): T =
+    override fun <T : Any> receive(destination: AgentMessageDestination, clazz: KClass<T>): T =
         transport.send(destinationMapper.map(destination), null)
             .mapContent { messageDeserializer.deserialize(it, clazz) }
-            .content
-            ?: error("Failed to receive message from $destination.")
+            .onError {
+                error("Failed to receive message from $destination, error message: $it")
+            }.content
+            ?: error("Failed to receive message from $destination. There is no content in the response.")
 }

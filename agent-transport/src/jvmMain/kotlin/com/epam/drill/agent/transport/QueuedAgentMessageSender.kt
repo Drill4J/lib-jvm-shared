@@ -53,9 +53,13 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
     override fun send(destination: AgentMessageDestination, message: T) {
         val mappedDestination = destinationMapper.map(destination)
         val serializedMessage = messageSerializer.serialize(message)
-        val added = isRunning.get() && messageQueue.offer(Pair(mappedDestination, serializedMessage))
-        if (!added) {
-            handleUnsent(mappedDestination, serializedMessage)
+        if (!isRunning.get()) {
+            handleUnsent(mappedDestination, serializedMessage, "sender is not running")
+            return
+        }
+        if (!messageQueue.offer(Pair(mappedDestination, serializedMessage))) {
+            handleUnsent(mappedDestination, serializedMessage, "queue capacity limit reached")
+            return
         }
     }
 
@@ -82,7 +86,7 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
                 exponentialBackoff.tryWithExponentialBackoff { attempt, delay ->
                     tryToSend(destination, message, attempt, delay)
                 }.takeIf { !it }?.let {
-                    handleUnsent(destination, message)
+                    handleUnsent(destination, message, "attempts exhausted")
                 }
             } catch (e: Exception) {
                 logger.error { "processQueue: Error during queue processing: ${e.message}" }
@@ -108,9 +112,9 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
             "processQueue: Sending to $destination on attempt: $attempt, message: $serializedAsString"
         }
         return transport.send(destination, message, messageSerializer.contentType()).onError { error ->
-            logger.debug { "processQueue: Attempt $attempt send to $destination failed. Retrying in ${delay}ms. Error message: $error" }
+            logger.trace { "processQueue: Attempt $attempt send to $destination failed. Retrying in ${delay}ms. Error message: $error" }
         }.onSuccess {
-            logger.trace {
+            logger.debug {
                 val serializedAsString = message.decodeToString()
                 "processQueue: Sent to $destination on attempt: $attempt, message: $serializedAsString"
             }
@@ -125,11 +129,12 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
      */
     private fun handleUnsent(
         destination: AgentMessageDestination,
-        message: ByteArray
+        message: ByteArray,
+        reason: String
     ) {
-        logger.error {
+        logger.debug {
             val serializedAsString = message.decodeToString()
-            "send: Failed to send message, message will be dropped, destination: $destination, message: $serializedAsString"
+            "send: Failed to send message because $reason, destination: $destination, message: $serializedAsString"
         }
         messageSendingListener?.onUnsent(destination, message)
     }
