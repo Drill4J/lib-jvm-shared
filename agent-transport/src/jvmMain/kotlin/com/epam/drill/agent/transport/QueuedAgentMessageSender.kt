@@ -84,16 +84,18 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
      * It will try to send the message from a queue to the destination with exponential backoff.
      */
     private fun processQueue() {
-        while (isRunning.get() || messageQueue.size() > 0) {
-            try {
-                val (destination, message) = messageQueue.poll(1, TimeUnit.SECONDS) ?: continue
+        while (isRunning.get()) {
+            val (destination, message) = messageQueue.poll(1, TimeUnit.SECONDS) ?: continue
+            runCatching {
                 exponentialBackoff.tryWithExponentialBackoff { attempt, delay ->
                     tryToSend(destination, message, attempt, delay)
-                }.takeIf { !it }?.let {
+                }
+            }.onFailure {
+                handleUnsent(destination, message, "error occurred: ${it.message}")
+            }.onSuccess {
+                if (!it) {
                     handleUnsent(destination, message, "attempts exhausted")
                 }
-            } catch (e: Throwable) {
-                logger.error { "Error during queue processing: ${e.message}" }
             }
         }
     }
@@ -129,7 +131,7 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
      * Registers unsent messages and clears the queue.
      */
     private fun unloadQueue(reason: String) {
-        logger.debug { "Unloading queue because $reason, queue size: ${messageQueue.size()}" }
+        logger.debug { "Unloading queue as $reason, queue size: ${messageQueue.size()}" }
         do {
             val message = messageQueue.poll()?.also { (destination, message) ->
                 handleUnsent(destination, message, reason)
