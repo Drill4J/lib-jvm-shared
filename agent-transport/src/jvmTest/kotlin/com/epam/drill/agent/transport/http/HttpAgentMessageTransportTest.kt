@@ -15,10 +15,6 @@
  */
 package com.epam.drill.agent.transport.http
 
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -34,7 +30,9 @@ import org.apache.hc.core5.http.ClassicHttpRequest
 import org.apache.hc.core5.http.HttpHeaders
 import org.apache.hc.core5.http.io.HttpClientResponseHandler
 import com.epam.drill.agent.common.transport.AgentMessageDestination
+import com.epam.drill.agent.common.transport.ResponseStatus
 import io.mockk.slot
+import kotlin.test.*
 
 class HttpAgentMessageTransportTest {
 
@@ -50,17 +48,17 @@ class HttpAgentMessageTransportTest {
         every { clientBuilder.build() } returns closeableHttpClient
         every { closeableHttpClient.close() } returns Unit
         every {
-            closeableHttpClient.execute(capture(request), any<HttpClientResponseHandler<HttpResponseStatus>>())
-        } returns HttpResponseStatus(200)
+            closeableHttpClient.execute(capture(request), any<HttpClientResponseHandler<ResponseStatus<ByteArray>>>())
+        } returns ResponseStatus(true)
     }
 
     @Test
     fun `successful GET`() = withHttpClientBuilder {
         val transport = HttpAgentMessageTransport("http://someadmin", "")
         val destination = AgentMessageDestination("GET", "somepath")
-        val status = transport.send(destination, ByteArray(2), "mime/type").statusObject
+        val status = transport.send(destination, ByteArray(2), "mime/type").success
 
-        assertEquals(200, status)
+        assertTrue(status)
         verifyClassicHttpRequest<HttpGet>("http://someadmin/somepath", "mime/type")
     }
 
@@ -68,9 +66,9 @@ class HttpAgentMessageTransportTest {
     fun `successful POST`() = withHttpClientBuilder {
         val transport = HttpAgentMessageTransport("http://someadmin", "")
         val destination = AgentMessageDestination("POST", "somepath")
-        val status = transport.send(destination, ByteArray(2), "mime/type").statusObject
+        val status = transport.send(destination, ByteArray(2), "mime/type").success
 
-        assertEquals(200, status)
+        assertTrue(status)
         verifyClassicHttpRequest<HttpPost>("http://someadmin/somepath", "mime/type")
     }
 
@@ -78,9 +76,9 @@ class HttpAgentMessageTransportTest {
     fun `successful PUT`() = withHttpClientBuilder {
         val transport = HttpAgentMessageTransport("http://someadmin", "")
         val destination = AgentMessageDestination("PUT", "somepath")
-        val status = transport.send(destination, ByteArray(2), "mime/type").statusObject
+        val status = transport.send(destination, ByteArray(2), "mime/type").success
 
-        assertEquals(200, status)
+        assertTrue(status)
         verifyClassicHttpRequest<HttpPut>("http://someadmin/somepath", "mime/type")
     }
 
@@ -95,9 +93,9 @@ class HttpAgentMessageTransportTest {
     fun `default content type`() = withHttpClientBuilder {
         val transport = HttpAgentMessageTransport("http://someadmin", "")
         val destination = AgentMessageDestination("POST", "somepath")
-        val status = transport.send(destination, ByteArray(2)).statusObject
+        val status = transport.send(destination, ByteArray(2)).success
 
-        assertEquals(200, status)
+        assertTrue(status)
         verifyClassicHttpRequest<HttpPost>("http://someadmin/somepath", "*/*")
     }
 
@@ -108,10 +106,10 @@ class HttpAgentMessageTransportTest {
 
     private inline fun <reified T : ClassicHttpRequest> verifyClassicHttpRequest(uri: String, contentType: String) {
         verify(exactly = 1) {
-            closeableHttpClient.execute(any(), any<HttpClientResponseHandler<HttpResponseStatus>>())
+            closeableHttpClient.execute(any(), any<HttpClientResponseHandler<ResponseStatus<ByteArray>>>())
         }
         verify(exactly = 1) {
-            closeableHttpClient.execute(request.captured, any<HttpClientResponseHandler<HttpResponseStatus>>())
+            closeableHttpClient.execute(request.captured, any<HttpClientResponseHandler<ResponseStatus<ByteArray>>>())
         }
         assertIs<T>(request.captured)
         assertIs<GzipCompressingEntity>(request.captured.entity)

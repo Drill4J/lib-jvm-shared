@@ -16,6 +16,7 @@
 package com.epam.drill.agent.transport
 
 import com.epam.drill.agent.common.transport.AgentMessageDestination
+import java.util.concurrent.TimeUnit
 
 /**
  * A queue interface for storing serialized messages when transport in unavailable state.
@@ -90,14 +91,9 @@ interface AgentMessageQueue<T> {
     fun poll(): Pair<AgentMessageDestination, T>?
 
     /**
-     * Retrieves, but does not remove, the head of this queue.  This method
-     * differs from [peek][.peek] only in that it throws an exception
-     * if this queue is empty.
-     *
-     * @return the head of this queue
-     * @throws NoSuchElementException if this queue is empty
+     * Retrieves and removes the head of this queue, waiting up to the specified wait time if necessary
      */
-    fun element(): Pair<AgentMessageDestination, T>
+    fun poll(timeout: Long, unit: TimeUnit): Pair<AgentMessageDestination, T>?
 
     /**
      * Retrieves, but does not remove, the head of this queue,
