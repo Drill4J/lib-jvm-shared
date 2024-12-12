@@ -16,21 +16,9 @@
 package com.epam.drill.agent.transport
 
 import com.epam.drill.agent.common.transport.AgentMessageDestination
-import com.epam.drill.agent.common.transport.AgentMessageSender
 
-open class SimpleAgentMessageSender<T>(
-    private val transport: AgentMessageTransport,
-    private val messageSerializer: AgentMessageSerializer<T>,
-    private val destinationMapper: AgentMessageDestinationMapper = StubAgentDestinationMapper
-) : AgentMessageSender<T> {
-
-    override fun send(destination: AgentMessageDestination, message: T) {
-        transport.send(
-            destinationMapper.map(destination),
-            messageSerializer.serialize(message)
-        ).onError {
-            error("Failed to send message from $destination, error message: $it")
-        }
+object StubAgentDestinationMapper: AgentMessageDestinationMapper {
+    override fun map(destination: AgentMessageDestination): AgentMessageDestination {
+        return destination
     }
-
 }

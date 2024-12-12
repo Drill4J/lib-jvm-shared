@@ -15,118 +15,145 @@
  */
 package com.epam.drill.agent.transport
 
-import kotlin.concurrent.thread
-import java.io.IOException
 import mu.KotlinLogging
 import com.epam.drill.agent.common.transport.AgentMessage
 import com.epam.drill.agent.common.transport.AgentMessageDestination
 import com.epam.drill.agent.common.transport.AgentMessageSender
-import com.epam.drill.agent.common.transport.ResponseStatus
-
-private const val TRANSPORT_ERR = "Transport is in unavailable state"
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * A [AgentMessageSender] implementation with [AgentMessageQueue] for storing
  * serialized messages when transport in unavailable state.
- *
- * It also implements [AgentMetadataSender] for initial availability status.
- *
- * The [AgentMessageSender]'s [available] state may be changed to 'false' both by
- * external [TransportStateNotifier] and exception during message send by [AgentMessageTransport].
- *
- * The [AgentMessageSender]'s [available] state may be changed to 'true' only by
- * external [TransportStateNotifier].
- *
- * In case of exception during message send by [AgentMessageTransport]
- * it also notifies [TransportStateListener] if it's defined.
- *
  * @see AgentMessageSender
  * @see AgentMessageQueue
  * @see AgentMessageTransport
- * @see AgentMetadataSender
- * @see TransportStateNotifier
- * @see TransportStateListener
  */
-open class QueuedAgentMessageSender<M : AgentMessage, T>(
-    private val transport: AgentMessageTransport<T>,
-    private val messageSerializer: AgentMessageSerializer<M, T>,
+open class QueuedAgentMessageSender<T : AgentMessage>(
+    private val transport: AgentMessageTransport,
+    private val messageSerializer: AgentMessageSerializer<T>,
     private val destinationMapper: AgentMessageDestinationMapper,
-    transportStateNotifier: TransportStateNotifier,
-    private val transportStateListener: TransportStateListener?,
-    private val messageQueue: AgentMessageQueue<T>
-) : AgentMessageSender<M>, TransportStateListener {
-
+    private val messageQueue: AgentMessageQueue<ByteArray>,
+    private val messageSendingListener: MessageSendingListener? = null,
+    private val exponentialBackoff: ExponentialBackoff = SimpleExponentialBackoff(),
+    maxThreads: Int = 1
+) : AgentMessageSender<T> {
     private val logger = KotlinLogging.logger {}
-
-    private var alive = true
-    internal var sendingThread: Thread? = null
+    private val executor: ExecutorService = Executors.newFixedThreadPool(maxThreads)
+    private val isRunning = AtomicBoolean(true)
 
     init {
-        transportStateNotifier.addStateListener(this)
+        repeat(maxThreads) {
+            executor.submit { processQueue() }
+        }
     }
 
-    override fun send(destination: AgentMessageDestination, message: M): ResponseStatus {
+    override fun send(destination: AgentMessageDestination, message: T) {
         val mappedDestination = destinationMapper.map(destination)
         val serializedMessage = messageSerializer.serialize(message)
-        val store: (Throwable) -> Unit = {
-            logger.trace {
-                val serializedAsString = messageSerializer.stringValue(serializedMessage)
-                "send: Storing for ${mappedDestination}: $serializedAsString"
-            }
-            messageQueue.offer(Pair(mappedDestination, serializedMessage))
+        if (!isRunning.get()) {
+            handleUnsent(mappedDestination, serializedMessage, "sender is not running")
+            return
         }
-        synchronized(messageQueue) {
-            if (!alive) return IOException(TRANSPORT_ERR).also(store).let(::ErrorResponseStatus)
+        if (!messageQueue.offer(Pair(mappedDestination, serializedMessage))) {
+            handleUnsent(mappedDestination, serializedMessage, "queue capacity limit reached")
+            return
         }
-        return Pair(mappedDestination, serializedMessage)
-            .runCatching(::send).onFailure(store).onFailure(::failure).getOrElse(::ErrorResponseStatus)
-    }
-
-    override fun onStateAlive() {
-        logger.debug { "onStateAlive: Alive event received" }
-        sendingThread = sendQueue()
-    }
-
-    override fun onStateFailed() = synchronized(messageQueue) {
-        logger.debug { "onStateFailed: Failed event received" }
-        alive = false
-    }
-
-    private fun send(message: Pair<AgentMessageDestination, T>): ResponseStatus {
-        val contentType = messageSerializer.contentType()
         logger.trace {
-            val serializedAsString = messageSerializer.stringValue(message.second)
-            "send: Sending to ${message.first}, contentType=$contentType: $serializedAsString"
-        }
-        return transport.send(message.first, message.second, contentType)
-    }
-
-    private fun failure(t: Throwable) = synchronized(messageQueue) {
-        logger.error(t) { "failure: Error during message sending, current availability state: $alive" }
-        if (alive) {
-            alive = false
-            transportStateListener?.onStateFailed()
+            "Queued message to $mappedDestination"
         }
     }
 
-    private fun sendQueue() = thread {
-        var success = true
-        var message = peekMessage()
-        logger.debug { "sendQueue: Starting queue processing, queue size: ${messageQueue.size()}" }
-        while (success && message != null) {
-            success = message.runCatching(::send).onFailure(::failure).isSuccess
-            if (success) {
-                messageQueue.remove()
-                message = peekMessage()
+    override fun shutdown() {
+        isRunning.set(false)
+        executor.shutdown()
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow()
+            }
+        } catch (e: InterruptedException) {
+            executor.shutdownNow()
+        }
+        unloadQueue("sender is shutting down")
+    }
+
+    /**
+     * Processes the message queue.
+     * It will try to send the message from a queue to the destination with exponential backoff.
+     */
+    private fun processQueue() {
+        while (isRunning.get()) {
+            val (destination, message) = messageQueue.poll(1, TimeUnit.SECONDS) ?: continue
+            runCatching {
+                exponentialBackoff.tryWithExponentialBackoff { attempt, delay ->
+                    tryToSend(destination, message, attempt, delay)
+                }
+            }.onFailure {
+                handleUnsent(destination, message, "error occurred: ${it.message}")
+            }.onSuccess {
+                if (!it) {
+                    handleUnsent(destination, message, "attempts exhausted")
+                }
             }
         }
-        logger.debug { "sendQueue: Done queue processing, queue size: ${messageQueue.size()}" }
     }
 
-    private fun peekMessage() = synchronized(messageQueue) {
-        val message = messageQueue.peek()
-        if(message == null) alive = true
-        message
+    /**
+     * Tries to send the message to the destination.
+     * @param message The serialized message to send.
+     * @param destination The destination to which the message should be sent.
+     * @param attempt The current attempt number.
+     * @param delay The delay in milliseconds before the next attempt.
+     */
+    private fun tryToSend(
+        destination: AgentMessageDestination,
+        message: ByteArray,
+        attempt: Int,
+        delay: Long
+    ): Boolean {
+        logger.trace {
+            "Sending to $destination on attempt: $attempt"
+        }
+        return transport.send(destination, message, messageSerializer.contentType()).onError { error ->
+            logger.trace { "Attempt $attempt send to $destination failed. Retrying in ${delay}ms. Error message: $error" }
+        }.onSuccess {
+            logger.debug {
+                val serializedAsString = message.decodeToString()
+                "Sent to $destination on attempt: $attempt, message: $serializedAsString"
+            }
+            messageSendingListener?.onSent(destination, message)
+        }.success
+    }
+
+    /**
+     * Registers unsent messages and clears the queue.
+     */
+    private fun unloadQueue(reason: String) {
+        logger.debug { "Unloading queue as $reason, queue size: ${messageQueue.size()}" }
+        do {
+            val message = messageQueue.poll()?.also { (destination, message) ->
+                handleUnsent(destination, message, reason)
+            }
+        } while (message != null)
+    }
+
+    /**
+     * Handles the case when a message cannot be sent because the queue is full, shutdown, or attempts have been exhausted.
+     * @param destination The destination to which the message was intended to be sent.
+     * @param message The serialized message that could not be sent.
+     */
+    private fun handleUnsent(
+        destination: AgentMessageDestination,
+        message: ByteArray,
+        reason: String
+    ) {
+        logger.debug {
+            val serializedAsString = message.decodeToString()
+            "Failed to send message because $reason, destination: $destination, message: $serializedAsString"
+        }
+        messageSendingListener?.onUnsent(destination, message)
     }
 
 }
