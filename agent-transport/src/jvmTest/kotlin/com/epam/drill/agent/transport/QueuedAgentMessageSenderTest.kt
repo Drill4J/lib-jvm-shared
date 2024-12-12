@@ -21,7 +21,9 @@ import com.epam.drill.agent.common.transport.AgentMessageDestination
 import com.epam.drill.agent.common.transport.ResponseStatus
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import org.junit.After
 import org.junit.Before
+import java.lang.Thread.sleep
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -96,6 +98,9 @@ class QueuedAgentMessageSenderTest {
         every { messageQueue.poll(any(), any()) } answers FunctionAnswer {
             queue.poll(1, TimeUnit.SECONDS).also(queuePolls::add)
         }
+        every { messageQueue.poll() } answers FunctionAnswer {
+            queue.poll().also(queuePolls::add)
+        }
         every { messageQueue.offer(any()) } answers FunctionAnswer {
             queue.offer(it.invocation.args[0] as Pair<AgentMessageDestination, ByteArray>).also(queueOffers::add)
         }
@@ -110,6 +115,11 @@ class QueuedAgentMessageSenderTest {
         )
     }
 
+    @After
+    fun shutdown() {
+        sender.shutdown()
+    }
+
     @Test
     fun `given ok response, QueuedAgentMessageSender should send messages`() {
         every { messageTransportSending() } returns ResponseStatus(true)
@@ -117,7 +127,6 @@ class QueuedAgentMessageSenderTest {
         repeat(10) {
             sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"))
         }
-        sender.shutdown()
 
         verifyMethodCalls(calls = 10, sendingAttempts = 10, enqueued = 10, dequeued = 10, sent = 10, unsent = 0)
     }
@@ -129,7 +138,6 @@ class QueuedAgentMessageSenderTest {
         repeat(10) {
             sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"))
         }
-        sender.shutdown()
 
         verifyMethodCalls(calls = 10, sendingAttempts = 50, enqueued = 10, dequeued = 10, sent = 0, unsent = 10)
     }
@@ -154,7 +162,6 @@ class QueuedAgentMessageSenderTest {
         repeat(10) {
             sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"))
         }
-        sender.shutdown()
 
         verifyMethodCalls(calls = 10, sendingAttempts = 0, enqueued = 0, dequeued = 0, sent = 0, unsent = 10)
     }
@@ -167,20 +174,31 @@ class QueuedAgentMessageSenderTest {
         sent: Int? = null,
         unsent: Int? = null
     ) {
-        calls?.let { verify(exactly = it) { messageSerializer.serialize(any()) } }
-        calls?.let { verify(exactly = it) { destinationMapper.map(any()) } }
-        enqueued?.let {
-            if (it > 0) verify(atLeast = it) { messageQueue.offer(any()) }
+        calls?.waitFor { verify(exactly = it) { messageSerializer.serialize(any()) } }
+        calls?.waitFor { verify(exactly = it) { destinationMapper.map(any()) } }
+        enqueued?.waitFor {
             assertEquals(it, queueOffers.filter { o -> o }.size)
         }
-        dequeued?.let {
-            if (it > 0) verify(atLeast = it) { messageQueue.poll(any(), any()) }
+        dequeued?.waitFor {
             assertEquals(it, queuePolls.filterNotNull().size)
         }
 
-        sendingAttempts?.let { verify(exactly = it) { messageTransport.send(any(), any(), any()) } }
-        sent?.let { verify(exactly = it) { messageSendingListener.onSent(any(), any()) } }
-        unsent?.let { verify(exactly = it) { messageSendingListener.onUnsent(any(), any()) } }
+        sendingAttempts?.waitFor { verify(exactly = it) { messageTransport.send(any(), any(), any()) } }
+        sent?.waitFor { verify(exactly = it) { messageSendingListener.onSent(any(), any()) } }
+        unsent?.waitFor { verify(exactly = it) { messageSendingListener.onUnsent(any(), any()) } }
+    }
+
+    private fun <T> T.waitFor(timeout: Long = 1000, block: (T) -> Unit) {
+        val start = System.currentTimeMillis()
+        val timeIsOut = { System.currentTimeMillis() - start > timeout }
+        var error: Throwable? = null
+        while (runCatching { block(this) }
+                .onFailure { error = it }
+                .onSuccess { error = null }
+                .isFailure && !timeIsOut()) {
+            sleep(10)
+        }
+        error?.let { throw it }
     }
 
     private fun MockKMatcherScope.messageTransportSending() = messageTransport.send(
