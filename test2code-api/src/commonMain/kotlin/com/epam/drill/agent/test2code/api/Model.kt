@@ -40,17 +40,27 @@ data class TestDetails @JvmOverloads constructor(
     val engine: String = "",
     val path: String = "",
     val testName: String = "",
-    val params: Map<String, String> = emptyMap(),
+    val testParams: List<String> = emptyList(),
     val metadata: Map<String, String> = emptyMap(),
-    val labels: Set<Label> = emptySet(),
 ) : Comparable<TestDetails> {
 
+    val signature: String
+        get() = "$engine:$path.$testName(${testParams.joinToString()})"
+
     override fun compareTo(other: TestDetails): Int {
-        return toString().compareTo(other.toString())
+        return signature.compareTo(other.signature)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return if (other is TestDetails) compareTo(other) == 0 else false
+    }
+
+    override fun hashCode(): Int {
+        return signature.hashCode()
     }
 
     override fun toString(): String {
-        return "engine='$engine', path='$path', testName='$testName', params=$params"
+        return signature
     }
 }
 
@@ -59,5 +69,6 @@ enum class TestResult {
     FAILED,
     ERROR,
     SKIPPED,
+    SMART_SKIPPED,
     UNKNOWN
 }

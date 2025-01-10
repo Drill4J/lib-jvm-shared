@@ -15,35 +15,40 @@
  */
 package com.epam.drill.agent.transport
 
-import java.util.Queue
-import java.util.concurrent.ConcurrentLinkedQueue
 import com.epam.drill.agent.common.transport.AgentMessageDestination
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 
-class InMemoryAgentMessageQueue<T>(
-    private val messageSerializer: AgentMessageSerializer<*, T>,
+class InMemoryAgentMessageQueue(
     private val capacity: Long
-) : AgentMessageQueue<T> {
+) : AgentMessageQueue<ByteArray> {
 
-    private val queue: Queue<Pair<AgentMessageDestination, T>> = ConcurrentLinkedQueue()
+    private val queue: BlockingQueue<Pair<AgentMessageDestination, ByteArray>> = LinkedBlockingQueue()
     private var bytesSize: Long = 0
 
-    override fun add(e: Pair<AgentMessageDestination, T>) = if (bytesSize + sizeOf(e) <= capacity) {
-        queue.add(e).also { increaseSize(e) }
-    } else {
-        throw IllegalArgumentException("Queue is out of capacity")
-    }
+    override fun add(e: Pair<AgentMessageDestination, ByteArray>): Boolean = e
+        .takeIf(::isCapable)
+        ?.also(::increaseSize)
+        ?.run {
+            queue.add(this)
+        } ?: throw IllegalArgumentException("Queue is out of capacity")
 
-    override fun offer(e: Pair<AgentMessageDestination, T>) = if (bytesSize + sizeOf(e) <= capacity) {
-        queue.offer(e).also { if (it) increaseSize(e) }
-    } else {
-        false
-    }
+    override fun offer(e: Pair<AgentMessageDestination, ByteArray>) = e
+        .takeIf(::isCapable)
+        ?.also(::increaseSize)
+        ?.run {
+            queue.offer(this)
+        } ?: false
 
-    override fun remove() = queue.remove().also(::decreaseSize)
+    override fun remove() = queue.remove()
+        .also(::decreaseSize)
 
-    override fun poll() = queue.poll()?.also(::decreaseSize)
+    override fun poll() = queue.poll()
+        ?.also(::decreaseSize)
 
-    override fun element() = queue.element()
+    override fun poll(timeout: Long, unit: TimeUnit) = queue.poll(timeout, unit)
+        ?.also(::decreaseSize)
 
     override fun peek() = queue.peek()
 
@@ -51,15 +56,18 @@ class InMemoryAgentMessageQueue<T>(
 
     fun bytesSize(): Long = bytesSize
 
-    private fun sizeOf(e: Pair<AgentMessageDestination, T>) =
-        messageSerializer.sizeOf(e.first) + messageSerializer.sizeOf(e.second)
+    private fun sizeOf(e: Pair<AgentMessageDestination, ByteArray>) =
+        e.first.type.length + e.first.target.length + e.second.size.toLong()
 
-    private fun increaseSize(e: Pair<AgentMessageDestination, T>) {
+    private fun increaseSize(e: Pair<AgentMessageDestination, ByteArray>) {
         bytesSize += sizeOf(e)
     }
 
-    private fun decreaseSize(e: Pair<AgentMessageDestination, T>) {
+    private fun decreaseSize(e: Pair<AgentMessageDestination, ByteArray>) {
         bytesSize -= sizeOf(e)
     }
+
+    private fun isCapable(e: Pair<AgentMessageDestination, ByteArray>) =
+        bytesSize + sizeOf(e) <= capacity
 
 }

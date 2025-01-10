@@ -16,21 +16,20 @@
 package com.epam.drill.agent.transport
 
 import com.epam.drill.agent.common.transport.AgentMessageDestination
-import com.epam.drill.agent.common.transport.AgentMessageSender
+import com.epam.drill.agent.common.transport.AgentMessageReceiver
+import kotlin.reflect.KClass
 
-open class SimpleAgentMessageSender<T>(
+class SimpleAgentMessageReceiver(
     private val transport: AgentMessageTransport,
-    private val messageSerializer: AgentMessageSerializer<T>,
+    private val messageDeserializer: AgentMessageDeserializer,
     private val destinationMapper: AgentMessageDestinationMapper = StubAgentDestinationMapper
-) : AgentMessageSender<T> {
+) : AgentMessageReceiver {
 
-    override fun send(destination: AgentMessageDestination, message: T) {
-        transport.send(
-            destinationMapper.map(destination),
-            messageSerializer.serialize(message)
-        ).onError {
-            error("Failed to send message from $destination, error message: $it")
-        }
-    }
-
+    override fun <T : Any> receive(destination: AgentMessageDestination, clazz: KClass<T>): T =
+        transport.send(destinationMapper.map(destination), null)
+            .mapContent { messageDeserializer.deserialize(it, clazz) }
+            .onError {
+                error("Failed to receive message from $destination, error message: $it")
+            }.content
+            ?: error("Failed to receive message from $destination. There is no content in the response.")
 }
