@@ -21,6 +21,8 @@ import com.epam.drill.agent.test2code.common.api.ClassCoverage
 
 @Serializable
 data class CoveragePayload(
+    val groupId: String,
+    val appId: String,
     val instanceId: String,
     val coverage: List<ClassCoverage>
 ): AgentMessage()
