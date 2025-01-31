@@ -30,12 +30,6 @@ data class TestInfo(
 )
 
 @Serializable
-data class Label(
-    val name: String,
-    val value: String,
-)
-
-@Serializable
 data class TestDetails @JvmOverloads constructor(
     val engine: String = "",
     val path: String = "",
