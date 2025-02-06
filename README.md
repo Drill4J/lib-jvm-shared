@@ -40,7 +40,6 @@ The JVM-based shared libraries for Drill4J, used in java-agent, test2code-plugin
 - **test-plugin**: Module for test-plugin distribution generation (includes **test-plugin-admin** and **test-plugin-agent** jars)
 - **test-plugin-admin**: Test-plugin for **admin** component tests (admin-part)
 - **test-plugin-agent**: Test-plugin for **admin** component tests (agent-part)
-- **test2code-api**: Classes for working with [admin](https://github.com/Drill4J/admin). It analyzes probes and send metrics & statistics.
 - **transport**: Library with transport protocol for backend communication
 
 ## Modules kni-plugin and kni-runtime
