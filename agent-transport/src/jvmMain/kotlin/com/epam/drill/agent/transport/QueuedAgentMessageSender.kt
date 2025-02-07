@@ -39,7 +39,7 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
     private val messageSendingListener: MessageSendingListener? = null,
     private val exponentialBackoff: ExponentialBackoff = SimpleExponentialBackoff(),
     maxThreads: Int = 1,
-    private val maxRetries: Int = Int.MAX_VALUE
+    private val maxRetries: Int = 5
 ) : AgentMessageSender<T> {
     private val logger = KotlinLogging.logger {}
     private val executor: ExecutorService = Executors.newFixedThreadPool(maxThreads)
