@@ -38,7 +38,8 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
     private val messageQueue: AgentMessageQueue<ByteArray>,
     private val messageSendingListener: MessageSendingListener? = null,
     private val exponentialBackoff: ExponentialBackoff = SimpleExponentialBackoff(),
-    maxThreads: Int = 1
+    maxThreads: Int = 1,
+    private val maxRetries: Int = Int.MAX_VALUE
 ) : AgentMessageSender<T> {
     private val logger = KotlinLogging.logger {}
     private val executor: ExecutorService = Executors.newFixedThreadPool(maxThreads)
@@ -74,6 +75,7 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
                 executor.shutdownNow()
             }
         } catch (e: InterruptedException) {
+            logger.error(e) { "Failed to send some messages prior to shutdown" }
             executor.shutdownNow()
         }
         unloadQueue("sender is shutting down")
@@ -87,7 +89,9 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
         while (isRunning.get()) {
             val (destination, message) = messageQueue.poll(1, TimeUnit.SECONDS) ?: continue
             runCatching {
-                exponentialBackoff.tryWithExponentialBackoff { attempt, delay ->
+                exponentialBackoff.tryWithExponentialBackoff(
+                    maxRetries = maxRetries
+                ) { attempt, delay ->
                     tryToSend(destination, message, attempt, delay)
                 }
             }.onFailure {
@@ -106,12 +110,13 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
      * @param destination The destination to which the message should be sent.
      * @param attempt The current attempt number.
      * @param delay The delay in milliseconds before the next attempt.
+     * @return `true` if the message was sent successfully, `false` otherwise.
      */
     private fun tryToSend(
         destination: AgentMessageDestination,
         message: ByteArray,
-        attempt: Int,
-        delay: Long
+        attempt: Int = 0,
+        delay: Long = 0
     ): Boolean {
         logger.trace {
             "Sending to $destination on attempt: $attempt"
@@ -128,13 +133,13 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
     }
 
     /**
-     * Registers unsent messages and clears the queue.
+     * Last attempt to send unsent messages, and register them as unsent if unsuccessful
      */
     private fun unloadQueue(reason: String) {
-        logger.debug { "Unloading queue as $reason, queue size: ${messageQueue.size()}" }
+        logger.info { "Unloading a message queue as $reason, queue size: ${messageQueue.size()}" }
         do {
             val message = messageQueue.poll()?.also { (destination, message) ->
-                handleUnsent(destination, message, reason)
+                tryToSend(destination, message) || handleUnsent(destination, message, reason)
             }
         } while (message != null)
     }
@@ -143,17 +148,18 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
      * Handles the case when a message cannot be sent because the queue is full, shutdown, or attempts have been exhausted.
      * @param destination The destination to which the message was intended to be sent.
      * @param message The serialized message that could not be sent.
+     * @return `true` if the message was handled, `false` otherwise.
      */
     private fun handleUnsent(
         destination: AgentMessageDestination,
         message: ByteArray,
         reason: String
-    ) {
+    ): Boolean = runCatching {
         logger.debug {
             val serializedAsString = message.decodeToString()
             "Failed to send message because $reason, destination: $destination, message: $serializedAsString"
         }
         messageSendingListener?.onUnsent(destination, message)
-    }
-
+        true
+    }.getOrDefault(false)
 }
