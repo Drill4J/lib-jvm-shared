@@ -95,7 +95,7 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
                     tryToSend(destination, message, attempt, delay)
                 }
             }.onFailure {
-                handleUnsent(destination, message, "error occurred: ${it.message}")
+                tryToSend(destination, message) || handleUnsent(destination, message, "error occurred: ${it.message}")
             }.onSuccess {
                 if (!it) {
                     handleUnsent(destination, message, "attempts exhausted")
