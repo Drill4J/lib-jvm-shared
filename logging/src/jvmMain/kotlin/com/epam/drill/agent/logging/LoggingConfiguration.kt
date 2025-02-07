@@ -97,7 +97,7 @@ actual object LoggingConfiguration {
     private fun <T : OutputStreamAppender<ILoggingEvent>> configureOutputStreamAppender(appender: T) = appender.apply {
         val context = (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger).loggerContext
         val encoder = PatternLayoutEncoder().also {
-            it.pattern = "%date{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%logger] %maskedMsg%n%throwable"
+            it.pattern = "%date{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%logger] %.-${messageLimit}maskedMsg%n%throwable"
             it.context = context
             it.start()
         }
