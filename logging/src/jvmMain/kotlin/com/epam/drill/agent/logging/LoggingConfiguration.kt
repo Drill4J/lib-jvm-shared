@@ -37,6 +37,8 @@ actual object LoggingConfiguration {
 
     actual fun readDefaultConfiguration() {
         PatternLayout.DEFAULT_CONVERTER_MAP["maskedMsg"] = SensitiveDataConverter::class.java.name
+        // Temporarily set custom drill-logback.xml configuration file
+        // during logger initialization to avoid class loading conflicts with the main application
         val root = withSystemProperty(CONFIG_FILE_PROPERTY, "drill-logback.xml") {
             (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as Logger)
         }
