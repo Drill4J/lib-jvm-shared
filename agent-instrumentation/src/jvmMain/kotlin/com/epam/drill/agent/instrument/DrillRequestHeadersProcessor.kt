@@ -31,23 +31,58 @@ open class DrillRequestHeadersProcessor(
 
     override fun removeHeaders() = requestHolder.remove()
 
-    override fun storeHeaders(headers: Map<String, String>) = try {
-        headers[headersRetriever.sessionHeader()]?.also { sessionId ->
-            headers.filterKeys(Objects::nonNull)
-                .filter { it.key.startsWith(HeadersProcessor.DRILL_HEADER_PREFIX) }
-                .also { logger.trace { "storeHeaders: Storing headers, sessionId=$sessionId: $it" } }
-                .also { requestHolder.store(DrillRequest(sessionId, it)) }
+    override fun storeHeaders(headers: Map<String, String>) {
+        try {
+            logger.trace { "storeHeaders: Unfiltered headers: $headers" }
+
+            val sessionHeaderName = headersRetriever.sessionHeader()
+            val sessionIdFromHeader = headers[sessionHeaderName]
+
+            if (sessionIdFromHeader != null) {
+                val filtered = headers
+                    .filterKeys(Objects::nonNull)
+                    .filter { it.key.startsWith(HeadersProcessor.DRILL_HEADER_PREFIX) }
+                logger.trace { "storeHeaders: from headers, sessionId=$sessionIdFromHeader: $filtered" }
+                requestHolder.store(DrillRequest(sessionIdFromHeader, filtered))
+            } else {
+                val cookieHeader = headers.entries
+                    .firstOrNull { it.key.equals("Cookie", ignoreCase = true) }
+                    ?.value
+                val cookieMap = cookieHeader
+                    ?.split(";")
+                    ?.mapNotNull {
+                        val parts = it.trim().split("=", limit = 2)
+                        if (parts.size == 2) parts[0] to parts[1] else null
+                    }
+                    ?.toMap()
+                    ?: emptyMap()
+
+                val sessionIdFromCookie = cookieMap["drill-session-id"]
+                if (sessionIdFromCookie != null) {
+                    val filtered = cookieMap
+                        .filterKeys { it.startsWith(HeadersProcessor.DRILL_HEADER_PREFIX) }
+                    logger.trace { "storeHeaders: from cookies, sessionId=$sessionIdFromCookie: $filtered" }
+
+                    requestHolder.store(DrillRequest(sessionIdFromCookie, filtered))
+                }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "storeHeaders: Error while storing headers" }
         }
-        Unit
-    } catch (e: Exception) {
-        logger.error(e) { "storeHeaders: Error while storing headers" }
     }
 
     override fun retrieveHeaders() = try {
         requestHolder.retrieve()?.let { drillRequest ->
-            drillRequest.headers.filter { it.key.startsWith(HeadersProcessor.DRILL_HEADER_PREFIX) }
-                .plus(headersRetriever.sessionHeader() to drillRequest.drillSessionId)
-                .also { logger.trace { "retrieveHeaders: Getting headers, sessionId=${drillRequest.drillSessionId}: $it" } }
+            logger.trace { "retrieveHeaders: Raw DrillRequest headers: ${drillRequest.headers}" }
+
+            val filtered = drillRequest.headers
+                .filter { it.key.startsWith(HeadersProcessor.DRILL_HEADER_PREFIX) }
+
+            val result = filtered + (headersRetriever.sessionHeader() to drillRequest.drillSessionId)
+
+            logger.trace { "retrieveHeaders: Returning headers, sessionId=${drillRequest.drillSessionId}: $result" }
+
+            result
         }
     } catch (e: Exception) {
         logger.error(e) { "retrieveHeaders: Error while loading drill headers" }
