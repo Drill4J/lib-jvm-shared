@@ -27,7 +27,8 @@ open class SimpleAgentMessageSender<T>(
     override fun send(destination: AgentMessageDestination, message: T) {
         transport.send(
             destinationMapper.map(destination),
-            messageSerializer.serialize(message)
+            messageSerializer.serialize(message),
+            messageSerializer.contentType()
         ).onError {
             error("Failed to send message from $destination, error message: $it")
         }
