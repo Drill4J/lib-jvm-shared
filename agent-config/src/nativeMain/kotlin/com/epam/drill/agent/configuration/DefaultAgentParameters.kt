@@ -20,17 +20,19 @@ import kotlin.native.concurrent.freeze
 import kotlin.reflect.KProperty
 import com.epam.drill.agent.common.configuration.AgentParameterDefinition
 import com.epam.drill.agent.common.configuration.AgentParameters
+import com.epam.drill.agent.common.configuration.NullableAgentParameterDefinition
 
 actual class DefaultAgentParameters actual constructor(
     private val inputParameters: Map<String, String>
 ) : AgentParameters {
 
-    private val definedParameters = AtomicReference(mapOf<String, Any>())
+    private val definedParameters = AtomicReference(mapOf<String, Any?>())
     private val parameterDefinitions = AtomicReference(mapOf<String, AgentParameterDefinition<out Any>>())
+    private val nullableParameterDefinitions = AtomicReference(mapOf<String, NullableAgentParameterDefinition<out Any>>())
 
     @Suppress("UNCHECKED_CAST")
-    actual override operator fun <T : Any> get(name: String): T =
-        definedParameters.value[name]!! as T
+    actual override operator fun <T : Any> get(name: String): T? =
+        definedParameters.value[name] as T?
 
     @Suppress("UNCHECKED_CAST")
     actual override operator fun <T : Any> get(definition: AgentParameterDefinition<T>): T {
@@ -39,8 +41,8 @@ actual class DefaultAgentParameters actual constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    actual override operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T =
-        definedParameters.value[property.name]!! as T
+    actual override operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T? =
+        definedParameters.value[property.name] as T?
 
     actual override fun define(vararg definitions: AgentParameterDefinition<out Any>) {
         val updatedDefinitions = parameterDefinitions.value.toMutableMap()
@@ -58,4 +60,23 @@ actual class DefaultAgentParameters actual constructor(
         definedParameters.value = updatedParameters.freeze()
     }
 
+    actual override fun <T : Any> get(definition: NullableAgentParameterDefinition<T>): T? {
+        if (!parameterDefinitions.value.containsKey(definition.name)) define(definition)
+        return definedParameters.value[definition.name] as T?
+    }
+
+    actual override fun define(vararg definitions: NullableAgentParameterDefinition<out Any>) {
+        val updatedDefinitions = nullableParameterDefinitions.value.toMutableMap()
+        val updatedParameters = definedParameters.value.toMutableMap()
+        definitions.forEach {
+            if (updatedDefinitions.containsKey(it.name)) return@forEach
+            updatedDefinitions[it.name] = it
+            updatedParameters[it.name] = inputParameters[it.name]
+                .also(it.validator)
+                ?.runCatching(it.parser)
+                ?.getOrNull()
+        }
+        nullableParameterDefinitions.value = updatedDefinitions.freeze()
+        definedParameters.value = updatedParameters.freeze()
+    }
 }

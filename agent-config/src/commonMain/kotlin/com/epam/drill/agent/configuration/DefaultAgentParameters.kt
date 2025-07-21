@@ -18,12 +18,15 @@ package com.epam.drill.agent.configuration
 import kotlin.reflect.KProperty
 import com.epam.drill.agent.common.configuration.AgentParameterDefinition
 import com.epam.drill.agent.common.configuration.AgentParameters
+import com.epam.drill.agent.common.configuration.NullableAgentParameterDefinition
 
 expect class DefaultAgentParameters(
     inputParameters: Map<String, String>
 ) : AgentParameters {
-    override operator fun <T : Any> get(name: String): T
+    override operator fun <T : Any> get(name: String): T?
     override operator fun <T : Any> get(definition: AgentParameterDefinition<T>): T
-    override operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T
+    override operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T?
     override fun define(vararg definitions: AgentParameterDefinition<out Any>)
+    override fun <T : Any> get(definition: NullableAgentParameterDefinition<T>): T?
+    override fun define(vararg definitions: NullableAgentParameterDefinition<out Any>)
 }

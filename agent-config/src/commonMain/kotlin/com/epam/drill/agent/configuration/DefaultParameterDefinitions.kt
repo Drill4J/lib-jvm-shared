@@ -16,21 +16,22 @@
 package com.epam.drill.agent.configuration
 
 import com.epam.drill.agent.common.configuration.AgentParameterDefinition
+import com.epam.drill.agent.common.configuration.NullableAgentParameterDefinition
 
 object DefaultParameterDefinitions {
 
-    val GROUP_ID = AgentParameterDefinition.forString(name = "groupId")
-    val APP_ID = AgentParameterDefinition.forString(name = "appId")
-    val BUILD_VERSION = AgentParameterDefinition.forString(name = "buildVersion")
-    val COMMIT_SHA = AgentParameterDefinition.forString(name = "commitSha")
-    val INSTANCE_ID = AgentParameterDefinition.forString(name = "instanceId")
-    val ENV_ID = AgentParameterDefinition.forString(name = "envId")
+    val GROUP_ID = NullableAgentParameterDefinition.forString(name = "groupId")
+    val APP_ID = NullableAgentParameterDefinition.forString(name = "appId")
+    val BUILD_VERSION = NullableAgentParameterDefinition.forString(name = "buildVersion")
+    val COMMIT_SHA = NullableAgentParameterDefinition.forString(name = "commitSha")
+    val INSTANCE_ID = NullableAgentParameterDefinition.forString(name = "instanceId")
+    val ENV_ID = NullableAgentParameterDefinition.forString(name = "envId")
     val PACKAGE_PREFIXES = AgentParameterDefinition.forType(
         name = "packagePrefixes",
-        defaultValue = emptyList(),
-        parser = { it.split(";") }
+        parser = { it.split(";") },
+        defaultValue = emptyList()
     )
-    val INSTALLATION_DIR = AgentParameterDefinition.forString(name = "drillInstallationDir")
-    val CONFIG_PATH = AgentParameterDefinition.forString(name = "configPath")
+    val INSTALLATION_DIR = NullableAgentParameterDefinition.forString(name = "drillInstallationDir")
+    val CONFIG_PATH = NullableAgentParameterDefinition.forString(name = "configPath")
 
 }

@@ -18,17 +18,19 @@ package com.epam.drill.agent.configuration
 import kotlin.reflect.KProperty
 import com.epam.drill.agent.common.configuration.AgentParameterDefinition
 import com.epam.drill.agent.common.configuration.AgentParameters
+import com.epam.drill.agent.common.configuration.NullableAgentParameterDefinition
 
 actual class DefaultAgentParameters actual constructor(
     private val inputParameters: Map<String, String>
 ) : AgentParameters {
 
-    private val definedParameters = mutableMapOf<String, Any>()
+    private val definedParameters = mutableMapOf<String, Any?>()
     private val parameterDefinitions = mutableMapOf<String, AgentParameterDefinition<out Any>>()
+    private val nullableParameterDefinitions = mutableMapOf<String, NullableAgentParameterDefinition<out Any>>()
 
     @Suppress("UNCHECKED_CAST")
-    actual override operator fun <T : Any> get(name: String): T =
-        definedParameters[name]!! as T
+    actual override operator fun <T : Any> get(name: String): T? =
+        definedParameters[name] as T?
 
     @Suppress("UNCHECKED_CAST")
     actual override operator fun <T : Any> get(definition: AgentParameterDefinition<T>): T {
@@ -37,8 +39,8 @@ actual class DefaultAgentParameters actual constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    actual override operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T =
-        definedParameters[property.name]!! as T
+    actual override operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T? =
+        definedParameters[property.name] as T?
 
     actual override fun define(vararg definitions: AgentParameterDefinition<out Any>) {
         definitions.forEach {
@@ -52,4 +54,19 @@ actual class DefaultAgentParameters actual constructor(
         }
     }
 
+    actual override fun <T : Any> get(definition: NullableAgentParameterDefinition<T>): T? {
+        if (!parameterDefinitions.containsKey(definition.name)) define(definition)
+        return definedParameters[definition.name] as T?
+    }
+
+    actual override fun define(vararg definitions: NullableAgentParameterDefinition<out Any>) {
+        definitions.forEach {
+            if (nullableParameterDefinitions.containsKey(it.name)) return@forEach
+            nullableParameterDefinitions[it.name] = it
+            definedParameters[it.name] = inputParameters[it.name]
+                .also(it.validator)
+                ?.runCatching(it.parser)
+                ?.getOrNull()
+        }
+    }
 }
