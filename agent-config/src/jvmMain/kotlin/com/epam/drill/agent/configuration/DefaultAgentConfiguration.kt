@@ -25,7 +25,7 @@ actual class DefaultAgentConfiguration(
 ) : AgentConfiguration {
 
     actual override val parameters: AgentParameters = DefaultAgentParameters(_inputParameters)
-    actual override val agentMetadata = agentMetadata()
+    actual override val agentMetadata by lazy { agentMetadata() }
 
     actual val inputParameters: Map<String, String>
         get() = _inputParameters.toMap()
@@ -37,7 +37,7 @@ actual class DefaultAgentConfiguration(
         commitSha = parameters[DefaultParameterDefinitions.COMMIT_SHA] ?: "",
         envId = parameters[DefaultParameterDefinitions.ENV_ID] ?: "",
         instanceId = parameters[DefaultParameterDefinitions.INSTANCE_ID] ?: "",
-        packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES]
+        packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES] as List<String>
     )
 
 }

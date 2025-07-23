@@ -16,22 +16,70 @@
 package com.epam.drill.agent.configuration
 
 import com.epam.drill.agent.common.configuration.AgentParameterDefinition
+import com.epam.drill.agent.common.configuration.AgentParameterDefinitionCollection
 import com.epam.drill.agent.common.configuration.NullableAgentParameterDefinition
+import com.epam.drill.agent.konform.validation.jsonschema.minItems
+import com.epam.drill.agent.konform.validation.jsonschema.minLength
 
-object DefaultParameterDefinitions {
+object DefaultParameterDefinitions : AgentParameterDefinitionCollection() {
 
-    val GROUP_ID = NullableAgentParameterDefinition.forString(name = "groupId")
-    val APP_ID = NullableAgentParameterDefinition.forString(name = "appId")
-    val BUILD_VERSION = NullableAgentParameterDefinition.forString(name = "buildVersion")
-    val COMMIT_SHA = NullableAgentParameterDefinition.forString(name = "commitSha")
-    val INSTANCE_ID = NullableAgentParameterDefinition.forString(name = "instanceId")
-    val ENV_ID = NullableAgentParameterDefinition.forString(name = "envId")
-    val PACKAGE_PREFIXES = AgentParameterDefinition.forType(
+    val GROUP_ID = AgentParameterDefinition.forString(
+        name = "groupId",
+        description = "Unique arbitrary string identifying your application group. Example: my-cool-app",
+        validator = {
+            identifier()
+            minLength(3)
+        }).register()
+    val APP_ID = AgentParameterDefinition.forString(
+        name = "appId",
+        description = "Unique arbitrary string identifying your application. Example: api-service",
+        validator = {
+            identifier()
+            minLength(3)
+        }).register()
+    val BUILD_VERSION = NullableAgentParameterDefinition.forString(
+        name = "buildVersion",
+        description = "Build version of your application. Typically set to version tag. Example: 0.1.2",
+    ).register()
+    val COMMIT_SHA = NullableAgentParameterDefinition.forString(
+        name = "commitSha",
+        description = "Full SHA hash of commit from which your application .jar is built. Example: 8d87b0c2379a925f2f5f4d85c731c8e77d9f2b3c"
+    ).register()
+    val INSTANCE_ID = NullableAgentParameterDefinition.forString(name = "instanceId").register()
+    val ENV_ID = NullableAgentParameterDefinition.forString(
+        name = "envId",
+        description = "Environment identifier in which the application is running. Example: develop"
+    ).register()
+    val PACKAGE_PREFIXES = AgentParameterDefinition.forList(
         name = "packagePrefixes",
+        description = """
+            Packages starting with matching string will be scanned.
+            It's usually set to the topmost common package of your application.
+
+            Syntax:
+            1. Parts of package names are separated with forward slashes / (and not dots .)
+            2. Multiple packages can be specified using ; delimiter
+            3. To exclude a package use ! before package name.
+
+            Examples:
+            my/org/some/cool/app;
+            my/org/some/cool/app;!my/org/some/cool/app/dto
+            my/org/some/cool/app;my/org/some/dependency
+
+            Documentation:
+            https://drill4j.github.io/docs/agents/java-agent/#how-to-set-package-prefixes
+        """.trimIndent(),
         parser = { it.split(";") },
-        defaultValue = emptyList()
-    )
-    val INSTALLATION_DIR = NullableAgentParameterDefinition.forString(name = "drillInstallationDir")
-    val CONFIG_PATH = NullableAgentParameterDefinition.forString(name = "configPath")
+        listValidator = {
+            minItems(1)
+        },
+        itemValidator = {
+            isValidPackage()
+        }
+    ).register()
+    val INSTALLATION_DIR = NullableAgentParameterDefinition.forString(name = "drillInstallationDir", validator = {
+        minLength(1)
+    }).register()
+    val CONFIG_PATH = NullableAgentParameterDefinition.forString(name = "configPath").register()
 
 }

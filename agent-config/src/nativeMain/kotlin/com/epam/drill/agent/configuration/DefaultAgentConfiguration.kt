@@ -27,7 +27,7 @@ actual class DefaultAgentConfiguration(
     private val _inputParameters = inputParameters()
 
     actual override val parameters: AgentParameters = DefaultAgentParameters(_inputParameters).also(::defineDefaults)
-    actual override val agentMetadata = agentMetadata()
+    actual override val agentMetadata by lazy { agentMetadata() }
 
     actual val inputParameters: Map<String, String>
         get() = _inputParameters.toMap()
@@ -51,14 +51,15 @@ actual class DefaultAgentConfiguration(
         agentParameters.define(DefaultParameterDefinitions.PACKAGE_PREFIXES)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun agentMetadata() = AgentMetadata(
-        groupId = parameters[DefaultParameterDefinitions.GROUP_ID] ?: "",
-        appId = parameters[DefaultParameterDefinitions.APP_ID] ?: "",
+        groupId = parameters[DefaultParameterDefinitions.GROUP_ID],
+        appId = parameters[DefaultParameterDefinitions.APP_ID],
         buildVersion = parameters[DefaultParameterDefinitions.BUILD_VERSION],
         commitSha = parameters[DefaultParameterDefinitions.COMMIT_SHA],
         envId = parameters[DefaultParameterDefinitions.ENV_ID],
         instanceId = parameters[DefaultParameterDefinitions.INSTANCE_ID] ?: "",
-        packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES] ?: emptyList()
+        packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES] as List<String>
     )
 
 }

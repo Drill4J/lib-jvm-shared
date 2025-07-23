@@ -15,99 +15,159 @@
  */
 package com.epam.drill.agent.common.configuration
 
+import com.epam.drill.agent.konform.validation.Valid
+import com.epam.drill.agent.konform.validation.Validation
+import com.epam.drill.agent.konform.validation.ValidationBuilder
+import com.epam.drill.agent.konform.validation.ValidationResult
+import kotlin.String
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 class AgentParameterDefinition<T : Any>(
-    val name: String,
-    val type: KClass<T>,
-    val defaultValue: T,
-    val parser: (String) -> T,
-    val validator: (String?) -> Unit
+    name: String,
+    description: String? = null,
+    type: KClass<T>,
+    val defaultValue: T? = null,
+    parser: (String) -> T,
+    validation: ValidationType = ValidationType.STRICT,
+    validator: (T?) -> ValidationResult<*>
+) : BaseAgentParameterDefinition<T>(
+    name = name,
+    description = description,
+    type = type,
+    parser = parser,
+    validation = validation,
+    validator = validator,
 ) {
 
     companion object {
 
         inline fun <reified T : Any> forType(
             name: String,
-            defaultValue: T,
+            description: String? = null,
+            defaultValue: T? = null,
+            validation: ValidationType = ValidationType.STRICT,
             noinline parser: (String) -> T,
-            noinline validator: (String?) -> Unit = {}
+            noinline validator: (Any?) -> ValidationResult<*> = { Valid(true) }
         ) = AgentParameterDefinition(
             name,
+            description,
             T::class,
             defaultValue,
             parser,
+            validation,
             validator
         )
 
         fun forString(
             name: String,
-            defaultValue: String = "",
+            description: String? = null,
+            defaultValue: String? = null,
+            validation: ValidationType = ValidationType.STRICT,
             parser: (String) -> String = { it },
-            validator: (String?) -> Unit = {}
+            validator: ValidationBuilder<String>.() -> Unit = {}
         ) = AgentParameterDefinition(
             name,
+            description,
             String::class,
             defaultValue,
             parser,
-            validator
+            validation,
+            validator = { validate(it, validator) }
         )
 
         fun forBoolean(
             name: String,
-            defaultValue: Boolean = false,
+            description: String? = null,
+            defaultValue: Boolean? = null,
+            validation: ValidationType = ValidationType.STRICT,
             parser: (String) -> Boolean = { it.toBoolean() },
-            validator: (String?) -> Unit = {}
+            validator: ValidationBuilder<Boolean>.() -> Unit = {}
         ) = AgentParameterDefinition(
             name,
+            description,
             Boolean::class,
             defaultValue,
             parser,
-            validator
+            validation,
+            validator = { validate(it, validator) }
         )
 
         fun forInt(
             name: String,
-            defaultValue: Int = 0,
+            description: String? = null,
+            defaultValue: Int? = null,
+            validation: ValidationType = ValidationType.STRICT,
             parser: (String) -> Int = { it.toInt() },
-            validator: (String?) -> Unit = {}
+            validator: ValidationBuilder<Int>.() -> Unit = {}
         ) = AgentParameterDefinition(
             name,
+            description,
             Int::class,
             defaultValue,
             parser,
-            validator
+            validation,
+            validator = { validate(it, validator) }
         )
 
         fun forLong(
             name: String,
-            defaultValue: Long = 0L,
+            description: String? = null,
+            defaultValue: Long? = null,
+            validation: ValidationType = ValidationType.STRICT,
             parser: (String) -> Long = { it.toLong() },
-            validator: (String?) -> Unit = {}
+            validator: ValidationBuilder<Long>.() -> Unit = {}
         ) = AgentParameterDefinition(
             name,
+            description,
             Long::class,
             defaultValue,
             parser,
-            validator
+            validation,
+            validator = { validate(it, validator) }
         )
 
         fun forDuration(
             name: String,
-            defaultValue: Duration = Duration.ZERO,
+            description: String? = null,
+            defaultValue: Duration? = null,
+            validation: ValidationType = ValidationType.STRICT,
             parser: (String) -> Duration = { it.toLong().toDuration(DurationUnit.MILLISECONDS) },
-            validator: (String?) -> Unit = {}
+            validator: ValidationBuilder<Duration>.() -> Unit = {}
         ) = AgentParameterDefinition(
             name,
+            description,
             Duration::class,
             defaultValue,
             parser,
-            validator
+            validation,
+            validator = { validate(it, validator) }
         )
 
+        fun forList(
+            name: String,
+            description: String? = null,
+            defaultValue: List<String> = emptyList(),
+            validation: ValidationType = ValidationType.STRICT,
+            parser: (String) -> List<String> = { it.split(";") },
+            listValidator: ValidationBuilder<List<String>>.() -> Unit = {},
+            itemValidator: ValidationBuilder<String>.() -> Unit = {}
+        ) = AgentParameterDefinition(
+            name = name,
+            description = description,
+            type = List::class,
+            defaultValue = defaultValue,
+            parser = parser,
+            validation = validation,
+            validator = { value ->
+                class Typed(val value: List<String>)
+                Validation {
+                    Typed::value required listValidator
+                    Typed::value onEach itemValidator
+                }.validate(Typed(value?.filterIsInstance<String>() ?: emptyList()))
+            }
+        )
     }
-
 }

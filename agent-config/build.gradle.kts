@@ -17,6 +17,7 @@ version = Properties().run {
 
 val ktorVersion: String by parent!!.extra
 val macosLd64: String by parent!!.extra
+val microutilsLoggingVersion: String by parent!!.extra
 
 repositories {
     mavenCentral()
@@ -48,6 +49,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":common"))
+                implementation(project(":konform"))
+                api("io.github.microutils:kotlin-logging:${microutilsLoggingVersion}")
             }
         }
         val commonTest by getting {
@@ -59,6 +62,7 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation("io.ktor:ktor-utils:$ktorVersion")
+                implementation(project(":konform"))
             }
         }
         val nativeTest by creating {
