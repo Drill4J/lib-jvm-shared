@@ -46,7 +46,8 @@ data class AstMethod(
 @Serializable
 data class ClassCoverage(
     val classname: String,
-    val testId: String,
+    val testId: String?,
+    val testSessionId: String?,
     @Serializable(with = BitSetSerializer::class)
     var probes: Probes,
 ){
@@ -60,6 +61,7 @@ data class ClassCoverage(
         if (classname != other.classname) return false
         if (probes != other.probes) return false
         if (testId != other.testId) return false
+        if (testSessionId != other.testSessionId) return false
 
         return true
     }
@@ -68,7 +70,7 @@ data class ClassCoverage(
     // We need to update ExeclassData instead of storing a new one.
     override fun hashCode(): Int {
         var result = classname.hashCode()
-        result = 31 * result + testId.hashCode()
+        result = 31 * result + testId.hashCode() + testSessionId.hashCode()
         return result
     }
 }
