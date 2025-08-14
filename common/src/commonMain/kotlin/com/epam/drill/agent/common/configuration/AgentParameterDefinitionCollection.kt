@@ -15,12 +15,13 @@
  */
 package com.epam.drill.agent.common.configuration
 
-import kotlin.reflect.KProperty
+abstract class AgentParameterDefinitionCollection(private val definitions: MutableSet<BaseAgentParameterDefinition<*>> = mutableSetOf()) {
 
-interface AgentParameters {
-    operator fun <T : Any> get(name: String): T?
-    operator fun <T : Any> get(definition: AgentParameterDefinition<T>): T
-    operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T?
-    operator fun <T : Any> get(definition: NullableAgentParameterDefinition<T>): T?
-    fun define(vararg definitions: BaseAgentParameterDefinition<*>): List<ValidationError<*>>
+    fun <T: Any, D: BaseAgentParameterDefinition<T>> D.register(): D {
+        definitions.add(this)
+        return this
+    }
+
+    fun getAll(): Set<BaseAgentParameterDefinition<*>> = definitions
+
 }

@@ -27,7 +27,7 @@ actual class DefaultAgentConfiguration(
     private val _inputParameters = inputParameters()
 
     actual override val parameters: AgentParameters = DefaultAgentParameters(_inputParameters).also(::defineDefaults)
-    actual override val agentMetadata = agentMetadata()
+    actual override val agentMetadata by lazy { agentMetadata() }
 
     actual val inputParameters: Map<String, String>
         get() = _inputParameters.toMap()
@@ -37,26 +37,29 @@ actual class DefaultAgentConfiguration(
         .map(AgentConfigurationProvider::configuration)
         .reduce { acc, map -> acc + map }
 
-    private fun defineDefaults(agentParameters: AgentParameters) = agentParameters.define(
-        DefaultParameterDefinitions.APP_ID,
-        DefaultParameterDefinitions.INSTANCE_ID,
-        DefaultParameterDefinitions.BUILD_VERSION,
-        DefaultParameterDefinitions.GROUP_ID,
-        DefaultParameterDefinitions.COMMIT_SHA,
-        DefaultParameterDefinitions.ENV_ID,
-        DefaultParameterDefinitions.PACKAGE_PREFIXES,
-        DefaultParameterDefinitions.INSTALLATION_DIR,
-        DefaultParameterDefinitions.CONFIG_PATH
-    )
+    private fun defineDefaults(agentParameters: AgentParameters)  {
+        agentParameters.define(
+            DefaultParameterDefinitions.APP_ID,
+            DefaultParameterDefinitions.INSTANCE_ID,
+            DefaultParameterDefinitions.BUILD_VERSION,
+            DefaultParameterDefinitions.GROUP_ID,
+            DefaultParameterDefinitions.COMMIT_SHA,
+            DefaultParameterDefinitions.ENV_ID,
+            DefaultParameterDefinitions.INSTALLATION_DIR,
+            DefaultParameterDefinitions.CONFIG_PATH
+        )
+        agentParameters.define(DefaultParameterDefinitions.PACKAGE_PREFIXES)
+    }
 
+    @Suppress("UNCHECKED_CAST")
     private fun agentMetadata() = AgentMetadata(
         groupId = parameters[DefaultParameterDefinitions.GROUP_ID],
         appId = parameters[DefaultParameterDefinitions.APP_ID],
         buildVersion = parameters[DefaultParameterDefinitions.BUILD_VERSION],
         commitSha = parameters[DefaultParameterDefinitions.COMMIT_SHA],
         envId = parameters[DefaultParameterDefinitions.ENV_ID],
-        instanceId = parameters[DefaultParameterDefinitions.INSTANCE_ID],
-        packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES]
+        instanceId = parameters[DefaultParameterDefinitions.INSTANCE_ID] ?: "",
+        packagesPrefixes = parameters[DefaultParameterDefinitions.PACKAGE_PREFIXES] as List<String>
     )
 
 }

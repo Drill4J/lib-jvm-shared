@@ -48,6 +48,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$kotlinxSerializationVersion")
+                implementation(project(":konform"))
             }
         }
         val commonTest by getting {

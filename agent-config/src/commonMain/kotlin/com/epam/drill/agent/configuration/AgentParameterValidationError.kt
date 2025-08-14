@@ -13,14 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.common.configuration
+package com.epam.drill.agent.configuration
 
-import kotlin.reflect.KProperty
-
-interface AgentParameters {
-    operator fun <T : Any> get(name: String): T?
-    operator fun <T : Any> get(definition: AgentParameterDefinition<T>): T
-    operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T?
-    operator fun <T : Any> get(definition: NullableAgentParameterDefinition<T>): T?
-    fun define(vararg definitions: BaseAgentParameterDefinition<*>): List<ValidationError<*>>
-}
+class AgentParameterValidationError(message: String): RuntimeException(message)

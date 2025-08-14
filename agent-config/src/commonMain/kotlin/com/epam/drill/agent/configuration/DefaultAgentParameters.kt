@@ -18,12 +18,16 @@ package com.epam.drill.agent.configuration
 import kotlin.reflect.KProperty
 import com.epam.drill.agent.common.configuration.AgentParameterDefinition
 import com.epam.drill.agent.common.configuration.AgentParameters
+import com.epam.drill.agent.common.configuration.NullableAgentParameterDefinition
+import com.epam.drill.agent.common.configuration.BaseAgentParameterDefinition
+import com.epam.drill.agent.common.configuration.ValidationError
 
 expect class DefaultAgentParameters(
     inputParameters: Map<String, String>
 ) : AgentParameters {
-    override operator fun <T : Any> get(name: String): T
+    override operator fun <T : Any> get(name: String): T?
     override operator fun <T : Any> get(definition: AgentParameterDefinition<T>): T
-    override operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T
-    override fun define(vararg definitions: AgentParameterDefinition<out Any>)
+    override operator fun <T : Any> getValue(ref: Any?, property: KProperty<*>): T?
+    override fun <T : Any> get(definition: NullableAgentParameterDefinition<T>): T?
+    override fun define(vararg definitions: BaseAgentParameterDefinition<out Any>): List<ValidationError<out Any>>
 }
