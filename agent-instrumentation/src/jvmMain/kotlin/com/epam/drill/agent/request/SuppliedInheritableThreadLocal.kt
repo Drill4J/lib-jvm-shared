@@ -15,8 +15,18 @@
  */
 package com.epam.drill.agent.request
 
-class DrillThreadLocal<T>(private val initial: () -> T): InheritableThreadLocal<T>() {
+class SuppliedInheritableThreadLocal<T>(private val supplier: () -> T): InheritableThreadLocal<T>() {
     override fun initialValue(): T {
-        return initial()
+        return supplier()
     }
+
+    companion object {
+        /**
+         * Creates an [InheritableThreadLocal] with an initial value provided by the given [supplier].
+         */
+        fun <S> withInitial(supplier: () -> S): InheritableThreadLocal<S> {
+            return SuppliedInheritableThreadLocal(supplier)
+        }
+    }
+
 }

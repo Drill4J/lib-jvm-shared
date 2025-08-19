@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.request
 
+import com.alibaba.ttl.TransmittableThreadLocal
 import com.epam.drill.agent.common.request.DrillRequest
 import com.epam.drill.agent.common.request.DrillInitialContext
 import com.epam.drill.agent.common.request.RequestHolder
@@ -23,12 +24,7 @@ import mu.KotlinLogging
 
 actual object DrillRequestHolder : RequestHolder {
     private val logger = KotlinLogging.logger {}
-    private val threadStorage: ThreadLocal<DrillRequest> = DrillThreadLocal {
-        DrillRequest(
-            drillSessionId = DrillInitialContext.get("drill-session-id") ?: "",
-            headers = DrillInitialContext.getAll().filter { it.key != "drill-session-id" }.toMap(),
-        )
-    }
+    private var threadStorage: ThreadLocal<DrillRequest> = SuppliedInheritableThreadLocal.withInitial(DrillInitialContext::getDrillRequest)
 
     actual override fun remove() {
         if (threadStorage.get() == null) return
@@ -53,7 +49,10 @@ actual object DrillRequestHolder : RequestHolder {
         retrieve()?.let { ProtoBuf.encodeToByteArray(DrillRequest.serializer(), it) }
 
     actual fun init(isAsync: Boolean) {
-        //deprecated
+        threadStorage = if (isAsync)
+            TransmittableThreadLocal.withInitial(DrillInitialContext::getDrillRequest)
+        else
+            SuppliedInheritableThreadLocal.withInitial(DrillInitialContext::getDrillRequest)
     }
 
 }

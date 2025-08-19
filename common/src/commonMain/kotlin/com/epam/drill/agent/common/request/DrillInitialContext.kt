@@ -29,4 +29,11 @@ object DrillInitialContext {
     fun get(key: String): String? = context[key]
 
     fun getAll(): Map<String, String> = context.toMap()
+
+    fun getDrillRequest(): DrillRequest {
+        return DrillRequest(
+            drillSessionId = get("drill-session-id") ?: "",
+            headers = getAll().filter { it.key != "drill-session-id" }.toMap(),
+        )
+    }
 }
