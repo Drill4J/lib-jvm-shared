@@ -15,7 +15,7 @@
  */
 package com.epam.drill.agent.request
 
-import com.alibaba.ttl.TransmittableThreadLocal
+import com.epam.drill.agent.ttl.TransmittableThreadLocal
 import com.epam.drill.agent.common.request.DrillRequest
 import com.epam.drill.agent.common.request.DrillInitialContext
 import com.epam.drill.agent.common.request.RequestHolder

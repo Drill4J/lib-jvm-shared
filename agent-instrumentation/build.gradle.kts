@@ -87,7 +87,7 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:$kotlinxSerializationVersion")
                 implementation("org.javassist:javassist:$javassistVersion")
-                implementation("com.alibaba:transmittable-thread-local:$transmittableThreadLocalVersion")
+                implementation(project(":transmittable-thread-local"))
                 implementation("net.bytebuddy:byte-buddy:$bytebuddyVersion")
             }
         }
