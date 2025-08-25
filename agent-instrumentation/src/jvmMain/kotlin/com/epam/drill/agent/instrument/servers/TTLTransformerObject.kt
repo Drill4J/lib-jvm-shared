@@ -15,13 +15,13 @@
  */
 package com.epam.drill.agent.instrument.servers
 
-import com.alibaba.ttl.threadpool.agent.TtlAgent
-import com.alibaba.ttl.threadpool.agent.internal.logging.Logger
-import com.alibaba.ttl.threadpool.agent.internal.transformlet.ClassInfo
-import com.alibaba.ttl.threadpool.agent.internal.transformlet.JavassistTransformlet
-import com.alibaba.ttl.threadpool.agent.internal.transformlet.impl.TtlExecutorTransformlet
-import com.alibaba.ttl.threadpool.agent.internal.transformlet.impl.TtlForkJoinTransformlet
-import com.alibaba.ttl.threadpool.agent.internal.transformlet.impl.TtlTimerTaskTransformlet
+import com.epam.drill.agent.ttl.threadpool.agent.TtlAgent
+import com.epam.drill.agent.ttl.threadpool.agent.internal.logging.Logger
+import com.epam.drill.agent.ttl.threadpool.agent.internal.transformlet.ClassInfo
+import com.epam.drill.agent.ttl.threadpool.agent.internal.transformlet.JavassistTransformlet
+import com.epam.drill.agent.ttl.threadpool.agent.internal.transformlet.impl.TtlExecutorTransformlet
+import com.epam.drill.agent.ttl.threadpool.agent.internal.transformlet.impl.TtlForkJoinTransformlet
+import com.epam.drill.agent.ttl.threadpool.agent.internal.transformlet.impl.TtlTimerTaskTransformlet
 import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
