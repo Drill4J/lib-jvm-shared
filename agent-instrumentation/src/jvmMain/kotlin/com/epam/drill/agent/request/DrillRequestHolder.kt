@@ -17,13 +17,14 @@ package com.epam.drill.agent.request
 
 import com.epam.drill.agent.ttl.TransmittableThreadLocal
 import com.epam.drill.agent.common.request.DrillRequest
+import com.epam.drill.agent.common.request.DrillInitialContext
 import com.epam.drill.agent.common.request.RequestHolder
 import kotlinx.serialization.protobuf.ProtoBuf
 import mu.KotlinLogging
 
 actual object DrillRequestHolder : RequestHolder {
     private val logger = KotlinLogging.logger {}
-    private var threadStorage: InheritableThreadLocal<DrillRequest> =  InheritableThreadLocal()
+    private var threadStorage: ThreadLocal<DrillRequest> = SuppliedInheritableThreadLocal.withInitial(DrillInitialContext::getDrillRequest)
 
     actual override fun remove() {
         if (threadStorage.get() == null) return
@@ -48,7 +49,10 @@ actual object DrillRequestHolder : RequestHolder {
         retrieve()?.let { ProtoBuf.encodeToByteArray(DrillRequest.serializer(), it) }
 
     actual fun init(isAsync: Boolean) {
-        threadStorage = if (isAsync) TransmittableThreadLocal() else InheritableThreadLocal()
+        threadStorage = if (isAsync)
+            TransmittableThreadLocal.withInitial(DrillInitialContext::getDrillRequest)
+        else
+            SuppliedInheritableThreadLocal.withInitial(DrillInitialContext::getDrillRequest)
     }
 
 }
