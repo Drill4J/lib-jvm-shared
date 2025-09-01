@@ -17,6 +17,7 @@ package com.epam.drill.agent.instrument.transformers.tomcat
 
 import com.epam.drill.agent.instrument.ClassPathProvider
 import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.agent.instrument.TestAgentParameters
 import com.epam.drill.agent.instrument.TestClassPathProvider
 import com.epam.drill.agent.instrument.TestHeadersProcessor
 import com.epam.drill.agent.instrument.TestHeadersRetriever
@@ -24,7 +25,6 @@ import com.epam.drill.agent.instrument.TransformerObject
 import com.epam.drill.agent.instrument.tomcat.TomcatHttpServerTransformerObject
 
 actual object TomcatHttpServerTransformer :
-    TransformerObject,
-    TomcatHttpServerTransformerObject(TestHeadersRetriever),
+    TomcatHttpServerTransformerObject(TestHeadersRetriever, TestAgentParameters),
     HeadersProcessor by TestHeadersProcessor,
     ClassPathProvider by TestClassPathProvider

@@ -18,6 +18,7 @@ package com.epam.drill.agent.instrument.transformers.netty
 import com.epam.drill.agent.instrument.ClassPathProvider
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.instrument.PayloadProcessor
+import com.epam.drill.agent.instrument.TestAgentParameters
 import com.epam.drill.agent.instrument.TestClassPathProvider
 import com.epam.drill.agent.instrument.TestHeadersProcessor
 import com.epam.drill.agent.instrument.TestPayloadProcessor
@@ -25,8 +26,7 @@ import com.epam.drill.agent.instrument.TransformerObject
 import com.epam.drill.agent.instrument.netty.NettyWsMessagesTransformerObject
 
 actual object NettyWsMessagesTransformer :
-    TransformerObject,
-    NettyWsMessagesTransformerObject(),
+    NettyWsMessagesTransformerObject(TestAgentParameters),
     HeadersProcessor by TestHeadersProcessor,
     PayloadProcessor by TestPayloadProcessor,
     ClassPathProvider by TestClassPathProvider

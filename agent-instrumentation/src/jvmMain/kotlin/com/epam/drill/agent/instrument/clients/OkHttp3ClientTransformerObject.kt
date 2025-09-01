@@ -15,12 +15,14 @@
  */
 package com.epam.drill.agent.instrument.clients
 
+import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
 import javassist.CtMethod
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_OK_HTTP_CLIENT_ENABLED
 
 /**
  * Transformer for OkHttp3 client
@@ -30,13 +32,16 @@ import com.epam.drill.agent.instrument.HeadersProcessor
  *     com.squareup.okhttp3:okhttp:3.14.9
  *     com.squareup.okhttp3:okhttp:4.12.0
  */
-abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
+abstract class OkHttp3ClientTransformerObject(agentParameters: AgentParameters) : HeadersProcessor,
+    AbstractTransformerObject(agentParameters) {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
+    override fun enabled(): Boolean = super.enabled() && agentParameters[INSTRUMENTATION_OK_HTTP_CLIENT_ENABLED]
+
+    override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
         interfaces.any("okhttp3/internal/http/HttpCodec"::equals) ||
-        interfaces.any("okhttp3/internal/http/ExchangeCodec"::equals)
+                interfaces.any("okhttp3/internal/http/ExchangeCodec"::equals)
 
     override fun transform(className: String, ctClass: CtClass) {
         ctClass.getDeclaredMethod("writeRequestHeaders").insertCatching(
@@ -55,7 +60,8 @@ abstract class OkHttp3ClientTransformerObject : HeadersProcessor, AbstractTransf
             }
             """.trimIndent()
         )
-        val methodName = "openResponseBody".takeIf(ctClass.declaredMethods.map(CtMethod::getName)::contains) ?: "openResponseBodySource"
+        val methodName = "openResponseBody".takeIf(ctClass.declaredMethods.map(CtMethod::getName)::contains)
+            ?: "openResponseBodySource"
         ctClass.getDeclaredMethod(methodName)
             .insertCatching(
                 CtBehavior::insertBefore,

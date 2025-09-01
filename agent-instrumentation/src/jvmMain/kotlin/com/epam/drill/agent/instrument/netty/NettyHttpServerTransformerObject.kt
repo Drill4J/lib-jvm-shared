@@ -15,12 +15,14 @@
  */
 package com.epam.drill.agent.instrument.netty
 
+import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
 import mu.KotlinLogging
-import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.common.request.HeadersRetriever
+import com.epam.drill.agent.instrument.NETTY_CHANNEL_HANDLER_CONTEXT
+import com.epam.drill.agent.instrument.http.AbstractHttpTransformerObject
 
 /**
  * Transformer for simple Netty-based web servers
@@ -29,13 +31,17 @@ import com.epam.drill.agent.common.request.HeadersRetriever
  *     io.netty:netty-codec-http:4.1.106.Final
  */
 abstract class NettyHttpServerTransformerObject(
-    private val headersRetriever: HeadersRetriever
-) : HeadersProcessor, AbstractTransformerObject() {
+    private val headersRetriever: HeadersRetriever,
+    agentParameters: AgentParameters
+) : HeadersProcessor, AbstractHttpTransformerObject(agentParameters) {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        "io/netty/channel/AbstractChannelHandlerContext" == className
+    override fun permit(
+        className: String,
+        superName: String?,
+        interfaces: Array<String?>
+    ): Boolean = '$' !in className && className.startsWith(NETTY_CHANNEL_HANDLER_CONTEXT)
 
     override fun transform(className: String, ctClass: CtClass) {
         val invokeChannelReadMethod = ctClass.getMethod("invokeChannelRead", "(Ljava/lang/Object;)V")

@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.tomcat
 
+import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
 import javassist.NotFoundException
@@ -22,6 +23,8 @@ import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.common.request.HeadersRetriever
+import com.epam.drill.agent.instrument.TOMCAT_HTTP_FILTER
+import com.epam.drill.agent.instrument.http.AbstractHttpTransformerObject
 
 /**
  * Transformer for Tomcat web server
@@ -31,13 +34,14 @@ import com.epam.drill.agent.common.request.HeadersRetriever
  *     org.apache.tomcat.embed:tomcat-embed-core:10.0.27
  */
 abstract class TomcatHttpServerTransformerObject(
-    protected val headersRetriever: HeadersRetriever
-) : HeadersProcessor, AbstractTransformerObject() {
+    protected val headersRetriever: HeadersRetriever,
+    agentParameters: AgentParameters
+) : HeadersProcessor, AbstractHttpTransformerObject(agentParameters) {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        "org/apache/catalina/core/ApplicationFilterChain" == className
+    override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
+        TOMCAT_HTTP_FILTER == className
 
     override fun transform(className: String, ctClass: CtClass) {
         val adminHeader = headersRetriever.adminAddressHeader()

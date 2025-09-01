@@ -20,6 +20,6 @@ import com.epam.drill.agent.instrument.jetty.JettyHttpServerTransformerObject
 
 actual object JettyHttpServerTransformer :
     TransformerObject,
-    JettyHttpServerTransformerObject(TestHeadersRetriever),
+    JettyHttpServerTransformerObject(TestHeadersRetriever, TestAgentParameters),
     HeadersProcessor by TestHeadersProcessor,
     ClassPathProvider by TestClassPathProvider

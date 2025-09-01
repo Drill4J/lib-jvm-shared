@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.undertow
 
+import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
 import javassist.CtField
@@ -24,6 +25,7 @@ import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.common.request.HeadersRetriever
+import com.epam.drill.agent.instrument.ws.AbstractWsTransformerObject
 
 /**
  * Transformer for Undertow-based websockets
@@ -32,13 +34,14 @@ import com.epam.drill.agent.common.request.HeadersRetriever
  *      io.undertow:undertow-websockets-jsr:2.0.29.Final
  */
 abstract class UndertowWsServerTransformerObject(
-    private val headersRetriever: HeadersRetriever
-) : HeadersProcessor, AbstractTransformerObject() {
+    private val headersRetriever: HeadersRetriever,
+    agentParameters: AgentParameters
+) : HeadersProcessor, AbstractWsTransformerObject(agentParameters) {
 
     override val logger = KotlinLogging.logger {}
     private var openingSessionHeaders: ThreadLocal<Map<String, String>?> = ThreadLocal()
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) = listOf(
+    override fun permit(className: String, superName: String?, interfaces: Array<String?>) = listOf(
         "io/undertow/websockets/jsr/UndertowSession",
         "io/undertow/websockets/jsr/EndpointSessionHandler",
         "io/undertow/websockets/jsr/FrameHandler",
@@ -51,7 +54,9 @@ abstract class UndertowWsServerTransformerObject(
             "io/undertow/websockets/jsr/UndertowSession" -> transformSession(ctClass)
             "io/undertow/websockets/jsr/EndpointSessionHandler" -> transformSessionHandler(ctClass)
             "io/undertow/websockets/jsr/FrameHandler" -> transformFrameHandler(ctClass)
-            "org/springframework/web/reactive/socket/adapter/UndertowWebSocketHandlerAdapter" -> transformSpringWebSocketHandlerAdapter(ctClass)
+            "org/springframework/web/reactive/socket/adapter/UndertowWebSocketHandlerAdapter" -> transformSpringWebSocketHandlerAdapter(
+                ctClass
+            )
         }
     }
 
@@ -90,7 +95,10 @@ abstract class UndertowWsServerTransformerObject(
     }
 
     private fun transformSessionHandler(ctClass: CtClass) {
-        ctClass.getMethod("onConnect", "(Lio/undertow/websockets/spi/WebSocketHttpExchange;Lio/undertow/websockets/core/WebSocketChannel;)V")
+        ctClass.getMethod(
+            "onConnect",
+            "(Lio/undertow/websockets/spi/WebSocketHttpExchange;Lio/undertow/websockets/core/WebSocketChannel;)V"
+        )
             .insertCatching(
                 CtBehavior::insertBefore,
                 """
@@ -108,8 +116,14 @@ abstract class UndertowWsServerTransformerObject(
     }
 
     private fun transformFrameHandler(ctClass: CtClass) {
-        val onTextMethod = ctClass.getMethod("onText", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/StreamSourceFrameChannel;)V")
-        val onBinaryMethod = ctClass.getMethod("onBinary", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/StreamSourceFrameChannel;)V")
+        val onTextMethod = ctClass.getMethod(
+            "onText",
+            "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/StreamSourceFrameChannel;)V"
+        )
+        val onBinaryMethod = ctClass.getMethod(
+            "onBinary",
+            "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/StreamSourceFrameChannel;)V"
+        )
         val storeHeadersCode =
             """
             if (this.session.getHandshakeHeaders() != null) {
@@ -129,8 +143,14 @@ abstract class UndertowWsServerTransformerObject(
     }
 
     private fun transformSpringWebSocketHandlerAdapter(ctClass: CtClass) {
-        val onTextMethod = ctClass.getMethod("onFullTextMessage", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/BufferedTextMessage;)V")
-        val onBinaryMethod = ctClass.getMethod("onFullBinaryMessage", "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/BufferedBinaryMessage;)V")
+        val onTextMethod = ctClass.getMethod(
+            "onFullTextMessage",
+            "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/BufferedTextMessage;)V"
+        )
+        val onBinaryMethod = ctClass.getMethod(
+            "onFullBinaryMessage",
+            "(Lio/undertow/websockets/core/WebSocketChannel;Lio/undertow/websockets/core/BufferedBinaryMessage;)V"
+        )
         val storeHeadersCode =
             """
             if (this.session.getHandshakeInfo().getHeaders().get("${headersRetriever.sessionHeader()}") != null) {

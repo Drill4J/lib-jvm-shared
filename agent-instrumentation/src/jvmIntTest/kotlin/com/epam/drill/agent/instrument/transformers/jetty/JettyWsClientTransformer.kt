@@ -19,7 +19,6 @@ import com.epam.drill.agent.instrument.*
 import com.epam.drill.agent.instrument.jetty.JettyWsClientTransformerObject
 
 actual object JettyWsClientTransformer:
-    TransformerObject,
-    JettyWsClientTransformerObject(),
+    JettyWsClientTransformerObject(TestAgentParameters),
     HeadersProcessor by TestHeadersProcessor,
     ClassPathProvider by TestClassPathProvider

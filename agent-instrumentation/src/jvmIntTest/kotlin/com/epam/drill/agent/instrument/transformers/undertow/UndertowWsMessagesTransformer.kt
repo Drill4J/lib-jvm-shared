@@ -19,8 +19,7 @@ import com.epam.drill.agent.instrument.*
 import com.epam.drill.agent.instrument.undertow.UndertowWsMessagesTransformerObject
 
 actual object UndertowWsMessagesTransformer:
-    TransformerObject,
-    UndertowWsMessagesTransformerObject(),
+    UndertowWsMessagesTransformerObject(TestAgentParameters),
     HeadersProcessor by TestHeadersProcessor,
     PayloadProcessor by TestPayloadProcessor,
     ClassPathProvider by TestClassPathProvider

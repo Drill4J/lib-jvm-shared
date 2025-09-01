@@ -15,7 +15,7 @@
  */
 package com.epam.drill.agent.instrument.transformers.servers
 
-import com.epam.drill.agent.instrument.AbstractTransformerObject
+import com.epam.drill.agent.instrument.JvmTransformerObject
 import com.epam.drill.agent.instrument.TransformerObject
 
-actual object SSLEngineTransformer : TransformerObject, AbstractTransformerObject()
+actual object SSLEngineTransformer : TransformerObject, JvmTransformerObject()

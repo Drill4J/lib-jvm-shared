@@ -17,6 +17,7 @@ package com.epam.drill.agent.instrument.transformers.clients
 
 import com.epam.drill.agent.instrument.ClassPathProvider
 import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.agent.instrument.TestAgentParameters
 import com.epam.drill.agent.instrument.TestClassPathProvider
 import com.epam.drill.agent.instrument.TestHeadersProcessor
 import com.epam.drill.agent.instrument.TransformerObject
@@ -24,6 +25,6 @@ import com.epam.drill.agent.instrument.clients.JavaHttpClientTransformerObject
 
 actual object JavaHttpClientTransformer :
     TransformerObject,
-    JavaHttpClientTransformerObject(),
+    JavaHttpClientTransformerObject(TestAgentParameters),
     HeadersProcessor by TestHeadersProcessor,
     ClassPathProvider by TestClassPathProvider

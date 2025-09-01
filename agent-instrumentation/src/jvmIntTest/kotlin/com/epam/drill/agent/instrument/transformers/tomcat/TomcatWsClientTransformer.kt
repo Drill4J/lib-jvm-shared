@@ -19,7 +19,6 @@ import com.epam.drill.agent.instrument.*
 import com.epam.drill.agent.instrument.tomcat.TomcatWsClientTransformerObject
 
 actual object TomcatWsClientTransformer:
-    TransformerObject,
-    TomcatWsClientTransformerObject(),
+    TomcatWsClientTransformerObject(TestAgentParameters),
     HeadersProcessor by TestHeadersProcessor,
     ClassPathProvider by TestClassPathProvider

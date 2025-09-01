@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.reactor.transformers
 
+import com.epam.drill.agent.common.configuration.AgentParameters
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.TransformerObject
 import com.epam.drill.agent.instrument.reactor.PublisherAssembler
@@ -26,14 +27,12 @@ import mu.KotlinLogging
 /**
  * Transformer for {@link reactor.core.publisher.ParallelFlux}.
  */
-abstract class ParallelFluxTransformerObject :
-    TransformerObject,
-    RequestHolder,
-    AbstractTransformerObject() {
+abstract class ParallelFluxTransformerObject(agentParameters: AgentParameters) :
+    AbstractReactorTransformerObject(agentParameters) {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
+    override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
         className == "reactor/core/publisher/ParallelFlux"
 
     override fun transform(className: String, ctClass: CtClass) {

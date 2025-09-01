@@ -69,10 +69,10 @@ object ClassFileLoadHook {
         newDataLen: CPointer<jintVar>?,
         newData: CPointer<CPointerVar<UByteVar>>?,
     ) {
-        val className = clsName?.toKString()
-        val isJavaHttpClass = className?.matches(Regex("(java|sun)/net/.*Http.*")) ?: false
-        val isJavaSslClass = className?.matches(Regex("(java|sun)/.*/ssl/.*")) ?: false
-        if (className == null || classData == null) return
+        val className = clsName?.toKString() ?: return
+        val isJavaHttpClass = className.matches(Regex("(java|sun)/net/.*Http.*")) ?: false
+        val isJavaSslClass = className.matches(Regex("(java|sun)/.*/ssl/.*")) ?: false
+        if (classData == null) return
         if (isBootstrapClassloading(loader, protectionDomain) && !isJavaHttpClass && !isJavaSslClass) return
         val classBytes = ByteArray(classDataLen).also {
             Memory.of(classData, classDataLen).loadByteArray(0, it)
@@ -80,7 +80,7 @@ object ClassFileLoadHook {
         val classReader = ClassReader(classBytes)
         var transformedBytes = classBytes
         clientTransformers.forEach {
-            if (it.permit(classReader.className, classReader.superName, classReader.interfaces)) {
+            if (it.permit(className, classReader.superName, classReader.interfaces)) {
                 transformedBytes = it.transform(className, transformedBytes, loader, protectionDomain)
             }
         }

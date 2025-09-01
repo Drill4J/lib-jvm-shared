@@ -20,6 +20,6 @@ import com.epam.drill.agent.instrument.reactor.transformers.SchedulersTransforme
 import com.epam.drill.agent.common.request.RequestHolder
 
 object SchedulersTransformer: TransformerObject,
-    SchedulersTransformerObject(),
+    SchedulersTransformerObject(TestAgentParameters),
     RequestHolder by TestRequestHolder,
     ClassPathProvider by TestClassPathProvider

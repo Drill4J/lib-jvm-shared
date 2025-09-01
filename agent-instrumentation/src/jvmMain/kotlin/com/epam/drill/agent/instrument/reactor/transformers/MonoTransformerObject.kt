@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.reactor.transformers
 
+import com.epam.drill.agent.common.configuration.AgentParameters
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.TransformerObject
 import com.epam.drill.agent.instrument.reactor.PublisherAssembler
@@ -26,14 +27,12 @@ import mu.KotlinLogging
 /**
  * Transformer for {@link reactor.core.publisher.Mono}.
  */
-abstract class MonoTransformerObject :
-    TransformerObject,
-    RequestHolder,
-    AbstractTransformerObject() {
+abstract class MonoTransformerObject(agentParameters: AgentParameters) :
+    AbstractReactorTransformerObject(agentParameters) {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
+    override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
         className == "reactor/core/publisher/Mono"
 
     override fun transform(className: String, ctClass: CtClass) {

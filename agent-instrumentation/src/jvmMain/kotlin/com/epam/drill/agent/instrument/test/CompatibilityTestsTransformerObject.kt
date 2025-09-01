@@ -15,11 +15,13 @@
  */
 package com.epam.drill.agent.instrument.test
 
+import com.epam.drill.agent.common.configuration.AgentParameters
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.instrument.TransformerObject
 import com.epam.drill.agent.common.request.DrillRequest
 import com.epam.drill.agent.common.request.RequestHolder
+import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_COMPATIBILITY_TESTS_ENABLED
 import javassist.CtClass
 import mu.KotlinLogging
 
@@ -29,14 +31,15 @@ private const val DRILL_SESSION_ID_HEADER = "drill-session-id"
 /**
  * Uses for compatibility tests https://github.com/Drill4J/internal-compatibility-matrix-tests.
  */
-abstract class CompatibilityTestsTransformerObject :
-    TransformerObject,
+abstract class CompatibilityTestsTransformerObject(agentParameters: AgentParameters) :
     RequestHolder,
-    AbstractTransformerObject() {
+    AbstractTransformerObject(agentParameters) {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
+    override fun enabled(): Boolean = super.enabled() && agentParameters[INSTRUMENTATION_COMPATIBILITY_TESTS_ENABLED]
+
+    override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
         className == COMPATIBILITY_TEST_CLASS_NAME
 
     override fun transform(className: String, ctClass: CtClass) {

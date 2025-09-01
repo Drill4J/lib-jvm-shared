@@ -15,17 +15,19 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+import com.epam.drill.agent.common.configuration.AgentParameters
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import javassist.CtClass
 import mu.KotlinLogging
 
 abstract class ReactorTransformerObject(
-    private val reactorTransformers: Set<AbstractTransformerObject>
-) : AbstractTransformerObject() {
+    private val reactorTransformers: Set<AbstractTransformerObject>,
+    agentParameters: AgentParameters
+) : AbstractTransformerObject(agentParameters) {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
+    override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
         reactorTransformers.any { it.permit(className, null, null) }
 
     override fun transform(className: String, ctClass: CtClass) {

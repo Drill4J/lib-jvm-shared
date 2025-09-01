@@ -15,16 +15,18 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
+import com.epam.drill.agent.instrument.CADENCE_CONSUMER
+import com.epam.drill.agent.instrument.CADENCE_PRODUCER
 import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions
+import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_CADENCE_ENABLED
 
-private const val CADENCE_PRODUCER =  "com/uber/cadence/internal/sync/WorkflowStubImpl"
-private const val CADENCE_CONSUMER = "com/uber/cadence/internal/sync/WorkflowRunnable"
-
-abstract class CadenceTransformerObject : HeadersProcessor, AbstractTransformerObject() {
+abstract class CadenceTransformerObject(agentParameters: AgentParameters) : HeadersProcessor, AbstractTransformerObject(agentParameters) {
 
     private val producerInstrumentedMethods = listOf(
         "signalAsync",
@@ -37,7 +39,9 @@ abstract class CadenceTransformerObject : HeadersProcessor, AbstractTransformerO
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
+    override fun enabled(): Boolean = super.enabled() && agentParameters[INSTRUMENTATION_CADENCE_ENABLED]
+
+    override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
         CADENCE_PRODUCER == className || CADENCE_CONSUMER == className
 
     override fun transform(className: String, ctClass: CtClass) {

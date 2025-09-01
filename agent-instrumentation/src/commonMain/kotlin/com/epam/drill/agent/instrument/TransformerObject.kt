@@ -16,5 +16,5 @@
 package com.epam.drill.agent.instrument
 
 interface TransformerObject : Transformer {
-    fun permit(className: String?, superName: String?, interfaces: String?): Boolean
+    fun permit(className: String, superName: String?, interfaces: String?): Boolean
 }
