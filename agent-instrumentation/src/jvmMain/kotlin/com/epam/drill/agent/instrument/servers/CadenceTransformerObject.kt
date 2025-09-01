@@ -23,7 +23,6 @@ import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.CADENCE_CONSUMER
 import com.epam.drill.agent.instrument.CADENCE_PRODUCER
 import com.epam.drill.agent.instrument.HeadersProcessor
-import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions
 import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_CADENCE_ENABLED
 
 abstract class CadenceTransformerObject(agentParameters: AgentParameters) : HeadersProcessor, AbstractTransformerObject(agentParameters) {

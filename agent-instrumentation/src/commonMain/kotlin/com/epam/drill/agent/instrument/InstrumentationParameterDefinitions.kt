@@ -1,3 +1,8 @@
+package com.epam.drill.agent.instrument
+
+import com.epam.drill.agent.common.configuration.AgentParameterDefinition
+import com.epam.drill.agent.common.configuration.AgentParameterDefinitionCollection
+
 /**
  * Copyright 2020 - 2022 EPAM Systems
  *
@@ -13,11 +18,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument
-
-import com.epam.drill.agent.common.configuration.AgentParameterDefinition
-import com.epam.drill.agent.common.configuration.AgentParameterDefinitionCollection
-
 object InstrumentationParameterDefinitions: AgentParameterDefinitionCollection() {
     val INSTRUMENTATION_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationEnabled", defaultValue = true).register()
     val INSTRUMENTATION_COMPATIBILITY_TESTS_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationCompatibilityTestsEnabled", defaultValue = false).register()
