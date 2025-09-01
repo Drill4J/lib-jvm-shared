@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.reactor.transformers
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import com.epam.drill.agent.instrument.TransformerObject
 import com.epam.drill.agent.instrument.AbstractTransformerObject
@@ -29,8 +30,8 @@ import mu.KotlinLogging
  * Transformer for {@link reactor.core.scheduler.Schedulers}.
  * It propagates {@link DrillRequest} using {@link PropagatedDrillRequestRunnable} on the method {@link Schedulers#onSchedule}.
  */
-abstract class SchedulersTransformerObject(agentParameters: AgentParameters) :
-    AbstractReactorTransformerObject(agentParameters) {
+abstract class SchedulersTransformerObject(agentConfiguration: AgentConfiguration) :
+    AbstractReactorTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 

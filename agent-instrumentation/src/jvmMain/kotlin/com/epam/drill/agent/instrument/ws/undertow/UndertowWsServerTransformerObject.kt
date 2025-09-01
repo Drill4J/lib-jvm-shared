@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.undertow
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
@@ -35,8 +36,8 @@ import com.epam.drill.agent.instrument.ws.AbstractWsTransformerObject
  */
 abstract class UndertowWsServerTransformerObject(
     private val headersRetriever: HeadersRetriever,
-    agentParameters: AgentParameters
-) : HeadersProcessor, AbstractWsTransformerObject(agentParameters) {
+    agentConfiguration: AgentConfiguration
+) : HeadersProcessor, AbstractWsTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
     private var openingSessionHeaders: ThreadLocal<Map<String, String>?> = ThreadLocal()

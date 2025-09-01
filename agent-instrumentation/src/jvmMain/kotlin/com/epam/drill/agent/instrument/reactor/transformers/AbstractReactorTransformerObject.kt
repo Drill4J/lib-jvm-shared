@@ -15,15 +15,16 @@
  */
 package com.epam.drill.agent.instrument.reactor.transformers
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import com.epam.drill.agent.common.request.RequestHolder
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_REACTOR_ENABLED
 
-abstract class AbstractReactorTransformerObject(agentParameters: AgentParameters) :
+abstract class AbstractReactorTransformerObject(agentConfiguration: AgentConfiguration) :
     RequestHolder,
-    AbstractTransformerObject(agentParameters) {
+    AbstractTransformerObject(agentConfiguration) {
 
-    override fun enabled(): Boolean = super.enabled() && agentParameters[INSTRUMENTATION_REACTOR_ENABLED]
+    override fun enabled(): Boolean = super.enabled() && agentConfiguration.parameters[INSTRUMENTATION_REACTOR_ENABLED]
 
 }

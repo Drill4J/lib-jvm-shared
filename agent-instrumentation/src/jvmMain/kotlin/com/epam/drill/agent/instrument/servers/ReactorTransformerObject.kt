@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import javassist.CtClass
@@ -22,8 +23,8 @@ import mu.KotlinLogging
 
 abstract class ReactorTransformerObject(
     private val reactorTransformers: Set<AbstractTransformerObject>,
-    agentParameters: AgentParameters
-) : AbstractTransformerObject(agentParameters) {
+    agentConfiguration: AgentConfiguration
+) : AbstractTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 

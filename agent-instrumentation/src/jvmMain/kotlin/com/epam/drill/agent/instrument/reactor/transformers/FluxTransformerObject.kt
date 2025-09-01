@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.reactor.transformers
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import com.epam.drill.agent.instrument.reactor.PublisherAssembler
 import com.epam.drill.agent.common.request.RequestHolder
@@ -25,8 +26,8 @@ import mu.KotlinLogging
 /**
  * Transformer for {@link reactor.core.publisher.Flux}.
  */
-abstract class FluxTransformerObject(agentParameters: AgentParameters) :
-    AbstractReactorTransformerObject(agentParameters) {
+abstract class FluxTransformerObject(agentConfiguration: AgentConfiguration) :
+    AbstractReactorTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 

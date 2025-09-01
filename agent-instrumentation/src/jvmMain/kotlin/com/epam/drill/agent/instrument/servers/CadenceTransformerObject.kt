@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
@@ -25,7 +26,8 @@ import com.epam.drill.agent.instrument.CADENCE_PRODUCER
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_CADENCE_ENABLED
 
-abstract class CadenceTransformerObject(agentParameters: AgentParameters) : HeadersProcessor, AbstractTransformerObject(agentParameters) {
+abstract class CadenceTransformerObject(agentConfiguration: AgentConfiguration) : HeadersProcessor,
+    AbstractTransformerObject(agentConfiguration) {
 
     private val producerInstrumentedMethods = listOf(
         "signalAsync",
@@ -38,7 +40,7 @@ abstract class CadenceTransformerObject(agentParameters: AgentParameters) : Head
 
     override val logger = KotlinLogging.logger {}
 
-    override fun enabled(): Boolean = super.enabled() && agentParameters[INSTRUMENTATION_CADENCE_ENABLED]
+    override fun enabled(): Boolean = super.enabled() && agentConfiguration.parameters[INSTRUMENTATION_CADENCE_ENABLED]
 
     override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
         CADENCE_PRODUCER == className || CADENCE_CONSUMER == className

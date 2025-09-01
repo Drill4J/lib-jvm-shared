@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.undertow
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
@@ -33,8 +34,8 @@ import mu.KotlinLogging
  */
 abstract class UndertowHttpServerTransformerObject(
     private val headersRetriever: HeadersRetriever,
-    agentParameters: AgentParameters
-) : HeadersProcessor, AbstractHttpTransformerObject(agentParameters) {
+    agentConfiguration: AgentConfiguration
+) : HeadersProcessor, AbstractHttpTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 

@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.clients
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
@@ -29,12 +30,12 @@ import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTR
  * Tested with:
  *     jdk 1.8.0_241
  */
-abstract class JavaHttpClientTransformerObject(agentParameters: AgentParameters) : HeadersProcessor,
-    AbstractTransformerObject(agentParameters) {
+abstract class JavaHttpClientTransformerObject(agentConfiguration: AgentConfiguration) : HeadersProcessor,
+    AbstractTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun enabled(): Boolean = super.enabled() && agentParameters[INSTRUMENTATION_JAVA_HTTP_CLIENT_ENABLED]
+    override fun enabled(): Boolean = super.enabled() && agentConfiguration.parameters[INSTRUMENTATION_JAVA_HTTP_CLIENT_ENABLED]
 
     override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
         "java/net/HttpURLConnection" == superName || "javax/net/ssl/HttpsURLConnection" == superName

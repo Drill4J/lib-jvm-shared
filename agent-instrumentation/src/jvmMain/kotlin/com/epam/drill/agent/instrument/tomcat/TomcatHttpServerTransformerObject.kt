@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.tomcat
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
@@ -35,8 +36,8 @@ import com.epam.drill.agent.instrument.http.AbstractHttpTransformerObject
  */
 abstract class TomcatHttpServerTransformerObject(
     protected val headersRetriever: HeadersRetriever,
-    agentParameters: AgentParameters
-) : HeadersProcessor, AbstractHttpTransformerObject(agentParameters) {
+    agentConfiguration: AgentConfiguration
+) : HeadersProcessor, AbstractHttpTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 

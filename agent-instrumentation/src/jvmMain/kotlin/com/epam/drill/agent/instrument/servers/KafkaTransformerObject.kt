@@ -15,13 +15,13 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
-import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions
 import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_KAFKA_ENABLED
 import com.epam.drill.agent.instrument.KAFKA_CONSUMER_SPRING
 import com.epam.drill.agent.instrument.KAFKA_PRODUCER_INTERFACE
@@ -33,12 +33,12 @@ import com.epam.drill.agent.instrument.KAFKA_PRODUCER_INTERFACE
  *     org.apache.kafka:kafka-clients:3.2.3
  *     org.springframework.kafka:spring-kafka:2.9.13
  */
-abstract class KafkaTransformerObject(agentParameters: AgentParameters) : HeadersProcessor, AbstractTransformerObject(agentParameters) {
+abstract class KafkaTransformerObject(agentConfiguration: AgentConfiguration) : HeadersProcessor, AbstractTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 
     override fun enabled(): Boolean {
-        return super.enabled() && agentParameters[INSTRUMENTATION_KAFKA_ENABLED]
+        return super.enabled() && agentConfiguration.parameters[INSTRUMENTATION_KAFKA_ENABLED]
     }
 
     override fun permit(className: String, superName: String?, interfaces: Array<String?>) =

@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import com.epam.drill.agent.ttl.threadpool.agent.TtlAgent
 import com.epam.drill.agent.ttl.threadpool.agent.internal.logging.Logger
@@ -28,7 +29,7 @@ import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_TTL_ENABLED
 
-abstract class TTLTransformerObject(agentParameters: AgentParameters) : AbstractTransformerObject(agentParameters) {
+abstract class TTLTransformerObject(agentConfiguration: AgentConfiguration) : AbstractTransformerObject(agentConfiguration) {
 
     private val directTtlClasses = listOf(
         "java/util/concurrent/ScheduledThreadPoolExecutor",
@@ -50,7 +51,7 @@ abstract class TTLTransformerObject(agentParameters: AgentParameters) : Abstract
         if (TtlAgent.isEnableTimerTask()) transformletList.add(TtlTimerTaskTransformlet())
     }
 
-    override fun enabled(): Boolean = super.enabled() && agentParameters[INSTRUMENTATION_TTL_ENABLED]
+    override fun enabled(): Boolean = super.enabled() && agentConfiguration.parameters[INSTRUMENTATION_TTL_ENABLED]
 
     override fun permit(className: String, superName: String?, interfaces: Array<String?>): Boolean {
         if (directTtlClasses.contains(className)) return true

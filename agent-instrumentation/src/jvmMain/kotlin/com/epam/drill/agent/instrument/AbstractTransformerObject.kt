@@ -15,7 +15,7 @@
  */
 package com.epam.drill.agent.instrument
 
-import com.epam.drill.agent.common.configuration.AgentParameters
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_ENABLED
 import java.io.ByteArrayInputStream
 import javassist.ClassPool
@@ -24,12 +24,12 @@ import javassist.CtClass
 import javassist.LoaderClassPath
 import mu.KLogger
 
-abstract class AbstractTransformerObject(internal val agentParameters: AgentParameters) : TransformerObject, ClassPathProvider {
+abstract class AbstractTransformerObject(internal val agentConfiguration: AgentConfiguration) : TransformerObject, ClassPathProvider {
 
     protected abstract val logger: KLogger
 
     override fun enabled(): Boolean {
-        return agentParameters[INSTRUMENTATION_ENABLED]
+        return agentConfiguration.parameters[INSTRUMENTATION_ENABLED]
     }
 
     override fun permit(className: String, superName: String?, interfaces: String?) =

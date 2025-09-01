@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.netty
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
@@ -23,8 +24,8 @@ import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.instrument.ws.AbstractWsTransformerObject
 
-abstract class NettyWsClientTransformerObject(agentParameters: AgentParameters) : HeadersProcessor,
-    AbstractWsTransformerObject(agentParameters) {
+abstract class NettyWsClientTransformerObject(agentConfiguration: AgentConfiguration) : HeadersProcessor,
+    AbstractWsTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 

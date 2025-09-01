@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.clients
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
@@ -32,12 +33,12 @@ import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTR
  *     com.squareup.okhttp3:okhttp:3.14.9
  *     com.squareup.okhttp3:okhttp:4.12.0
  */
-abstract class OkHttp3ClientTransformerObject(agentParameters: AgentParameters) : HeadersProcessor,
-    AbstractTransformerObject(agentParameters) {
+abstract class OkHttp3ClientTransformerObject(agentConfiguration: AgentConfiguration) : HeadersProcessor,
+    AbstractTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun enabled(): Boolean = super.enabled() && agentParameters[INSTRUMENTATION_OK_HTTP_CLIENT_ENABLED]
+    override fun enabled(): Boolean = super.enabled() && agentConfiguration.parameters[INSTRUMENTATION_OK_HTTP_CLIENT_ENABLED]
 
     override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
         interfaces.any("okhttp3/internal/http/HttpCodec"::equals) ||

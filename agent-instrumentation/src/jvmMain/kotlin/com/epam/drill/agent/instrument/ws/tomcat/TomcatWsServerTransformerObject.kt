@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.tomcat
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
@@ -29,8 +30,8 @@ import com.epam.drill.agent.instrument.ws.AbstractWsTransformerObject
  * Tested with:
  *     org.apache.tomcat.embed:tomcat-embed-websocket:9.0.83
  */
-abstract class TomcatWsServerTransformerObject(agentParameters: AgentParameters) : HeadersProcessor,
-    AbstractWsTransformerObject(agentParameters) {
+abstract class TomcatWsServerTransformerObject(agentConfiguration: AgentConfiguration) : HeadersProcessor,
+    AbstractWsTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 

@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.jetty
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
@@ -30,8 +31,8 @@ import com.epam.drill.agent.instrument.ws.AbstractWsTransformerObject
  * Tested with:
  *     org.eclipse.jetty.websocket:javax-websocket-server-impl:9.4.26.v20200117
  */
-abstract class JettyWsServerTransformerObject(agentParameters: AgentParameters) : HeadersProcessor,
-    AbstractWsTransformerObject(agentParameters) {
+abstract class JettyWsServerTransformerObject(agentConfiguration: AgentConfiguration) : HeadersProcessor,
+    AbstractWsTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 

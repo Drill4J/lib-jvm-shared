@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.servers
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import java.nio.ByteBuffer
 import javassist.CtBehavior
@@ -39,8 +40,8 @@ private const val HTTP_RESPONSE_MARK = "HTTP"
  */
 abstract class SSLEngineTransformerObject(
     headersRetriever: HeadersRetriever,
-    agentParameters: AgentParameters
-) : HeadersProcessor, AbstractTransformerObject(agentParameters) {
+    agentConfiguration: AgentConfiguration
+) : HeadersProcessor, AbstractTransformerObject(agentConfiguration) {
 
     private val httpVerbs = setOf("OPTIONS", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "CONNECT", "PRI")
     private val httpHeadersEndMark = HTTP_HEADERS_END_MARK.encodeToByteArray()
@@ -50,7 +51,7 @@ abstract class SSLEngineTransformerObject(
 
     override val logger = KotlinLogging.logger {}
 
-    override fun enabled(): Boolean = super.enabled() && agentParameters[INSTRUMENTATION_SSL_ENABLED]
+    override fun enabled(): Boolean = super.enabled() && agentConfiguration.parameters[INSTRUMENTATION_SSL_ENABLED]
 
     override fun permit(
         className: String,

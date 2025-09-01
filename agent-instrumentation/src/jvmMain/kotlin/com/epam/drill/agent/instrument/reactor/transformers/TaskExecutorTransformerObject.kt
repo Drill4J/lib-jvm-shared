@@ -15,6 +15,7 @@
  */
 package com.epam.drill.agent.instrument.reactor.transformers
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
 import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
@@ -25,8 +26,8 @@ import com.epam.drill.agent.instrument.reactor.PropagatedDrillRequestRunnable
 import com.epam.drill.agent.common.request.DrillRequest
 import com.epam.drill.agent.common.request.RequestHolder
 
-abstract class TaskExecutorTransformerObject(agentParameters: AgentParameters) :
-    AbstractReactorTransformerObject(agentParameters) {
+abstract class TaskExecutorTransformerObject(agentConfiguration: AgentConfiguration) :
+    AbstractReactorTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 
