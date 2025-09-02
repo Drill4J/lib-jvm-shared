@@ -30,9 +30,9 @@ object TransformerRegistrar {
         transformers.forEach {
             logger.debug {
                 if (enabledTransformers.contains(it))
-                    "${it::class.simpleName} enabled"
+                    "${it::class.simpleName} is enabled"
                 else
-                    "${it::class.simpleName} disabled"
+                    "${it::class.simpleName} is disabled"
             }
         }
     }

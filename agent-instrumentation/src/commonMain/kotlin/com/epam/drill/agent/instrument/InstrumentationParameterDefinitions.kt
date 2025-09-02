@@ -34,8 +34,10 @@ object InstrumentationParameterDefinitions: AgentParameterDefinitionCollection()
     val INSTRUMENTATION_WS_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationWsEnabled", defaultValue = true).register()
 
     //Http
-    val INSTRUMENTATION_SSL_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationSslEnabled", defaultValue = true).register()
     val INSTRUMENTATION_HTTP_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationHttpEnabled", defaultValue = true).register()
+    val INSTRUMENTATION_SSL_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationSslEnabled", defaultValue = true).register()
+
+    //Http Clients
     val INSTRUMENTATION_JAVA_HTTP_CLIENT_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationJavaHttpClientEnabled", defaultValue = true).register()
     val INSTRUMENTATION_APACHE_HTTP_CLIENT_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationApacheHttpClientEnabled", defaultValue = true).register()
     val INSTRUMENTATION_OK_HTTP_CLIENT_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationOkHttpClientEnabled", defaultValue = true).register()
