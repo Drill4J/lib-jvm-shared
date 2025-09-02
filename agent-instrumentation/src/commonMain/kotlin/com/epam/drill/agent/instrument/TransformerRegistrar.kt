@@ -27,5 +27,13 @@ object TransformerRegistrar {
     fun initialize(transformers: Set<Transformer>) {
         this.transformers = transformers
         logger.info { "Enabled ${enabledTransformers.size} transformers" }
+        transformers.forEach {
+            logger.debug {
+                if (enabledTransformers.contains(it))
+                    "${it::class.simpleName} enabled"
+                else
+                    "${it::class.simpleName} disabled"
+            }
+        }
     }
 }
