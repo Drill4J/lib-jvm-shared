@@ -26,38 +26,6 @@ import com.epam.drill.agent.jvmapi.toJByteArray
 import kotlinx.cinterop.ExperimentalForeignApi
 
 abstract class JvmTransformerObject : TransformerObject {
-    @OptIn(ExperimentalForeignApi::class)
-    @Suppress("unchecked_cast")
-    override fun enabled(): Boolean = getObjectMethod(
-        this::class,
-        Transformer::enabled.name,
-        "()Z"
-    ).run {
-        CallBooleanMethod(
-            this.first,
-            this.second
-        ).toByte().toBoolean()
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    @Suppress("unchecked_cast")
-    override fun precheck(
-        className: String,
-        loader: Any?,
-        protectionDomain: Any?
-    ): Boolean = getObjectMethod(
-        this::class,
-        Transformer::precheck.name,
-        "(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)Z"
-    ).run {
-        CallBooleanMethod(
-            this.first,
-            this.second,
-            NewStringUTF(className),
-            loader as jobject?,
-            protectionDomain as jobject?
-        ).toByte().toBoolean()
-    }
 
     @OptIn(ExperimentalForeignApi::class)
     @Suppress("unchecked_cast")
