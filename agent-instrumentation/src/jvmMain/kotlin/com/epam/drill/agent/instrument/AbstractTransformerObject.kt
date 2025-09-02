@@ -24,7 +24,7 @@ import javassist.CtClass
 import javassist.LoaderClassPath
 import mu.KLogger
 
-abstract class AbstractTransformerObject(internal val agentConfiguration: AgentConfiguration) : TransformerObject, ClassPathProvider {
+abstract class AbstractTransformerObject(protected val agentConfiguration: AgentConfiguration) : TransformerObject, ClassPathProvider {
 
     protected abstract val logger: KLogger
 
