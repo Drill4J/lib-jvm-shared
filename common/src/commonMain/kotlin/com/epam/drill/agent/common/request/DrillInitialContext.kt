@@ -30,10 +30,12 @@ object DrillInitialContext {
 
     fun getAll(): Map<String, String> = context.toMap()
 
-    fun getDrillRequest(): DrillRequest {
-        return DrillRequest(
-            drillSessionId = get("drill-session-id") ?: "",
-            headers = getAll().filter { it.key != "drill-session-id" }.toMap(),
-        )
+    fun getDrillRequest(): DrillRequest? {
+        return get("drill-session-id").takeIf { !it.isNullOrBlank() }?.let { testSessionId ->
+            DrillRequest(
+                drillSessionId = testSessionId,
+                headers = getAll().filter { it.key != "drill-session-id" }.toMap(),
+            )
+        }
     }
 }
