@@ -24,7 +24,7 @@ import mu.KotlinLogging
 
 actual object DrillRequestHolder : RequestHolder {
     private val logger = KotlinLogging.logger {}
-    private var threadStorage: ThreadLocal<DrillRequest> = SuppliedInheritableThreadLocal.withInitial(DrillInitialContext::getDrillRequest)
+    private var threadStorage: ThreadLocal<DrillRequest> = TransmittableThreadLocal.withInitial(DrillInitialContext::getDrillRequest)
 
     actual override fun remove() {
         if (threadStorage.get() == null) return
@@ -47,12 +47,5 @@ actual object DrillRequestHolder : RequestHolder {
 
     actual fun dump(): ByteArray? =
         retrieve()?.let { ProtoBuf.encodeToByteArray(DrillRequest.serializer(), it) }
-
-    actual fun init(isAsync: Boolean) {
-        threadStorage = if (isAsync)
-            TransmittableThreadLocal.withInitial(DrillInitialContext::getDrillRequest)
-        else
-            SuppliedInheritableThreadLocal.withInitial(DrillInitialContext::getDrillRequest)
-    }
 
 }

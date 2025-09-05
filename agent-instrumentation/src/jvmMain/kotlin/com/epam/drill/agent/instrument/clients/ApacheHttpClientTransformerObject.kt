@@ -15,11 +15,14 @@
  */
 package com.epam.drill.agent.instrument.clients
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
+import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_APACHE_HTTP_CLIENT_ENABLED
 
 /**
  * Transformer for Apache HTTP client
@@ -31,13 +34,16 @@ import com.epam.drill.agent.instrument.HeadersProcessor
  *     org.apache.httpcomponents:httpclient:4.5.14
  *     org.apache.httpcomponents:httpclient:5.3.1
  */
-abstract class ApacheHttpClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
+abstract class ApacheHttpClientTransformerObject(agentConfiguration: AgentConfiguration) : HeadersProcessor,
+    AbstractTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
+    override fun enabled(): Boolean = super.enabled() && agentConfiguration.parameters[INSTRUMENTATION_APACHE_HTTP_CLIENT_ENABLED]
+
+    override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
         interfaces.any("org/apache/http/HttpClientConnection"::equals) ||
-        interfaces.any("org/apache/hc/core5/http/io/HttpClientConnection"::equals)
+                interfaces.any("org/apache/hc/core5/http/io/HttpClientConnection"::equals)
 
     override fun transform(className: String, ctClass: CtClass) {
         if (ctClass.isInterface) return

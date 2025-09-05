@@ -20,6 +20,6 @@ import com.epam.drill.agent.instrument.reactor.transformers.ParallelFluxTransfor
 import com.epam.drill.agent.common.request.RequestHolder
 
 object ParallelFluxTransformer: TransformerObject,
-    ParallelFluxTransformerObject(),
+    ParallelFluxTransformerObject(TestAgentParameters),
     RequestHolder by TestRequestHolder,
     ClassPathProvider by TestClassPathProvider

@@ -15,11 +15,14 @@
  */
 package com.epam.drill.agent.instrument.clients
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
+import com.epam.drill.agent.common.configuration.AgentParameters
 import javassist.CtBehavior
 import javassist.CtClass
 import mu.KotlinLogging
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
+import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_JAVA_HTTP_CLIENT_ENABLED
 
 /**
  * Transformer for Java HttpURLConnection client
@@ -27,11 +30,14 @@ import com.epam.drill.agent.instrument.HeadersProcessor
  * Tested with:
  *     jdk 1.8.0_241
  */
-abstract class JavaHttpClientTransformerObject : HeadersProcessor, AbstractTransformerObject() {
+abstract class JavaHttpClientTransformerObject(agentConfiguration: AgentConfiguration) : HeadersProcessor,
+    AbstractTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
+    override fun enabled(): Boolean = super.enabled() && agentConfiguration.parameters[INSTRUMENTATION_JAVA_HTTP_CLIENT_ENABLED]
+
+    override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
         "java/net/HttpURLConnection" == superName || "javax/net/ssl/HttpsURLConnection" == superName
 
     override fun transform(className: String, ctClass: CtClass) {
@@ -51,7 +57,7 @@ abstract class JavaHttpClientTransformerObject : HeadersProcessor, AbstractTrans
                 """.trimIndent()
             )
         }
-        if(className == "sun/net/www/protocol/http/HttpURLConnection") {
+        if (className == "sun/net/www/protocol/http/HttpURLConnection") {
             ctClass.getMethod("getInputStream", "()Ljava/io/InputStream;").insertCatching(
                 CtBehavior::insertAfter,
                 """

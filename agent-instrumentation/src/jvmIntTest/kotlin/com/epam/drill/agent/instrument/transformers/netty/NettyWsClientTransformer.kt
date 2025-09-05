@@ -19,7 +19,6 @@ import com.epam.drill.agent.instrument.*
 import com.epam.drill.agent.instrument.netty.NettyWsClientTransformerObject
 
 actual object NettyWsClientTransformer:
-    TransformerObject,
-    NettyWsClientTransformerObject(),
+    NettyWsClientTransformerObject(TestAgentParameters),
     HeadersProcessor by TestHeadersProcessor,
     ClassPathProvider by TestClassPathProvider

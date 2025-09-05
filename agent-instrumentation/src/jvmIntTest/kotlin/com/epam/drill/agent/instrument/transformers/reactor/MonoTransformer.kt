@@ -20,6 +20,6 @@ import com.epam.drill.agent.instrument.reactor.transformers.MonoTransformerObjec
 import com.epam.drill.agent.common.request.RequestHolder
 
 object MonoTransformer : TransformerObject,
-    MonoTransformerObject(),
+    MonoTransformerObject(TestAgentParameters),
     RequestHolder by TestRequestHolder,
     ClassPathProvider by TestClassPathProvider

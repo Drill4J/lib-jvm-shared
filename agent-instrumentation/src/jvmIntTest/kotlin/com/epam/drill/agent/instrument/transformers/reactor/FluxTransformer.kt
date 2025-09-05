@@ -20,6 +20,6 @@ import com.epam.drill.agent.instrument.reactor.transformers.FluxTransformerObjec
 import com.epam.drill.agent.common.request.RequestHolder
 
 object FluxTransformer: TransformerObject,
-    FluxTransformerObject(),
+    FluxTransformerObject(TestAgentParameters),
     RequestHolder by TestRequestHolder,
     ClassPathProvider by TestClassPathProvider
