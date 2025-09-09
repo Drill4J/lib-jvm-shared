@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.common.module
 
-import com.epam.drill.agent.common.AgentContext
-import com.epam.drill.agent.common.configuration.AgentConfiguration
-import com.epam.drill.agent.common.transport.AgentMessageSender
+package com.epam.drill.agent.transport
 
-abstract class AgentModule(
-    val id: String,
-    val context: AgentContext,
-    protected val sender: AgentMessageSender,
-    protected val configuration: AgentConfiguration
-) {
-    abstract fun load()
-    open fun onConnect() = Unit
+
+import kotlinx.serialization.KSerializer
+import com.epam.drill.agent.common.transport.AgentMessage
+
+class NoOpAgentMessageSerializer : AgentMessageSerializer {
+    override fun contentType(): String = "noop"
+
+    override fun <T> serialize(message: T, serializer: KSerializer<T>): ByteArray = ByteArray(0)
 }

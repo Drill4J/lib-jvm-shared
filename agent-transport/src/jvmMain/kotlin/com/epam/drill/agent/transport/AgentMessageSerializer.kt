@@ -16,7 +16,7 @@
 package com.epam.drill.agent.transport
 
 import com.epam.drill.agent.common.transport.AgentMessage
-import com.epam.drill.agent.common.transport.AgentMessageDestination
+import kotlinx.serialization.KSerializer
 
 /**
  * A message serializer interface for [AgentMessage] serialization before sending by [AgentMessageTransport].
@@ -29,7 +29,7 @@ import com.epam.drill.agent.common.transport.AgentMessageDestination
  * @see AgentMessageQueue
  * @see AgentMessageTransport
  */
-interface AgentMessageSerializer<T> {
+interface AgentMessageSerializer {
     fun contentType(): String
-    fun serialize(message: T): ByteArray
+    fun <T> serialize(message: T, serializer: KSerializer<T>): ByteArray
 }

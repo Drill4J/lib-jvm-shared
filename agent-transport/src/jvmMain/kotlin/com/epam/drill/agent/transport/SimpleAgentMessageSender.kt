@@ -17,17 +17,18 @@ package com.epam.drill.agent.transport
 
 import com.epam.drill.agent.common.transport.AgentMessageDestination
 import com.epam.drill.agent.common.transport.AgentMessageSender
+import kotlinx.serialization.KSerializer
 
-open class SimpleAgentMessageSender<T>(
+open class SimpleAgentMessageSender(
     private val transport: AgentMessageTransport,
-    private val messageSerializer: AgentMessageSerializer<T>,
+    private val messageSerializer: AgentMessageSerializer,
     private val destinationMapper: AgentMessageDestinationMapper = StubAgentDestinationMapper
-) : AgentMessageSender<T> {
+) : AgentMessageSender {
 
-    override fun send(destination: AgentMessageDestination, message: T) {
+    override fun <T>send(destination: AgentMessageDestination, message: T, serializer: KSerializer<T>) {
         transport.send(
             destinationMapper.map(destination),
-            messageSerializer.serialize(message),
+            messageSerializer.serialize(message, serializer),
             messageSerializer.contentType()
         ).onError {
             error("Failed to send message from $destination, error message: $it")

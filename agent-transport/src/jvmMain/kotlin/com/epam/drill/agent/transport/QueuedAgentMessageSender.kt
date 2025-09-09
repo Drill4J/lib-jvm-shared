@@ -19,6 +19,7 @@ import mu.KotlinLogging
 import com.epam.drill.agent.common.transport.AgentMessage
 import com.epam.drill.agent.common.transport.AgentMessageDestination
 import com.epam.drill.agent.common.transport.AgentMessageSender
+import kotlinx.serialization.KSerializer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -31,16 +32,16 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @see AgentMessageQueue
  * @see AgentMessageTransport
  */
-open class QueuedAgentMessageSender<T : AgentMessage>(
+open class QueuedAgentMessageSender(
     private val transport: AgentMessageTransport,
-    private val messageSerializer: AgentMessageSerializer<T>,
+    private val messageSerializer: AgentMessageSerializer,
     private val destinationMapper: AgentMessageDestinationMapper,
     private val messageQueue: AgentMessageQueue<ByteArray>,
     private val messageSendingListener: MessageSendingListener? = null,
     private val exponentialBackoff: ExponentialBackoff = SimpleExponentialBackoff(),
     maxThreads: Int = 1,
     private val maxRetries: Int = 5
-) : AgentMessageSender<T> {
+) : AgentMessageSender {
     private val logger = KotlinLogging.logger {}
     private val executor: ExecutorService = Executors.newFixedThreadPool(maxThreads)
     private val isRunning = AtomicBoolean(true)
@@ -51,9 +52,9 @@ open class QueuedAgentMessageSender<T : AgentMessage>(
         }
     }
 
-    override fun send(destination: AgentMessageDestination, message: T) {
+    override fun <T>send(destination: AgentMessageDestination, message: T, serializer: KSerializer<T>) {
         val mappedDestination = destinationMapper.map(destination)
-        val serializedMessage = messageSerializer.serialize(message)
+        val serializedMessage = messageSerializer.serialize(message, serializer)
         if (!isRunning.get()) {
             handleUnsent(mappedDestination, serializedMessage, "sender is not running")
             return
