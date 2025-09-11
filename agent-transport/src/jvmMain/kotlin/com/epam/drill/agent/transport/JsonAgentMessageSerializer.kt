@@ -15,16 +15,12 @@
  */
 package com.epam.drill.agent.transport
 
-import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
-import kotlinx.serialization.serializer
 import java.io.ByteArrayOutputStream
-import com.epam.drill.agent.common.transport.AgentMessage
+import kotlinx.serialization.KSerializer
 
-class JsonAgentMessageSerializer<T : AgentMessage>(
-    private val serializer: SerializationStrategy<T>? = null
-) : AgentMessageSerializer<T> {
+class JsonAgentMessageSerializer : AgentMessageSerializer {
 
     private val json = Json {
         encodeDefaults = true
@@ -33,9 +29,8 @@ class JsonAgentMessageSerializer<T : AgentMessage>(
 
     override fun contentType(): String = "application/json"
 
-    @Suppress("HasPlatformType")
-    override fun serialize(message: T) = ByteArrayOutputStream().use {
-        json.encodeToStream(serializer ?: serializer(message.javaClass), message, it)
+    override fun <T> serialize(message: T, serializer: KSerializer<T>): ByteArray = ByteArrayOutputStream().use {
+        json.encodeToStream(serializer, message, it)
         it.toByteArray()
     }
 }

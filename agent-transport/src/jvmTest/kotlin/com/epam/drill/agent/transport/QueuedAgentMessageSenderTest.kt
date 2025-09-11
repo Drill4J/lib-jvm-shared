@@ -21,6 +21,8 @@ import com.epam.drill.agent.common.transport.AgentMessageDestination
 import com.epam.drill.agent.common.transport.ResponseStatus
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
 import org.junit.After
 import org.junit.Before
 import java.lang.Thread.sleep
@@ -31,13 +33,14 @@ import kotlin.test.assertEquals
 
 class QueuedAgentMessageSenderTest {
 
+    @Serializable
     private class TestAgentMessage(val msg: String) : AgentMessage()
 
     @MockK
     private lateinit var messageTransport: AgentMessageTransport
 
     @MockK
-    private lateinit var messageSerializer: AgentMessageSerializer<AgentMessage>
+    private lateinit var messageSerializer: AgentMessageSerializer
 
     @MockK
     private lateinit var destinationMapper: AgentMessageDestinationMapper
@@ -48,7 +51,7 @@ class QueuedAgentMessageSenderTest {
     @MockK
     private lateinit var messageSendingListener: MessageSendingListener
 
-    private lateinit var sender: QueuedAgentMessageSender<AgentMessage>
+    private lateinit var sender: QueuedAgentMessageSender
 
     private val incomingMessage = mutableListOf<TestAgentMessage>()
     private val incomingDestinations = mutableListOf<AgentMessageDestination>()
@@ -85,7 +88,7 @@ class QueuedAgentMessageSenderTest {
         val mapDestination: (AgentMessageDestination) -> AgentMessageDestination = {
             AgentMessageDestination("MAP", "mapped-${it.target}")
         }
-        every { messageSerializer.serialize(capture(incomingMessage)) } answers FunctionAnswer {
+        every { messageSerializer.serialize(capture(incomingMessage), TestAgentMessage.serializer()) } answers FunctionAnswer {
             serialize(it.invocation.args[0] as TestAgentMessage)
         }
         every { messageSerializer.contentType() } returns "test/test"
@@ -125,7 +128,7 @@ class QueuedAgentMessageSenderTest {
         every { messageTransportSending() } returns ResponseStatus(true)
 
         repeat(10) {
-            sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"))
+            sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"), TestAgentMessage.serializer())
         }
 
         verifyMethodCalls(calls = 10, sendingAttempts = 10, enqueued = 10, dequeued = 10, sent = 10, unsent = 0)
@@ -136,7 +139,7 @@ class QueuedAgentMessageSenderTest {
         every { messageTransportSending() } returns ResponseStatus(false)
 
         repeat(10) {
-            sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"))
+            sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"), TestAgentMessage.serializer())
         }
 
         verifyMethodCalls(calls = 10, sendingAttempts = 50, enqueued = 10, dequeued = 10, sent = 0, unsent = 10)
@@ -148,7 +151,7 @@ class QueuedAgentMessageSenderTest {
 
         sender.shutdown() //shutdown before sending messages
         repeat(10) {
-            sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"))
+            sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"), TestAgentMessage.serializer())
         }
 
         verifyMethodCalls(calls = 10, sendingAttempts = 0, enqueued = 0, dequeued = 0, sent = 0, unsent = 10)
@@ -160,7 +163,7 @@ class QueuedAgentMessageSenderTest {
         every { messageQueue.offer(any()) } returns false //queue is full
 
         repeat(10) {
-            sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"))
+            sender.send(AgentMessageDestination("TYPE", "target-$it"), TestAgentMessage("message-$it"), TestAgentMessage.serializer())
         }
 
         verifyMethodCalls(calls = 10, sendingAttempts = 0, enqueued = 0, dequeued = 0, sent = 0, unsent = 10)
@@ -174,7 +177,7 @@ class QueuedAgentMessageSenderTest {
         sent: Int? = null,
         unsent: Int? = null
     ) {
-        calls?.waitFor { verify(exactly = it) { messageSerializer.serialize(any()) } }
+        calls?.waitFor { verify(exactly = it) { messageSerializer.serialize(any(), TestAgentMessage.serializer()) } }
         calls?.waitFor { verify(exactly = it) { destinationMapper.map(any()) } }
         enqueued?.waitFor {
             assertEquals(it, queueOffers.filter { o -> o }.size)

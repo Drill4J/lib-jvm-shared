@@ -15,6 +15,8 @@
  */
 package com.epam.drill.agent.common.transport
 
+import kotlinx.serialization.KSerializer
+
 /**
  * An interface to send [AgentMessage] objects to [AgentMessageDestination].
  * It has [available] property to indicate transport state.
@@ -24,7 +26,7 @@ package com.epam.drill.agent.common.transport
  * @see [AgentMessage]
  * @see [AgentMessageDestination]
  */
-interface AgentMessageSender<T> {
-    fun send(destination: AgentMessageDestination, message: T)
+interface AgentMessageSender {
+    fun <T>send(destination: AgentMessageDestination, message: T, serializer: KSerializer<T>)
     fun shutdown() {}
 }
