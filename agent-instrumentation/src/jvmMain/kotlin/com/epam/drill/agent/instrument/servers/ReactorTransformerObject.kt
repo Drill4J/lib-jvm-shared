@@ -16,8 +16,8 @@
 package com.epam.drill.agent.instrument.servers
 
 import com.epam.drill.agent.common.configuration.AgentConfiguration
-import com.epam.drill.agent.common.configuration.AgentParameters
 import com.epam.drill.agent.instrument.AbstractTransformerObject
+import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_REACTOR_ENABLED
 import javassist.CtClass
 import mu.KotlinLogging
 
@@ -27,6 +27,10 @@ abstract class ReactorTransformerObject(
 ) : AbstractTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
+
+    override fun enabled(): Boolean {
+        return super.enabled() && agentConfiguration.parameters[INSTRUMENTATION_REACTOR_ENABLED]
+    }
 
     override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
         reactorTransformers.any { it.permit(className, null, null) }
