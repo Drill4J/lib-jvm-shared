@@ -79,7 +79,7 @@ class PublisherInterceptor(
             ?: return pipe.apply(target)
 
         //If the test context isn't already in the subscriber context, it needs to be added there.
-        val newContext = if (drillRequest != drillRequestFromContext) {
+        val newContext = if (parentDrillRequest != drillRequestFromContext) {
             context.put(DRILL_CONTEXT_KEY, parentDrillRequest)
         } else context
 
@@ -97,7 +97,7 @@ class PublisherInterceptor(
             }
         )
         return propagateDrillRequest(parentDrillRequest, requestHolder) {
-            logger.trace { "${target.javaClass.simpleName}.${superMethod.name}():${target.hashCode()}, sessionId = ${drillRequest?.drillSessionId}, threadId = ${Thread.currentThread().id}" }
+            logger.trace { "${target.javaClass.simpleName}.${superMethod.name}():${target.hashCode()}, sessionId = ${parentDrillRequest.drillSessionId}, threadId = ${Thread.currentThread().id}" }
             superMethod.invoke(target, subscriberProxy)
         }
     }

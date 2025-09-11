@@ -20,6 +20,6 @@ import com.epam.drill.agent.instrument.reactor.transformers.TaskExecutorTransfor
 import com.epam.drill.agent.common.request.RequestHolder
 
 object TaskExecutorTransformer: TransformerObject,
-    TaskExecutorTransformerObject(),
+    TaskExecutorTransformerObject(TestAgentParameters),
     RequestHolder by TestRequestHolder,
     ClassPathProvider by TestClassPathProvider

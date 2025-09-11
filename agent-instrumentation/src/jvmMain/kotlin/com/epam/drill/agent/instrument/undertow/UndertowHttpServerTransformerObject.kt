@@ -15,9 +15,13 @@
  */
 package com.epam.drill.agent.instrument.undertow
 
+import com.epam.drill.agent.common.configuration.AgentConfiguration
+import com.epam.drill.agent.common.configuration.AgentParameters
 import com.epam.drill.agent.instrument.AbstractTransformerObject
 import com.epam.drill.agent.instrument.HeadersProcessor
 import com.epam.drill.agent.common.request.HeadersRetriever
+import com.epam.drill.agent.instrument.UNDERTOW_SERVER_CONNECTORS
+import com.epam.drill.agent.instrument.http.AbstractHttpTransformerObject
 import javassist.CtBehavior
 import javassist.CtClass
 import mu.KotlinLogging
@@ -29,13 +33,14 @@ import mu.KotlinLogging
  *      io.undertow:undertow-core:2.0.29.Final
  */
 abstract class UndertowHttpServerTransformerObject(
-    private val headersRetriever: HeadersRetriever
-) : HeadersProcessor, AbstractTransformerObject() {
+    private val headersRetriever: HeadersRetriever,
+    agentConfiguration: AgentConfiguration
+) : HeadersProcessor, AbstractHttpTransformerObject(agentConfiguration) {
 
     override val logger = KotlinLogging.logger {}
 
-    override fun permit(className: String?, superName: String?, interfaces: Array<String?>) =
-        "io/undertow/server/Connectors" == className
+    override fun permit(className: String, superName: String?, interfaces: Array<String?>) =
+        UNDERTOW_SERVER_CONNECTORS == className
 
     override fun transform(className: String, ctClass: CtClass) {
         val adminHeader = headersRetriever.adminAddressHeader()

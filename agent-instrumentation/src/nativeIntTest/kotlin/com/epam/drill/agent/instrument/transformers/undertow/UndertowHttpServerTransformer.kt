@@ -15,7 +15,7 @@
  */
 package com.epam.drill.agent.instrument.transformers.undertow
 
-import com.epam.drill.agent.instrument.AbstractTransformerObject
+import com.epam.drill.agent.instrument.JvmTransformerObject
 import com.epam.drill.agent.instrument.TransformerObject
 
-actual object UndertowHttpServerTransformer : TransformerObject, AbstractTransformerObject()
+actual object UndertowHttpServerTransformer : TransformerObject, JvmTransformerObject()

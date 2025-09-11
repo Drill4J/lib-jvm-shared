@@ -32,7 +32,7 @@ import kotlin.collections.set
 actual class DefaultAgentParameters actual constructor(
     private val inputParameters: Map<String, String>
 ) : AgentParameters {
-    private val logger = KotlinLogging.logger {}
+    private val logger = KotlinLogging.logger("com.epam.drill.agent.configuration.DefaultAgentParameters")
     private val definedParameters = AtomicReference(mapOf<String, Any?>())
     private val parameterDefinitions = AtomicReference(mapOf<String, BaseAgentParameterDefinition<*>>())
     private val validationErrors = AtomicReference(mapOf<String, ValidationError<*>>())
@@ -118,7 +118,6 @@ actual class DefaultAgentParameters actual constructor(
             }
 
             is Valid -> {
-                logger.debug { "Validation passed for parameter '${definition.name}'" }
                 return value
             }
         }

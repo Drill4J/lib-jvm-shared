@@ -29,7 +29,8 @@ actual object ReactorTransformer :
     ReactorTransformerObject(
         setOf(
             FluxTransformer, MonoTransformer, ParallelFluxTransformer, SchedulersTransformer, TaskExecutorTransformer
-        )
+        ),
+        TestAgentParameters
     ),
     RequestHolder by TestRequestHolder,
     ClassPathProvider by TestClassPathProvider

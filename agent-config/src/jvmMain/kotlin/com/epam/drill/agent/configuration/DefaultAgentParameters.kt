@@ -110,7 +110,6 @@ actual class DefaultAgentParameters actual constructor(
             }
 
             is Valid -> {
-                logger.debug { "Validation passed for parameter '${definition.name}'" }
                 return value
             }
         }

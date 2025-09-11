@@ -20,3 +20,10 @@ const val KAFKA_CONSUMER_SPRING = "org/springframework/kafka/listener/KafkaMessa
 
 const val CADENCE_PRODUCER =  "com/uber/cadence/internal/sync/WorkflowStubImpl"
 const val CADENCE_CONSUMER = "com/uber/cadence/internal/sync/WorkflowRunnable"
+
+const val TOMCAT_HTTP_FILTER = "org/apache/catalina/core/ApplicationFilterChain"
+const val JETTY_SERVER_HANDLER =  "org/eclipse/jetty/server/handler/HandlerWrapper"
+const val UNDERTOW_SERVER_CONNECTORS = "io/undertow/server/Connectors"
+const val NETTY_CHANNEL_HANDLER_CONTEXT = "io/netty/channel/AbstractChannelHandlerContext"
+
+const val SSL_ENGINE_CLASS_NAME = "javax/net/ssl/SSLEngine"
