@@ -37,6 +37,7 @@ actual object DrillRequestHolder : RequestHolder {
         threadStorage.get()
 
     actual override fun store(drillRequest: DrillRequest) {
+        remove()
         threadStorage.set(drillRequest)
         DrillRequestProcessor.processServerRequest()
         logger.trace { "store: Request ${drillRequest.drillSessionId} saved, threadId = ${Thread.currentThread().id}" }
