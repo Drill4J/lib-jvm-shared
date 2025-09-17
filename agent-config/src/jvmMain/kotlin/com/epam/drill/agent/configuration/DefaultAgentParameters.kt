@@ -80,6 +80,9 @@ actual class DefaultAgentParameters actual constructor(
                 ?.let { softValidate(it, def, errors) }
                 ?: (def as? AgentParameterDefinition)?.defaultValue)
                 .let { strictValidate(it, def, errors) }
+            errors.firstOrNull { it.definition.name == def.name }?.also {
+                validationErrors[def.name] = it
+            } ?: validationErrors.remove(def.name)
         }
         return errors
     }

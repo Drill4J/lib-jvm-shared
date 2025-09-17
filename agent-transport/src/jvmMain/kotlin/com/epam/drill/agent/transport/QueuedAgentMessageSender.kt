@@ -137,6 +137,7 @@ open class QueuedAgentMessageSender(
      * Last attempt to send unsent messages, and register them as unsent if unsuccessful
      */
     private fun unloadQueue(reason: String) {
+        if (messageQueue.size() == 0) return
         logger.info { "Unloading a message queue as $reason, queue size: ${messageQueue.size()}" }
         do {
             val message = messageQueue.poll()?.also { (destination, message) ->

@@ -85,6 +85,9 @@ actual class DefaultAgentParameters actual constructor(
                 ?.let { softValidate(it, def, errors) }
                 ?: (def as? AgentParameterDefinition)?.defaultValue)
                 .let { strictValidate(it, def, errors) }
+            errors.firstOrNull { it.definition.name == def.name }?.also {
+                updatedValidationErrors[def.name] = it
+            } ?: updatedValidationErrors.remove(def.name)
         }
         parameterDefinitions.value = updatedDefinitions.freeze()
         definedParameters.value = updatedParameters.freeze()
@@ -112,7 +115,9 @@ actual class DefaultAgentParameters actual constructor(
         val result = safeValidate(value, definition.validator)
         when (result) {
             is Invalid -> {
-                errors.add(ValidationError(definition, result.errors.map { it.message }))
+                val error = ValidationError(definition, result.errors.map { it.message })
+                validationErrors.value
+                errors.add(error)
                 logger.debug { "Validation failed for parameter '${definition.name}': ${result.errors.map { it.message }}" }
                 return null
             }
