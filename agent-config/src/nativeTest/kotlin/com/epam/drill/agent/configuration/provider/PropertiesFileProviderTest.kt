@@ -55,6 +55,59 @@ class PropertiesFileProviderTest {
     }
 
     @Test
+    fun `parse multiline properties`() {
+        val result = PropertiesFileProvider(emptySet()).parseLines("""
+            foo1=fiz\
+            buz
+        """.trimIndent())
+        assertEquals(1, result.size)
+        assertEquals("fizbuz", result["foo1"])
+    }
+
+    @Test
+    fun `parse multiline properties - with spaces around backslash`() {
+        val result = PropertiesFileProvider(emptySet()).parseLines("""
+            foo1=fiz \ 
+            buz    \
+            fuz
+        """.trimIndent())
+        assertEquals(1, result.size)
+        assertEquals("fizbuzfuz", result["foo1"])
+    }
+
+    @Test
+    fun `parse multiline properties - with other properties around`() {
+        val result = PropertiesFileProvider(emptySet()).parseLines("""
+            foo0=bar0
+            
+            foo1=fiz\ 
+            buz\
+            fuz
+            
+            foo2=bar2
+        """.trimIndent())
+        assertEquals(3, result.size)
+        assertEquals("bar0", result["foo0"])
+        assertEquals("fizbuzfuz", result["foo1"])
+        assertEquals("bar2", result["foo2"])
+    }
+
+
+    @Test
+    fun `parse lines with comments containing backslashes`() {
+        val result = PropertiesFileProvider(emptySet()).parseLines("""
+            foo1=bar1 # \must not break parsing
+            foo2=bar2
+            # \ not this as well
+            foo3=bar3            
+        """)
+        assertEquals(3, result.size)
+        assertEquals("bar1", result["foo1"])
+        assertEquals("bar2", result["foo2"])
+        assertEquals("bar3", result["foo3"])
+    }
+
+    @Test
     fun `config path default`() {
         val result = PropertiesFileProvider(emptySet()).configPath()
         assertEquals(".${separator}drill.properties", result)

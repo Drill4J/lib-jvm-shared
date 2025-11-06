@@ -47,10 +47,20 @@ class PropertiesFileProvider(
         Input(file).readText().also { close(file) }
     }
 
-    internal fun parseLines(text: String) = text.lines()
-        .map(String::trim)
-        .filter { it.isNotEmpty() && !it.startsWith("#") }
-        .associate { it.substringBefore("=") to it.substringAfter("=", "") }
+    internal fun parseLines(text: String): Map<String, String> {
+        return text
+            // normalize line endings
+            .replace("\r\n", "\n").replace("\r", "\n")
+            // remove comments
+            .replace(Regex("#.+(?=\n)"), "")
+            // compact multiline values into single lines
+            // regex matches backslash at the end of line surrounded by any number of whitespaces
+            .replace(Regex("""\s*\\\s*\n"""), "")
+            .lines()
+            .map(String::trim)
+            .filter { it.isNotEmpty() }
+            .associate { it.substringBefore("=") to it.substringAfter("=", "") }
+    }
 
     internal fun configPath() = fromProviders()
         ?: fromInstallationDir()
