@@ -15,13 +15,10 @@
  */
 package com.epam.drill.agent.configuration.provider
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import com.epam.drill.agent.configuration.AgentConfigurationProvider
 import com.epam.drill.agent.configuration.DefaultParameterDefinitions
 import kotlin.experimental.ExperimentalNativeApi
+import kotlin.test.*
 
 class PropertiesFileProviderTest {
 
@@ -92,19 +89,75 @@ class PropertiesFileProviderTest {
         assertEquals("bar2", result["foo2"])
     }
 
+    // Ignored - we indent around multiline values does break parsers for now
+    @Test @Ignore
+    fun `parse multiline properties - with indent around values`() {
+        val result = PropertiesFileProvider(emptySet()).parseLines("""
+            foo0=bar0
+
+            foo1=fiz\ 
+            buz\
+            fuz
+
+            foo2=bar2
+        """)
+        assertEquals(3, result.size)
+        assertEquals("bar0", result["foo0"])
+        assertEquals("fizbuzfuz", result["foo1"])
+        assertEquals("bar2", result["foo2"])
+    }
 
     @Test
     fun `parse lines with comments containing backslashes`() {
         val result = PropertiesFileProvider(emptySet()).parseLines("""
-            foo1=bar1 # \must not break parsing
+            foo1=bar1
             foo2=bar2
-            # \ not this as well
+            # \ must not break parsing
             foo3=bar3            
         """)
-        assertEquals(3, result.size)
         assertEquals("bar1", result["foo1"])
         assertEquals("bar2", result["foo2"])
         assertEquals("bar3", result["foo3"])
+        assertEquals(3, result.size)
+    }
+
+    @Test
+    fun `hash symbol at the beginning of the line is a comment`() {
+        val result = PropertiesFileProvider(emptySet()).parseLines("""
+            # this is a comment
+            foo1=bar1
+        """)
+        assertEquals("bar1", result["foo1"])
+        assertEquals(1, result.size)
+    }
+
+    @Test
+    fun `hash symbol after = must be treated as part of a value`() {
+        val result = PropertiesFileProvider(emptySet()).parseLines("""
+            foo1=bar1#baz
+        """)
+        assertEquals("bar1#baz", result["foo1"])
+        assertEquals(1, result.size)
+    }
+
+//     TODO for now we allow hash symbol in a property name, it does not break the parsing
+//      there might be some edge cases to that
+    @Test @Ignore
+    fun `unescaped hash symbol is illegal in a property name`() {
+        assertFailsWith<IllegalArgumentException> {
+            PropertiesFileProvider(emptySet()).parseLines("""
+            foo1#bar=baz
+        """)
+        }
+    }
+
+    @Test @Ignore
+    fun `escaped hash symbol is allowed in a property name`() {
+        val result = PropertiesFileProvider(emptySet()).parseLines("""
+            foo1\#bar=baz
+        """)
+        assertEquals("baz", result["foo1bar"])
+        assertEquals(1, result.size)
     }
 
     @Test

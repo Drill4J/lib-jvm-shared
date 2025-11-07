@@ -51,15 +51,17 @@ class PropertiesFileProvider(
         return text
             // normalize line endings
             .replace("\r\n", "\n").replace("\r", "\n")
-            // remove comments
-            .replace(Regex("#.+(?=\n)"), "")
-            // compact multiline values into single lines
+            // remove comment lines
+            .replace(Regex("""(?<=\n)\s*#.*\n"""), "")
+            .also { println("!$it!") }
+            // compact multiline values into corresponding single lines
             // regex matches backslash at the end of line surrounded by any number of whitespaces
             .replace(Regex("""\s*\\\s*\n"""), "")
             .lines()
             .map(String::trim)
             .filter { it.isNotEmpty() }
             .associate { it.substringBefore("=") to it.substringAfter("=", "") }
+            .also { println(it) }
     }
 
     internal fun configPath() = fromProviders()
