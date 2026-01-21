@@ -77,7 +77,6 @@ data class AstMethod(
 
 @Serializable
 data class MethodCoverage(
-    val classname: String,
     val signature: String,
     val testId: String?,
     val testSessionId: String?,
@@ -91,7 +90,6 @@ data class MethodCoverage(
 
         other as MethodCoverage
 
-        if (classname != other.classname) return false
         if (signature != other.signature) return false
         if (probes != other.probes) return false
         if (testId != other.testId) return false
@@ -103,8 +101,8 @@ data class MethodCoverage(
     // Calculating hashcode value without probes.
     // We need to update ExeclassData instead of storing a new one.
     override fun hashCode(): Int {
-        var result = classname.hashCode()
-        result = 31 * result + signature.hashCode() + testId.hashCode() + testSessionId.hashCode()
+        var result = signature.hashCode()
+        result = 31 * result + testId.hashCode() + testSessionId.hashCode()
         return result
     }
 }
