@@ -24,5 +24,7 @@ data class CoveragePayload(
     val groupId: String,
     val appId: String,
     val instanceId: String,
+    val commitSha: String?,
+    val buildVersion: String?,
     val coverage: List<MethodCoverage>
 ): AgentMessage()
