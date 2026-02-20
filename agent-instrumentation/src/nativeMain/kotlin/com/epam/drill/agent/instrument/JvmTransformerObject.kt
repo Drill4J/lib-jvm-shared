@@ -77,4 +77,25 @@ abstract class JvmTransformerObject : TransformerObject {
             ).toByte().toBoolean()
         }
 
+    @OptIn(ExperimentalForeignApi::class)
+    @Suppress("unchecked_cast")
+    override fun checkAndTransform(
+        className: String,
+        classFileBuffer: ByteArray,
+        loader: Any?,
+        protectionDomain: Any?
+    ): ByteArray = getObjectMethod(
+        this::class,
+        this::checkAndTransform.name,
+        "(Ljava/lang/String;[BLjava/lang/Object;Ljava/lang/Object;)[B"
+    ).run {
+        CallObjectMethod(
+            this.first,
+            this.second,
+            NewStringUTF(className),
+            toJByteArray(classFileBuffer),
+            loader as jobject?,
+            protectionDomain as jobject?
+        )!!.let(::toByteArray)
+    }
 }

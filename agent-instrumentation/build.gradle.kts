@@ -34,6 +34,7 @@ val kotlinxCollectionsVersion: String by parent!!.extra
 val microutilsLoggingVersion: String by parent!!.extra
 val atomicfuVersion: String by parent!!.extra
 val ktorVersion: String by parent!!.extra
+val asmVersion: String by parent!!.extra
 
 repositories {
     mavenCentral()
@@ -89,6 +90,7 @@ kotlin {
                 implementation("org.javassist:javassist:$javassistVersion")
                 implementation(project(":transmittable-thread-local"))
                 implementation("net.bytebuddy:byte-buddy:$bytebuddyVersion")
+                implementation("org.ow2.asm:asm:${asmVersion}")
             }
         }
         val jvmIntTest by getting {
@@ -129,7 +131,6 @@ kotlin {
             dependencies {
                 implementation("io.ktor:ktor-utils:$ktorVersion")
                 implementation(project(":logging"))
-                implementation(project(":knasm"))
             }
         }
         val mingwX64Main by getting(configuration = configureNativeMainDependencies)

@@ -23,6 +23,7 @@ import javassist.CtBehavior
 import javassist.CtClass
 import javassist.LoaderClassPath
 import mu.KLogger
+import org.objectweb.asm.ClassReader
 
 abstract class AbstractTransformerObject(protected val agentConfiguration: AgentConfiguration) : TransformerObject, ClassPathProvider {
 
@@ -60,6 +61,21 @@ abstract class AbstractTransformerObject(protected val agentConfiguration: Agent
     }
 
     abstract fun transform(className: String, ctClass: CtClass)
+
+    override fun checkAndTransform(
+        className: String,
+        classFileBuffer: ByteArray,
+        loader: Any?,
+        protectionDomain: Any?
+    ): ByteArray {
+        val (oldClassBytes, reader) = runCatching {
+            classFileBuffer to ClassReader(classFileBuffer)
+        }.onFailure {
+            logger.error(it) { "Can't read class: $classFileBuffer" }
+        }.getOrNull() ?: return classFileBuffer
+        permit(className, reader.superName, reader.interfaces.joinToString(";")) || return oldClassBytes
+        return transform(className, oldClassBytes, loader, protectionDomain)
+    }
 
     open fun logInjectingHeaders(headers: Map<String, String>) =
         logger.trace { "logInjectingHeaders: Adding headers: $headers" }

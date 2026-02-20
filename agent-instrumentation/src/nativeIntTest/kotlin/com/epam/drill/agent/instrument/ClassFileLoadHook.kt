@@ -16,7 +16,6 @@
 package com.epam.drill.agent.instrument
 
 import kotlinx.cinterop.*
-import org.objectweb.asm.ClassReader
 import io.ktor.utils.io.bits.Memory
 import io.ktor.utils.io.bits.loadByteArray
 import io.ktor.utils.io.bits.of
@@ -77,12 +76,10 @@ object ClassFileLoadHook {
         val classBytes = ByteArray(classDataLen).also {
             Memory.of(classData, classDataLen).loadByteArray(0, it)
         }
-        val classReader = ClassReader(classBytes)
+
         var transformedBytes = classBytes
         clientTransformers.forEach {
-            if (it.permit(className, classReader.superName, classReader.interfaces)) {
-                transformedBytes = it.transform(className, transformedBytes, loader, protectionDomain)
-            }
+            transformedBytes = it.checkAndTransform(className, transformedBytes, loader, protectionDomain)
         }
         if (!transformedBytes.contentEquals(classBytes)) {
             convertToNativePointers(transformedBytes, newData, newDataLen)
