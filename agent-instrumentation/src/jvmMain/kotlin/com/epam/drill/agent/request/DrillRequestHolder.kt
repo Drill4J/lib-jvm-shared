@@ -27,10 +27,11 @@ actual object DrillRequestHolder : RequestHolder {
     private var threadStorage: ThreadLocal<DrillRequest> = TransmittableThreadLocal.withInitial(DrillInitialContext::getDrillRequest)
 
     actual override fun remove() {
-        if (threadStorage.get() == null) return
+        val request = threadStorage.get()
+        if (request == null) return
         DrillRequestProcessor.processServerResponse()
         threadStorage.remove()
-        logger.trace { "remove: Request ${threadStorage.get().drillSessionId} removed, threadId = ${Thread.currentThread().id}" }
+        logger.trace { "remove: Request ${request.drillSessionId} removed, threadId = ${Thread.currentThread().id}" }
     }
 
     actual override fun retrieve(): DrillRequest? =

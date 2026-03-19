@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.drill.agent.instrument.http
+package com.epam.drill.agent.instrument
 
 import com.epam.drill.agent.common.configuration.AgentConfiguration
-import com.epam.drill.agent.common.configuration.AgentParameters
-import com.epam.drill.agent.instrument.AbstractPropagationTransformer
-import com.epam.drill.agent.instrument.AbstractTransformerObject
-import com.epam.drill.agent.instrument.HeadersProcessor
-import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.INSTRUMENTATION_HTTP_ENABLED
+import com.epam.drill.agent.instrument.InstrumentationParameterDefinitions.CONTEXT_PROPAGATION_ENABLED
 
-abstract class AbstractHttpTransformerObject(
+abstract class AbstractPropagationTransformer(
     agentConfiguration: AgentConfiguration
-) : HeadersProcessor, AbstractPropagationTransformer(agentConfiguration) {
-    override fun enabled(): Boolean = super.enabled() && agentConfiguration.parameters[INSTRUMENTATION_HTTP_ENABLED]
+) : AbstractTransformerObject(agentConfiguration) {
+    override fun enabled(): Boolean {
+        return super.enabled() && agentConfiguration.parameters[CONTEXT_PROPAGATION_ENABLED]
+    }
 }

@@ -20,6 +20,11 @@ import com.epam.drill.agent.common.configuration.AgentParameterDefinitionCollect
  */
 object InstrumentationParameterDefinitions: AgentParameterDefinitionCollection() {
     val INSTRUMENTATION_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationEnabled", defaultValue = true).register()
+    val CONTEXT_PROPAGATION_ENABLED = AgentParameterDefinition.forBoolean(
+        name = "contextPropagationEnabled",
+        description = "Enable/disable context propagation",
+        defaultValue = true
+    ).register()
     val INSTRUMENTATION_COMPATIBILITY_TESTS_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationCompatibilityTestsEnabled", defaultValue = false).register()
 
     //Async frameworks
@@ -42,4 +47,12 @@ object InstrumentationParameterDefinitions: AgentParameterDefinitionCollection()
     val INSTRUMENTATION_APACHE_HTTP_CLIENT_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationApacheHttpClientEnabled", defaultValue = true).register()
     val INSTRUMENTATION_OK_HTTP_CLIENT_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationOkHttpClientEnabled", defaultValue = true).register()
     val INSTRUMENTATION_SPRING_WEB_CLIENT_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationSpringWebClientEnabled", defaultValue = true).register()
+
+    //Test Frameworks
+    val INSTRUMENTATION_JUNIT_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationJUnitEnabled", defaultValue = true).register()
+    val INSTRUMENTATION_TESTNG_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationTestNGEnabled", defaultValue = true).register()
+    val INSTRUMENTATION_CUCUMBER_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationCucumberEnabled", defaultValue = true).register()
+    val INSTRUMENTATION_SELENIUM_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationSeleniumEnabled", defaultValue = true).register()
+    val INSTRUMENTATION_JMETER_ENABLED = AgentParameterDefinition.forBoolean(name = "instrumentationJMeterEnabled", defaultValue = true).register()
+
 }

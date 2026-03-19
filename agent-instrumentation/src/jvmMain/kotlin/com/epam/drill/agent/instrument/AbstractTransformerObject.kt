@@ -23,8 +23,11 @@ import javassist.CtBehavior
 import javassist.CtClass
 import javassist.LoaderClassPath
 import mu.KLogger
+import java.security.ProtectionDomain
 
-abstract class AbstractTransformerObject(protected val agentConfiguration: AgentConfiguration) : TransformerObject, ClassPathProvider {
+abstract class AbstractTransformerObject(protected val agentConfiguration: AgentConfiguration) :
+    TransformerObject,
+    ClassPathProvider {
 
     protected abstract val logger: KLogger
 
@@ -48,7 +51,7 @@ abstract class AbstractTransformerObject(protected val agentConfiguration: Agent
                 logger.error(e) { "transform: Error during instrumenting, class=${it.name}" }
             }
             val transform: (CtClass) -> Unit = { ctClass ->
-                transform(className, ctClass)
+                transform(className, ctClass, this, classLoader as? ClassLoader, protectionDomain as? ProtectionDomain)
             }
             it.defrost()
             it.runCatching(transform).onFailure(logError)
@@ -57,6 +60,16 @@ abstract class AbstractTransformerObject(protected val agentConfiguration: Agent
     }
 
     abstract fun transform(className: String, ctClass: CtClass)
+
+    open fun transform(
+        className: String,
+        ctClass: CtClass,
+        pool: ClassPool,
+        classLoader: ClassLoader?,
+        protectionDomain: ProtectionDomain?
+    ) {
+        transform(className, ctClass)
+    }
 
     open fun logInjectingHeaders(headers: Map<String, String>) =
         logger.trace { "logInjectingHeaders: Adding headers: $headers" }
